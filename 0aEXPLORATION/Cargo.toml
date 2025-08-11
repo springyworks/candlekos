@@ -1,0 +1,44 @@
+[package]
+name = "candle-exploration"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+candle-core = { path = "../candle-core" }
+candle-nn = { path = "../candle-nn" }
+candle-transformers = { path = "../candle-transformers" }
+fastrand = "2.0"
+imageproc = "0.25"
+
+[features]
+default = []
+cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
+cudnn = ["candle-core/cudnn", "candle-nn/cudnn", "candle-transformers/cudnn"]
+
+[[bin]]
+name = "code_overview"
+path = "code_overview.rs"
+
+[[bin]]
+name = "test_5d_tensors"
+path = "test_5d_tensors.rs"
+
+[[bin]]
+name = "test_higher_dims"
+path = "test_higher_dims.rs"
+
+[[bin]]
+name = "test_custom_types"
+path = "test_custom_types.rs"
+
+[[bin]]
+name = "compound_data_examples"
+path = "compound_data_examples.rs"
+
+[[bin]]
+name = "realtime_yolo"
+path = "realtime_yolo.rs"
+
+[[bin]]
+name = "video_processor"
+path = "video_processor.rs"

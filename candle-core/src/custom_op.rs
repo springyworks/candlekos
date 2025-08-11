@@ -1,6 +1,10 @@
 use crate::op::{BackpropOp, Op};
 use crate::tensor::from_storage;
 use crate::{CpuStorage, CudaStorage, Layout, MetalStorage, Result, Shape, Tensor};
+#[cfg(feature = "cuda")]
+use crate::cuda_backend::CudaStorageSlice;
+#[cfg(feature = "cuda")]
+use crate::backend::BackendStorage;
 use std::sync::Arc;
 
 /// Unary ops that can be defined in user-land.
@@ -148,6 +152,33 @@ pub trait CustomOp3 {
         _grad_res: &Tensor,
     ) -> Result<(Option<Tensor>, Option<Tensor>, Option<Tensor>)> {
         Err(crate::Error::BackwardNotSupported { op: self.name() })
+    }
+}
+
+#[cfg(feature = "cuda")]
+impl CustomOp1 for crate::cuda_backend::ScanDim {
+    fn name(&self) -> &'static str { if self.inclusive { "inclusive-scan" } else { "exclusive-scan" } }
+
+    fn cpu_fwd(&self, _storage: &CpuStorage, _layout: &Layout) -> Result<(CpuStorage, Shape)> {
+        Err(crate::Error::Cuda("scan cpu path not implemented (no implicit fallback)".into()))
+    }
+
+    fn cuda_fwd(&self, storage: &CudaStorage, layout: &Layout) -> Result<(CudaStorage, Shape)> {
+        use crate::cuda_backend::CudaDType; // for typed access
+        let shape = layout.shape().clone();
+        macro_rules! run_t {
+            ($ty:ty) => {{
+                let slice = storage.as_cuda_slice::<$ty>()?;
+                let out = self.cuda_run::<$ty>(slice, &storage.device, layout)?;
+                let out_storage = CudaStorage::wrap_cuda_slice(out, storage.device.clone());
+                return Ok((out_storage, shape));
+            }};
+        }
+    match storage.slice {
+            CudaStorageSlice::F32(_) => run_t!(f32),
+            CudaStorageSlice::F64(_) => run_t!(f64),
+            _ => Err(crate::Error::UnsupportedDTypeForOp(storage.dtype(), self.name()).bt()),
+        }
     }
 }
 

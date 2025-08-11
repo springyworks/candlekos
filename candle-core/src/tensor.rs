@@ -2638,6 +2638,20 @@ impl Tensor {
         if rank == 0 {
             return Ok(self.clone());
         }
+        
+        // Use optimized CUDA scan implementation when available
+        #[cfg(feature = "cuda")]
+        if let Device::Cuda(_) = self.device() {
+            // Ensure the tensor is contiguous for scan operation
+            let contiguous_tensor = if self.is_contiguous() {
+                self.clone()
+            } else {
+                self.contiguous()?
+            };
+            return contiguous_tensor.apply_op1(crate::cuda_backend::ScanDim { dim, inclusive: true });
+        }
+        
+        // Fallback to matrix multiplication approach
         let n_axis = self.dim(dim)?;
         let triu = Tensor::triu2(n_axis, self.dtype(), self.device())?;
         if rank == 1 {
@@ -2648,6 +2662,35 @@ impl Tensor {
             let t = t.broadcast_matmul(&triu)?;
             t.transpose(dim, last)
         }
+    }
+
+    /// Inclusive prefix scan (same as cumsum) along a dimension, using CUDA work-efficient scan when available.
+    pub fn inclusive_scan<D: Dim>(&self, dim: D) -> Result<Self> {
+        let dim = dim.to_index(self.shape(), "inclusive-scan")?;
+        #[cfg(feature = "cuda")]
+        if let Device::Cuda(_) = self.device() {
+            if self.rank() > 0 {
+                return self.apply_op1(crate::cuda_backend::ScanDim { dim, inclusive: true });
+            }
+        }
+        self.cumsum(dim)
+    }
+
+    /// Exclusive prefix scan along a dimension, shifting inclusive results right with a zero seed.
+    pub fn exclusive_scan<D: Dim>(&self, dim: D) -> Result<Self> {
+        let dim = dim.to_index(self.shape(), "exclusive-scan")?;
+        if self.rank() == 0 { return Ok(self.clone()); }
+        #[cfg(feature = "cuda")]
+        if let Device::Cuda(_) = self.device() {
+            let out = self.apply_op1(crate::cuda_backend::ScanDim { dim, inclusive: false })?;
+            return Ok(out);
+        }
+        let inc = self.cumsum(dim)?;
+        let mut shape = self.shape().dims().to_vec();
+        shape[dim] = 1;
+        let zeros = Tensor::zeros(shape.as_slice(), self.dtype(), self.device())?;
+        let tail = inc.narrow(dim, 0, inc.dim(dim)? - 1)?;
+        Tensor::cat(&[&zeros, &tail], dim)
     }
 
     /// Returns a copy of `self` where the values within `ranges` have been replaced with the

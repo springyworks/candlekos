@@ -1,7 +1,6 @@
 // CPU FFT implementation using Intel MKL DFT or pure Rust fallback
-use crate::{CpuStorage, Result, WithDType};
+use crate::{Result};
 use crate::layout::Layout;
-use crate::shape::Shape;
 
 /// FFT configuration for CPU operations
 #[derive(Debug, Clone, Copy)]
@@ -22,6 +21,7 @@ impl Default for CpuFftConfig {
 }
 
 /// CPU FFT operation implementation
+#[derive(Debug, Clone, Copy)]
 pub struct CpuFft {
     pub config: CpuFftConfig,
     pub dim: usize, // dimension along which to perform FFT
@@ -179,68 +179,71 @@ impl CpuFft {
 
     #[cfg(not(feature = "mkl"))]
     fn fft_rust_f32(&self, input: &[f32], layout: &Layout, n: usize) -> Result<Vec<f32>> {
-        // Pure Rust FFT implementation using RustFFT
-        use rustfft::{FftPlanner, num_complex::Complex};
-        
-        let mut planner = FftPlanner::new();
-        let fft = if self.config.forward {
-            planner.plan_fft_forward(n)
-        } else {
-            planner.plan_fft_inverse(n)
-        };
-
-        let total_size = layout.shape().elem_count();
-        let batch_size = total_size / n;
-        
-        let mut output = if self.config.real_input {
-            // For real input, convert to complex and perform C2C FFT
-            Vec::with_capacity(total_size * 2)
-        } else {
-            Vec::with_capacity(total_size * 2)
-        };
-
-        for batch in 0..batch_size {
-            let start_idx = batch * n;
-            let end_idx = start_idx + n;
+        #[cfg(feature = "fft")]
+        {
+            // Pure Rust FFT implementation using RustFFT
+            use rustfft::{FftPlanner, num_complex::Complex};
             
-            // Convert input to complex numbers
-            let mut buffer: Vec<Complex<f32>> = if self.config.real_input {
-                input[start_idx..end_idx]
-                    .iter()
-                    .map(|&x| Complex::new(x, 0.0))
-                    .collect()
+            let mut planner = FftPlanner::new();
+            let fft = if self.config.forward {
+                planner.plan_fft_forward(n)
             } else {
-                // Assume input is interleaved real/imaginary
-                input[start_idx * 2..end_idx * 2]
-                    .chunks_exact(2)
-                    .map(|chunk| Complex::new(chunk[0], chunk[1]))
-                    .collect()
+                planner.plan_fft_inverse(n)
             };
 
-            // Perform FFT
-            fft.process(&mut buffer);
+            let total_size = layout.shape().elem_count();
+            let batch_size = total_size / n;
+            
+            let mut output = Vec::with_capacity(total_size * 2);
 
-            // Apply normalization if requested
-            if self.config.normalized {
-                let norm_factor = if self.config.forward {
-                    1.0 / (n as f32).sqrt()
-                } else {
-                    1.0 / (n as f32).sqrt()
-                };
+            for batch in 0..batch_size {
+                let start_idx = batch * n;
+                let end_idx = start_idx + n;
                 
-                for val in buffer.iter_mut() {
-                    *val *= norm_factor;
+                // Convert input to complex numbers
+                let mut buffer: Vec<Complex<f32>> = if self.config.real_input {
+                    input[start_idx..end_idx]
+                        .iter()
+                        .map(|&x| Complex::new(x, 0.0))
+                        .collect()
+                } else {
+                    // Assume input is interleaved real/imaginary
+                    input[start_idx * 2..end_idx * 2]
+                        .chunks_exact(2)
+                        .map(|chunk| Complex::new(chunk[0], chunk[1]))
+                        .collect()
+                };
+
+                // Perform FFT
+                fft.process(&mut buffer);
+
+                // Apply normalization if requested
+                if self.config.normalized {
+                    let norm_factor = if self.config.forward {
+                        1.0 / (n as f32).sqrt()
+                    } else {
+                        1.0 / (n as f32).sqrt()
+                    };
+                    
+                    for val in buffer.iter_mut() {
+                        *val *= norm_factor;
+                    }
+                }
+
+                // Convert back to interleaved format
+                for complex_val in buffer {
+                    output.push(complex_val.re);
+                    output.push(complex_val.im);
                 }
             }
 
-            // Convert back to interleaved format
-            for complex_val in buffer {
-                output.push(complex_val.re);
-                output.push(complex_val.im);
-            }
+            Ok(output)
         }
-
-        Ok(output)
+        
+        #[cfg(not(feature = "fft"))]
+        {
+            Err(crate::Error::Msg("FFT not available. Enable 'fft' feature for RustFFT fallback".to_string()).bt())
+        }
     }
 
     /// Execute real-to-complex FFT
@@ -276,9 +279,109 @@ impl CpuFft {
     }
 }
 
-// Add rustfft dependency for pure Rust fallback
-#[cfg(not(feature = "mkl"))]
-mod rustfft_dep {
-    // This will need to be added to Cargo.toml
-    // rustfft = "6.0"
+/// 2D FFT implementation
+impl CpuFft {
+    /// Execute 2D FFT on the last two dimensions
+    pub fn fft2_f32(&self, input: &[f32], layout: &Layout) -> Result<Vec<f32>> {
+        let dims = layout.dims();
+        
+        if dims.len() < 2 {
+            return Err(crate::Error::Msg("2D FFT requires at least 2 dimensions".to_string()).bt());
+        }
+        
+        // First do FFT on the second-to-last dimension, then on the last dimension
+        let intermediate = self.fft_along_axis(input, layout, dims.len() - 2)?;
+        
+        // Create new layout for the intermediate result
+        let mut intermediate_dims = dims.to_vec();
+        if self.config.real_input {
+            intermediate_dims[dims.len() - 2] = (intermediate_dims[dims.len() - 2] / 2 + 1) * 2;
+        }
+        let intermediate_layout = Layout::contiguous(intermediate_dims);
+        
+        // Create a new FFT op for the second pass (now working with complex data)
+        let second_pass_config = CpuFftConfig {
+            forward: self.config.forward,
+            normalized: self.config.normalized,
+            real_input: false, // Second pass is always complex-to-complex
+        };
+        let second_pass_fft = CpuFft::new(second_pass_config, dims.len() - 1);
+        
+        second_pass_fft.fft_along_axis(&intermediate, &intermediate_layout, dims.len() - 1)
+    }
+
+    /// Execute FFT along a specific axis
+    fn fft_along_axis(&self, input: &[f32], layout: &Layout, axis: usize) -> Result<Vec<f32>> {
+        // Create a temporary FFT operator for this axis
+        let axis_config = CpuFftConfig {
+            forward: self.config.forward,
+            normalized: self.config.normalized,
+            real_input: self.config.real_input,
+        };
+        let axis_fft = CpuFft::new(axis_config, axis);
+        axis_fft.fft_f32(input, layout)
+    }
 }
+
+// Window functions for FFT preprocessing
+impl CpuFft {
+    /// Apply Hann window to input data
+    pub fn apply_hann_window(&self, data: &mut [f32], window_size: usize) {
+        for (i, val) in data.iter_mut().enumerate() {
+            let n = (i % window_size) as f32;
+            let factor = 0.5 * (1.0 - (2.0 * std::f32::consts::PI * n / (window_size - 1) as f32).cos());
+            *val *= factor;
+        }
+    }
+
+    /// Apply Hamming window to input data
+    pub fn apply_hamming_window(&self, data: &mut [f32], window_size: usize) {
+        for (i, val) in data.iter_mut().enumerate() {
+            let n = (i % window_size) as f32;
+            let factor = 0.54 - 0.46 * (2.0 * std::f32::consts::PI * n / (window_size - 1) as f32).cos();
+            *val *= factor;
+        }
+    }
+
+    /// Apply Blackman window to input data
+    pub fn apply_blackman_window(&self, data: &mut [f32], window_size: usize) {
+        const A0: f32 = 0.42;
+        const A1: f32 = 0.5;
+        const A2: f32 = 0.08;
+        
+        for (i, val) in data.iter_mut().enumerate() {
+            let n = (i % window_size) as f32;
+            let arg = 2.0 * std::f32::consts::PI * n / (window_size - 1) as f32;
+            let factor = A0 - A1 * arg.cos() + A2 * (2.0 * arg).cos();
+            *val *= factor;
+        }
+    }
+}
+
+// FFT shift operations
+impl CpuFft {
+    /// FFT shift: move zero frequency to center
+    pub fn fftshift(&self, data: &mut [f32], fft_size: usize) {
+        let complex_size = fft_size / 2; // Assuming complex interleaved data
+        for batch_start in (0..data.len()).step_by(fft_size) {
+            let batch_end = (batch_start + fft_size).min(data.len());
+            let batch = &mut data[batch_start..batch_end];
+            
+            // Rotate by half the FFT size
+            batch.rotate_left(complex_size);
+        }
+    }
+
+    /// Inverse FFT shift: undo fftshift
+    pub fn ifftshift(&self, data: &mut [f32], fft_size: usize) {
+        let complex_size = fft_size / 2;
+        for batch_start in (0..data.len()).step_by(fft_size) {
+            let batch_end = (batch_start + fft_size).min(data.len());
+            let batch = &mut data[batch_start..batch_end];
+            
+            // Rotate by half the FFT size in the other direction
+            batch.rotate_right(complex_size);
+        }
+    }
+}
+

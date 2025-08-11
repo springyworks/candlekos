@@ -2693,6 +2693,455 @@ impl Tensor {
         Tensor::cat(&[&zeros, &tail], dim)
     }
 
+    /// Compute 1D Fast Fourier Transform (FFT) along the specified dimension.
+    /// 
+    /// Returns a complex tensor with real and imaginary parts interleaved.
+    /// The output size along the FFT dimension depends on the transform type:
+    /// - Real-to-complex: size becomes (n/2 + 1) * 2 (for complex representation)
+    /// - Complex-to-complex: size stays the same but represents complex numbers
+    /// 
+    /// # Arguments
+    /// * `dim` - The dimension along which to compute the FFT
+    /// * `real_input` - Whether the input is real (true) or complex (false)
+    /// * `normalized` - Whether to apply normalization (divide by sqrt(n))
+    pub fn fft<D: Dim>(&self, dim: D, real_input: bool, normalized: bool) -> Result<Self> {
+        let dim = dim.to_index(self.shape(), "fft")?;
+        
+        // Validate input dtype
+        if !matches!(self.dtype(), DType::F32 | DType::F64) {
+            bail!("FFT is only supported for floating-point tensors (f32, f64)");
+        }
+
+        match self.device() {
+            #[cfg(feature = "cuda")]
+            Device::Cuda(dev) => {
+                use crate::cuda_backend::{CudaFft, FftConfig};
+                
+                let config = FftConfig {
+                    forward: true,
+                    normalized,
+                    real_input,
+                };
+                
+                let fft_op = CudaFft::new(config, dim);
+                
+                // Ensure tensor is contiguous for efficient processing
+                let input = if self.is_contiguous() {
+                    self.clone()
+                } else {
+                    self.contiguous()?
+                };
+                
+                // Execute FFT based on data type
+                match self.dtype() {
+                    DType::F32 => {
+                        let storage = input.storage_and_layout().0;
+                        let cuda_storage = storage.as_cuda_slice::<f32>()?;
+                        let result = fft_op.fft_f32(cuda_storage, dev, &input.layout())?;
+                        
+                        // Create output tensor with appropriate shape
+                        let mut output_dims = self.dims().to_vec();
+                        if real_input {
+                            output_dims[dim] = (output_dims[dim] / 2 + 1) * 2; // Complex output
+                        } else {
+                            output_dims[dim] *= 2; // Already complex, so double for interleaved
+                        }
+                        
+                        let output_layout = Layout::contiguous(&output_dims);
+                        Tensor::from_storage(result.into(), output_layout, false)
+                    }
+                    DType::F64 => {
+                        // Convert to f32, compute FFT, convert back
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.fft(dim, real_input, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            Device::Cpu => {
+                use crate::cpu_backend::{CpuFft, CpuFftConfig};
+                
+                let config = CpuFftConfig {
+                    forward: true,
+                    normalized,
+                    real_input,
+                };
+                
+                let fft_op = CpuFft::new(config, dim);
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let data = self.to_vec1::<f32>()?;
+                        let result = fft_op.fft_f32(&data, &self.layout())?;
+                        
+                        // Create output tensor with appropriate shape
+                        let mut output_dims = self.dims().to_vec();
+                        if real_input {
+                            output_dims[dim] = (output_dims[dim] / 2 + 1) * 2;
+                        } else {
+                            output_dims[dim] *= 2;
+                        }
+                        
+                        Tensor::from_vec(result, output_dims, self.device())
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.fft(dim, real_input, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            #[cfg(feature = "metal")]
+            Device::Metal(_) => {
+                bail!("FFT not yet implemented for Metal backend")
+            }
+        }
+    }
+
+    /// Compute inverse Fast Fourier Transform (IFFT) along the specified dimension.
+    /// 
+    /// The input should be a complex tensor with real and imaginary parts interleaved.
+    pub fn ifft<D: Dim>(&self, dim: D, normalized: bool) -> Result<Self> {
+        let dim = dim.to_index(self.shape(), "ifft")?;
+        
+        match self.device() {
+            #[cfg(feature = "cuda")]
+            Device::Cuda(dev) => {
+                use crate::cuda_backend::{CudaFft, FftConfig};
+                
+                let config = FftConfig {
+                    forward: false, // Inverse FFT
+                    normalized,
+                    real_input: false, // IFFT always works with complex input
+                };
+                
+                let fft_op = CudaFft::new(config, dim);
+                
+                let input = if self.is_contiguous() {
+                    self.clone()
+                } else {
+                    self.contiguous()?
+                };
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let storage = input.storage_and_layout().0;
+                        let cuda_storage = storage.as_cuda_slice::<f32>()?;
+                        let result = fft_op.fft_f32(cuda_storage, dev, &input.layout())?;
+                        
+                        let output_layout = Layout::contiguous(self.dims());
+                        Tensor::from_storage(result.into(), output_layout, false)
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.ifft(dim, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => bail!("IFFT is only supported for floating-point tensors"),
+                }
+            }
+            Device::Cpu => {
+                use crate::cpu_backend::{CpuFft, CpuFftConfig};
+                
+                let config = CpuFftConfig {
+                    forward: false,
+                    normalized,
+                    real_input: false,
+                };
+                
+                let fft_op = CpuFft::new(config, dim);
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let data = self.to_vec1::<f32>()?;
+                        let result = fft_op.fft_f32(&data, &self.layout())?;
+                        Tensor::from_vec(result, self.dims(), self.device())
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.ifft(dim, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => bail!("IFFT is only supported for floating-point tensors"),
+                }
+            }
+            #[cfg(feature = "cuda")]
+            Device::Cuda(dev) => {
+                use crate::cuda_backend::{CudaFft, FftConfig};
+                
+                let config = FftConfig {
+                    forward: false, // Inverse FFT
+                    normalized,
+                    real_input: false, // IFFT always works with complex input
+                };
+                
+                let fft_op = CudaFft::new(config, dim);
+                
+                let input = if self.is_contiguous() {
+                    self.clone()
+                } else {
+                    self.contiguous()?
+                };
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let storage = input.storage_and_layout().0;
+                        let cuda_storage = storage.as_cuda_slice::<f32>()?;
+                        let result = fft_op.fft_f32(cuda_storage, dev, &input.layout())?;
+                        
+                        let output_layout = Layout::contiguous(self.dims());
+                        Tensor::from_storage(result.into(), output_layout, false)
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.ifft(dim, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => bail!("IFFT is only supported for floating-point tensors"),
+                }
+            }
+            #[cfg(feature = "metal")]
+            Device::Metal(_) => {
+                bail!("IFFT not yet implemented for Metal backend")
+            }
+            #[cfg(feature = "metal")]
+            Device::Metal(_) => {
+                bail!("IFFT not yet implemented for Metal backend")
+            }
+        }
+    }
+
+    /// Compute real-to-complex FFT (RFFT) along the specified dimension.
+    /// 
+    /// This is equivalent to calling `fft(dim, true, normalized)` but more explicit.
+    pub fn rfft<D: Dim>(&self, dim: D, normalized: bool) -> Result<Self> {
+        self.fft(dim, true, normalized)
+    }
+
+    /// Compute 2D Fast Fourier Transform on the last two dimensions.
+    /// 
+    /// This is useful for image processing and 2D signal analysis.
+    pub fn fft2(&self, real_input: bool, normalized: bool) -> Result<Self> {
+        let rank = self.rank();
+        if rank < 2 {
+            bail!("2D FFT requires at least 2 dimensions");
+        }
+        
+        match self.device() {
+            #[cfg(feature = "cuda")]
+            Device::Cuda(dev) => {
+                use crate::cuda_backend::{CudaFft, FftConfig};
+                
+                let config = FftConfig {
+                    forward: true,
+                    normalized,
+                    real_input,
+                };
+                
+                let fft_op = CudaFft::new(config, rank - 1); // Start with last dim
+                
+                let input = if self.is_contiguous() {
+                    self.clone()
+                } else {
+                    self.contiguous()?
+                };
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let storage = input.storage_and_layout().0;
+                        let cuda_storage = storage.as_cuda_slice::<f32>()?;
+                        let result = fft_op.fft2_f32(cuda_storage, dev, &input.layout())?;
+                        
+                        // Calculate output dimensions for 2D FFT
+                        let mut output_dims = self.dims().to_vec();
+                        if real_input {
+                            output_dims[rank - 1] = (output_dims[rank - 1] / 2 + 1) * 2;
+                        } else {
+                            output_dims[rank - 1] *= 2;
+                            output_dims[rank - 2] *= 2;
+                        }
+                        
+                        let output_layout = Layout::contiguous(&output_dims);
+                        Tensor::from_storage(result.into(), output_layout, false)
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.fft2(real_input, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => bail!("2D FFT is only supported for floating-point tensors"),
+                }
+            }
+            Device::Cpu => {
+                use crate::cpu_backend::{CpuFft, CpuFftConfig};
+                
+                let config = CpuFftConfig {
+                    forward: true,
+                    normalized,
+                    real_input,
+                };
+                
+                let fft_op = CpuFft::new(config, rank - 1);
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let data = self.to_vec1::<f32>()?;
+                        let result = fft_op.fft_f32(&data, &self.layout())?;
+                        
+                        let mut output_dims = self.dims().to_vec();
+                        if real_input {
+                            output_dims[rank - 1] = (output_dims[rank - 1] / 2 + 1) * 2;
+                        } else {
+                            output_dims[rank - 1] *= 2;
+                            output_dims[rank - 2] *= 2;
+                        }
+                        
+                        Tensor::from_vec(result, output_dims, self.device())
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.fft2(real_input, normalized)?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => bail!("2D FFT is only supported for floating-point tensors"),
+                }
+            }
+            #[cfg(feature = "metal")]
+            Device::Metal(_) => {
+                bail!("2D FFT not yet implemented for Metal backend")
+            }
+        }
+    }
+
+    /// Extract magnitude from complex FFT output.
+    /// 
+    /// Input should be a complex tensor with interleaved real/imaginary parts.
+    /// Returns a real tensor with the magnitude of each complex number.
+    pub fn fft_magnitude(&self) -> Result<Self> {
+        if self.dtype() != DType::F32 && self.dtype() != DType::F64 {
+            bail!("FFT magnitude is only supported for floating-point tensors");
+        }
+        
+        match self.device() {
+            #[cfg(feature = "cuda")]
+            Device::Cuda(dev) => {
+                use crate::cuda_backend::{CudaFft, FftConfig};
+                
+                let config = FftConfig::default();
+                let fft_op = CudaFft::new(config, 0); // Dim doesn't matter for magnitude
+                
+                let output_size = self.elem_count() / 2; // Complex to real
+                let output = unsafe { dev.alloc::<f32>(output_size)? };
+                
+                let storage = self.storage_and_layout().0;
+                let cuda_storage = storage.as_cuda_slice::<f32>()?;
+                fft_op.magnitude(cuda_storage, &output, dev)?;
+                
+                // Create output tensor with half the size (complex -> real)
+                let mut output_dims = self.dims().to_vec();
+                let last_dim = output_dims.len() - 1;
+                output_dims[last_dim] /= 2;
+                
+                let output_layout = Layout::contiguous(&output_dims);
+                Tensor::from_storage(output.into(), output_layout, false)
+            }
+            Device::Cpu => {
+                use crate::cpu_backend::CpuFft;
+                
+                let config = crate::cpu_backend::CpuFftConfig::default();
+                let fft_op = CpuFft::new(config, 0);
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let data = self.to_vec1::<f32>()?;
+                        let result = fft_op.magnitude_f32(&data);
+                        
+                        let mut output_dims = self.dims().to_vec();
+                        let last_dim = output_dims.len() - 1;
+                        output_dims[last_dim] /= 2;
+                        
+                        Tensor::from_vec(result, output_dims, self.device())
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.fft_magnitude()?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            #[cfg(feature = "metal")]
+            Device::Metal(_) => {
+                bail!("FFT magnitude not yet implemented for Metal backend")
+            }
+        }
+    }
+
+    /// Extract phase from complex FFT output.
+    /// 
+    /// Input should be a complex tensor with interleaved real/imaginary parts.
+    /// Returns a real tensor with the phase (angle) of each complex number.
+    pub fn fft_phase(&self) -> Result<Self> {
+        if self.dtype() != DType::F32 && self.dtype() != DType::F64 {
+            bail!("FFT phase is only supported for floating-point tensors");
+        }
+        
+        match self.device() {
+            #[cfg(feature = "cuda")]
+            Device::Cuda(dev) => {
+                use crate::cuda_backend::{CudaFft, FftConfig};
+                
+                let config = FftConfig::default();
+                let fft_op = CudaFft::new(config, 0);
+                
+                let output_size = self.elem_count() / 2; // Complex to real
+                let output = unsafe { dev.alloc::<f32>(output_size)? };
+                
+                let storage = self.storage_and_layout().0;
+                let cuda_storage = storage.as_cuda_slice::<f32>()?;
+                fft_op.phase(cuda_storage, &output, dev)?;
+                
+                let mut output_dims = self.dims().to_vec();
+                let last_dim = output_dims.len() - 1;
+                output_dims[last_dim] /= 2;
+                
+                let output_layout = Layout::contiguous(&output_dims);
+                Tensor::from_storage(output.into(), output_layout, false)
+            }
+            Device::Cpu => {
+                use crate::cpu_backend::CpuFft;
+                
+                let config = crate::cpu_backend::CpuFftConfig::default();
+                let fft_op = CpuFft::new(config, 0);
+                
+                match self.dtype() {
+                    DType::F32 => {
+                        let data = self.to_vec1::<f32>()?;
+                        let result = fft_op.phase_f32(&data);
+                        
+                        let mut output_dims = self.dims().to_vec();
+                        let last_dim = output_dims.len() - 1;
+                        output_dims[last_dim] /= 2;
+                        
+                        Tensor::from_vec(result, output_dims, self.device())
+                    }
+                    DType::F64 => {
+                        let f32_tensor = self.to_dtype(DType::F32)?;
+                        let result = f32_tensor.fft_phase()?;
+                        result.to_dtype(DType::F64)
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            #[cfg(feature = "metal")]
+            Device::Metal(_) => {
+                bail!("FFT phase not yet implemented for Metal backend")
+            }
+        }
+    }
+
     /// Returns a copy of `self` where the values within `ranges` have been replaced with the
     /// content of `src`.
     pub fn slice_assign<D: std::ops::RangeBounds<usize>>(

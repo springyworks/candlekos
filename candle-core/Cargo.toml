@@ -27,6 +27,7 @@ num_cpus = { workspace = true }
 rand = { workspace = true }
 rand_distr = { workspace = true }
 rayon = { workspace = true }
+rustfft = { version = "6.0", optional = true }
 safetensors = { workspace = true }
 thiserror = { workspace = true }
 ug-cuda = { workspace = true, optional = true }
@@ -49,6 +50,7 @@ cudnn = ["cuda", "cudarc/cudnn"]
 mkl = ["dep:libc", "dep:intel-mkl-src"]
 accelerate = ["dep:libc", "dep:accelerate-src"]
 metal = ["dep:metal", "dep:candle-metal-kernels", "dep:ug-metal"]
+fft = ["dep:rustfft"]
 
 [[bench]]
 name = "bench_main"

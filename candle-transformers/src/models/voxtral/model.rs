@@ -781,7 +781,7 @@ impl VoxtralForConditionalGeneration {
         let new_batch_size = total_elements / self.audio_config.intermediate_size;
 
         // Verify the division is exact
-        if total_elements % self.audio_config.intermediate_size != 0 {
+        if !total_elements.is_multiple_of(self.audio_config.intermediate_size) {
             return Err(candle::Error::DimOutOfRange {
                 shape: candle::Shape::from_dims(&[batch_size, seq_len, hidden_size]),
                 dim: 0,

@@ -13,5 +13,6 @@
         "activityBar.background": "#25302D",
         "titleBar.activeBackground": "#34433F",
         "titleBar.activeForeground": "#F9FAFA"
-    }
+    },
+    "cmake.sourceDirectory": "/home/rustuser/projects/rust/from_github/candle/third_party/VkFFT"
 }

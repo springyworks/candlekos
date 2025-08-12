@@ -57,7 +57,7 @@ impl st::View for Tensor {
         self.shape().dims()
     }
 
-    fn data(&self) -> Cow<[u8]> {
+    fn data(&self) -> Cow<'_, [u8]> {
         // This copies data from GPU to CPU.
         // TODO: Avoid the unwrap here.
         Cow::Owned(convert_back(self).unwrap())
@@ -78,7 +78,7 @@ impl st::View for &Tensor {
         self.dims()
     }
 
-    fn data(&self) -> Cow<[u8]> {
+    fn data(&self) -> Cow<'_, [u8]> {
         // This copies data from GPU to CPU.
         // TODO: Avoid the unwrap here.
         Cow::Owned(convert_back(self).unwrap())
@@ -101,7 +101,7 @@ impl Tensor {
 fn convert_slice<T: WithDType>(data: &[u8], shape: &[usize], device: &Device) -> Result<Tensor> {
     let size_in_bytes = T::DTYPE.size_in_bytes();
     let elem_count = data.len() / size_in_bytes;
-    if (data.as_ptr() as usize) % size_in_bytes == 0 {
+    if (data.as_ptr() as usize).is_multiple_of(size_in_bytes) {
         // SAFETY This is safe because we just checked that this
         // was correctly aligned.
         let data: &[T] =
@@ -131,7 +131,7 @@ fn convert_slice_with_cast<T: Sized + Copy, U: WithDType, F: Fn(T) -> Result<U>>
 ) -> Result<Tensor> {
     let size_in_bytes = std::mem::size_of::<T>();
     let elem_count = data.len() / size_in_bytes;
-    if (data.as_ptr() as usize) % size_in_bytes == 0 {
+    if (data.as_ptr() as usize).is_multiple_of(size_in_bytes) {
         // SAFETY This is safe because we just checked that this
         // was correctly aligned.
         let data: &[T] =

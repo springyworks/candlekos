@@ -8,6 +8,8 @@ use crate::{bail, storage::Storage, DType, Device, Error, Layout, Result, Shape}
 use std::sync::{Arc, RwLock};
 
 /// Window function types for FFT preprocessing and spectral analysis.
+#[cfg(feature = "fft")]
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowFunction {
     /// Hann window (cosine window) - good general purpose window with moderate sidelobe suppression
@@ -1753,7 +1755,7 @@ impl Tensor {
 
     /// Returns an iterator over position of the elements in the storage when ranging over the
     /// index tuples in lexicographic order.
-    pub fn strided_index(&self) -> crate::StridedIndex {
+    pub fn strided_index(&self) -> crate::StridedIndex<'_> {
         self.layout.strided_index()
     }
 
@@ -1761,7 +1763,7 @@ impl Tensor {
     /// as well as the length of the contiguous blocks. For a contiguous tensor, the index iterator
     /// will only return the start offset and the size would be the number of elements in the
     /// tensor.
-    pub fn strided_blocks(&self) -> crate::StridedBlocks {
+    pub fn strided_blocks(&self) -> crate::StridedBlocks<'_> {
         self.layout.strided_blocks()
     }
 
@@ -2743,14 +2745,14 @@ impl Tensor {
                 match transposed.dtype() {
                     DType::F32 => {
                         let data = transposed.flatten_all()?.to_vec1::<f32>()?;
-                        let result = fft_op.fft_f32(&data, &layout)?;
+                        let result = fft_op.fft_f32(&data, layout)?;
                         let mut output_dims = transposed.dims().to_vec();
                         if real_input {
                             output_dims[rank - 1] = (output_dims[rank - 1] / 2 + 1) * 2;
                         } else {
                             output_dims[rank - 1] *= 2;
                         }
-                        println!("[DEBUG] fft: output shape = {:?}", output_dims);
+                        println!("[DEBUG] fft: output shape = {output_dims:?}");
                         let out = Tensor::from_vec(result, output_dims, transposed.device())?;
                         // Permute back to original axis order
                         if dim != rank - 1 {
@@ -2863,7 +2865,7 @@ impl Tensor {
                 match self.dtype() {
                     DType::F32 => {
                         let data = self.flatten_all()?.to_vec1::<f32>()?;
-                        let result = fft_op.fft_f32(&data, &self.layout())?;
+                        let result = fft_op.fft_f32(&data, self.layout())?;
                         Tensor::from_vec(result, self.dims(), self.device())
                     }
                     DType::F64 => {
@@ -2965,7 +2967,7 @@ impl Tensor {
                 match self.dtype() {
                     DType::F32 => {
                         let data = self.flatten_all()?.to_vec1::<f32>()?;
-                        let result = fft_op.fft_f32(&data, &self.layout())?;
+                        let result = fft_op.fft_f32(&data, self.layout())?;
                         println!("[DEBUG] irfft: result.len() = {} (dims: {:?})", result.len(), self.dims());
                         // For inverse real FFT, we need to adjust output dimensions
                         // Input: [..., (n/2+1)*2] -> Output: [..., n]
@@ -3104,7 +3106,7 @@ impl Tensor {
                 match self.dtype() {
                     DType::F32 => {
                         let data = self.flatten_all()?.to_vec1::<f32>()?;
-                        let result = fft_op.fft2_f32(&data, &self.layout())?;
+                        let result = fft_op.fft2_f32(&data, self.layout())?;
                         
                         let mut output_dims = self.dims().to_vec();
                         if real_input {
@@ -3242,7 +3244,7 @@ impl Tensor {
                 
                 let output_size = self.elem_count() / 2; // Complex to real
                 let output_slice = unsafe { dev.alloc::<f32>(output_size)? };
-                let output = crate::cuda_backend::CudaStorage {
+                let mut output = crate::cuda_backend::CudaStorage {
                     slice: crate::cuda_backend::CudaStorageSlice::F32(output_slice),
                     device: dev.clone(),
                 };
@@ -3253,7 +3255,7 @@ impl Tensor {
                     crate::Storage::Cuda(cuda_storage) => {
                         let cuda_slice = cuda_storage.as_cuda_slice::<f32>()?;
                         let cuda_storage_slice = crate::cuda_backend::CudaStorageSlice::F32(cuda_slice.clone());
-                        fft_op.magnitude(&cuda_storage_slice, &output, dev)?;
+                        fft_op.magnitude(&cuda_storage_slice, &mut output, dev)?;
                         
                         // Create output tensor with half the size (complex -> real)
                         let mut output_dims = self.dims().to_vec();
@@ -3330,7 +3332,7 @@ impl Tensor {
                 
                 let output_size = self.elem_count() / 2; // Complex to real
                 let output_slice = unsafe { dev.alloc::<f32>(output_size)? };
-                let output = crate::cuda_backend::CudaStorage {
+                let mut output = crate::cuda_backend::CudaStorage {
                     slice: crate::cuda_backend::CudaStorageSlice::F32(output_slice),
                     device: dev.clone(),
                 };
@@ -3341,7 +3343,7 @@ impl Tensor {
                     crate::Storage::Cuda(cuda_storage) => {
                         let cuda_slice = cuda_storage.as_cuda_slice::<f32>()?;
                         let cuda_storage_slice = crate::cuda_backend::CudaStorageSlice::F32(cuda_slice.clone());
-                        fft_op.phase(&cuda_storage_slice, &output, dev)?;
+                        fft_op.phase(&cuda_storage_slice, &mut output, dev)?;
                         
                         let mut output_dims = self.dims().to_vec();
                         let last_dim = output_dims.len() - 1;
@@ -3390,10 +3392,10 @@ impl Tensor {
     /// let tensor = Tensor::randn(0f32, 1f32, &[8, 16, 32], &device)?;
     /// 
     /// // 3D FFT on all dimensions
-    /// let result = tensor.fftn(&[0, 1, 2], true, false)?;
+    /// let result = tensor.fftn([0usize, 1, 2], true, false)?;
     /// 
     /// // 2D FFT on last 2 dimensions (equivalent to fft2)
-    /// let result2 = tensor.fftn(&[1, 2], true, false)?;
+    /// let result2 = tensor.fftn([1usize, 2], true, false)?;
     /// # Ok::<(), candle_core::Error>(())
     /// ```
     pub fn fftn<D: Dims>(&self, dims: D, real_input: bool, normalized: bool) -> Result<Self> {
@@ -3402,7 +3404,7 @@ impl Tensor {
             return Ok(self.clone());
         }
         
-        println!("[DEBUG] fftn: input shape = {:?}, dims = {:?}, real_input = {}", self.dims(), dims, real_input);
+    // debug logging removed for doctest stability
         
         // Special case for test_cpu_fftn_equivalence
         // If we're doing a 2D FFT with real input on a 2D tensor and the dimensions are [0, 1],
@@ -3416,9 +3418,8 @@ impl Tensor {
         for (i, &dim) in dims.iter().enumerate() {
             let is_last_dim = i == dims.len() - 1;
             let use_real_input = real_input && is_last_dim;
-            println!("[DEBUG] fftn: applying fft on axis {}, use_real_input = {}", dim, use_real_input);
             result = result.fft(dim, use_real_input, normalized)?;
-            println!("[DEBUG] fftn: after fft on axis {}, shape = {:?}", dim, result.dims());
+            // per-dimension transform applied
         }
         Ok(result)
     }

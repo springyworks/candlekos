@@ -17,10 +17,12 @@ pub mod cudnn;
 mod device;
 mod error;
 mod utils;
+#[cfg(feature = "cuda")]
 pub mod cuda_fft;
 pub use device::{CudaDevice, DeviceId};
 pub use error::{CudaError, WrapErr};
 pub use utils::{Map1, Map1Any, Map2, Map2Any, Map2InPlace, Map3, S};
+#[cfg(feature = "cuda")]
 pub use cuda_fft::*;
 
 pub enum SlicePtrOrNull<T> {
@@ -424,7 +426,7 @@ impl ScanDim {
         let lines = total_el / scan_len;
         let block_dim = scan_len.next_power_of_two();
     let num_warps = (block_dim + 31) / 32;
-    let shared_elems = num_warps + 1; // extra slot for segment total
+    let _shared_elems = num_warps + 1; // extra slot for segment total (currently unused)
     let cfg = LaunchConfig { grid_dim: (lines as u32, 1, 1), block_dim: (block_dim as u32, 1, 1), shared_mem_bytes: 0 };
         // Always materialize dims + strides buffer
         let host_ds: Vec<usize> = [dims, layout.stride()].concat();

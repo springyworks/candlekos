@@ -1,11 +1,10 @@
 // 🚀 GPU Stream-Based Real-Time Tensor Display
 // Uses CUDA streams for efficient GPU→Display pipeline
 
-use candle_core::{Device, Result, Tensor, DType};
+use candle_core::{Device, Result, Tensor};
 use candle_core::display::{set_print_options, PrinterOptions};
 use minifb::{Key, Window, WindowOptions};
 use std::time::{Duration, Instant};
-use std::sync::Arc;
 
 const WINDOW_WIDTH: usize = 1200;
 const WINDOW_HEIGHT: usize = 600;
@@ -84,7 +83,7 @@ impl StreamedTensorDisplay {
             Device::Cpu
         });
         
-                println!("🚀 Device: {:?}", device);
+                println!("🚀 Device: {device:?}");
         
         // Allocate pinned host memory for fast transfers", device);
         
@@ -144,7 +143,7 @@ impl StreamedTensorDisplay {
                 let angle = dy.atan2(dx);
                 
                 // Spiral pattern
-                let value = ((radius * 0.1 + angle * 3.0).sin() * 0.5 + 0.5) as f32;
+                let value = ((radius * 0.1 + angle * 3.0).sin() * 0.5 + 0.5);
                 data.push(value);
             }
         }
@@ -162,7 +161,7 @@ impl StreamedTensorDisplay {
                 let ny = y as f32 / TENSOR_HEIGHT as f32 * 4.0;
                 
                 // Wave interference pattern
-                let value = ((nx * std::f32::consts::PI).sin() * (ny * std::f32::consts::PI).cos() * 0.5 + 0.5) as f32;
+                let value = ((nx * std::f32::consts::PI).sin() * (ny * std::f32::consts::PI).cos() * 0.5 + 0.5);
                 data.push(value);
             }
         }
@@ -175,11 +174,11 @@ impl StreamedTensorDisplay {
         let start_time = Instant::now();
         
         // Shape validation and correction
-        if self.tensor_a.dims() != &[TENSOR_HEIGHT, TENSOR_WIDTH] {
+        if self.tensor_a.dims() != [TENSOR_HEIGHT, TENSOR_WIDTH] {
             println!("⚠️  Tensor A shape mismatch: {:?}, reinitializing...", self.tensor_a.dims());
             self.tensor_a = Self::create_initial_tensor_a(&self.device)?;
         }
-        if self.tensor_b.dims() != &[TENSOR_HEIGHT, TENSOR_WIDTH] {
+        if self.tensor_b.dims() != [TENSOR_HEIGHT, TENSOR_WIDTH] {
             println!("⚠️  Tensor B shape mismatch: {:?}, reinitializing...", self.tensor_b.dims());
             self.tensor_b = Self::create_initial_tensor_b(&self.device)?;
         }
@@ -397,7 +396,7 @@ impl StreamedTensorDisplay {
         let edge_enhanced = (tensor - smoothed.affine(0.9, 0.0)?)?;
         let result = (smoothed + edge_enhanced.affine(0.3, 0.0)?)?;
         
-        Ok(result.clamp(-1.0, 1.0)?)
+        result.clamp(-1.0, 1.0)
     }
     
     /// Create spectral filter
@@ -552,10 +551,10 @@ impl StreamedTensorDisplay {
             
             // Monitor tensor stats (OFFICIAL Candle monitoring)
             if let Ok(stats_a) = monitor_tensor(&self.tensor_a) {
-                println!("   Tensor A: {}", stats_a);
+                println!("   Tensor A: {stats_a}");
             }
             if let Ok(stats_b) = monitor_tensor(&self.tensor_b) {
-                println!("   Tensor B: {}", stats_b);
+                println!("   Tensor B: {stats_b}");
             }
         }
     }
@@ -574,7 +573,7 @@ impl StreamedTensorDisplay {
             // Extract data using streams (async when available)
             // Note: In a real async setup, this would be truly async
             if let Err(e) = futures::executor::block_on(self.extract_tensors_async()) {
-                println!("⚠️ Stream extraction error: {}", e);
+                println!("⚠️ Stream extraction error: {e}");
             }
             
             // Render to display

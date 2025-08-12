@@ -242,7 +242,7 @@ impl Tensor {
         if c_in != c_in_k {
             crate::bail!("in_channel mismatch between input ({c_in}) and kernel ({c_in_k})")
         }
-        if c_in % groups != 0 {
+        if !c_in.is_multiple_of(groups) {
             crate::bail!("in_channel {c_in} is not divisible by the number of groups")
         }
         let params = ParamsConvTranspose1D {

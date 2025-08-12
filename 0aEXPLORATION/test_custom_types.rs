@@ -12,7 +12,7 @@ fn main() -> Result<()> {
     println!("🧪 Testing Custom Types in Candle Tensors");
     
     let device = Device::cuda_if_available(0)?;
-    println!("Using device: {:?}\n", device);
+    println!("Using device: {device:?}\n");
     
     // Current supported types in Candle
     println!("📋 Currently supported types in Candle:");

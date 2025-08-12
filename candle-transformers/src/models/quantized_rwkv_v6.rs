@@ -339,7 +339,7 @@ impl Model {
         let mut xs = xs.apply(&self.embeddings)?;
         for (block_idx, block) in self.blocks.iter().enumerate() {
             xs = block.forward(&xs, state)?;
-            if self.layers_are_rescaled && (block_idx + 1) % self.rescale_every == 0 {
+            if self.layers_are_rescaled && (block_idx + 1).is_multiple_of(self.rescale_every) {
                 xs = (xs / 2.)?
             }
         }

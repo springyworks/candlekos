@@ -1,8 +1,7 @@
 //! Simple tensor feedback and real-time processing demonstration using Candle operations.
 //! Shows basic tensor manipulation patterns and feedback loops for iterative processing.
 
-use candle_core::{DType, Device, Result, Tensor};
-use std::collections::HashMap;
+use candle_core::{Device, Result, Tensor};
 use candle_core::display::{set_print_options, PrinterOptions};
 use minifb::{Key, Window, WindowOptions};
 use std::time::{Duration, Instant};
@@ -59,8 +58,8 @@ impl SimpleTensorFeedback {
         let tensor_b = Self::create_wave_pattern(&device)?;
         
         println!("🚀 Initial Tensors:");
-        println!("Tensor A: {}", tensor_a);
-        println!("Tensor B: {}", tensor_b);
+        println!("Tensor A: {tensor_a}");
+        println!("Tensor B: {tensor_b}");
 
         Ok(Self {
             window,

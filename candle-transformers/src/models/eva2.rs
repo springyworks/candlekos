@@ -249,10 +249,10 @@ impl Module for PatchEmbed {
     fn forward(&self, xs: &Tensor) -> Result<Tensor> {
         let (_b, _c, h, w) = xs.dims4()?;
         let (patch_h, patch_w) = self.patch_size;
-        if (h % patch_h) != 0 {
+        if !h.is_multiple_of(patch_h) {
             candle::bail!("image height {h} is not a multiple of patch height {patch_h}")
         }
-        if (w % patch_w) != 0 {
+        if !w.is_multiple_of(patch_w) {
             candle::bail!("image width {w} is not a multiple of patch width {patch_w}")
         }
         let xs = self.proj.forward(xs)?;

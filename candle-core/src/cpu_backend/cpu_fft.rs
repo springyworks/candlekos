@@ -362,6 +362,7 @@ impl CpuFft {
     }
     
     /// Calculate the starting index for a batch in the input array
+    #[allow(dead_code)]
     fn calculate_batch_start(&self, batch: usize, dims: &[usize], _stride: usize, n: usize) -> usize {
         if dims.len() == 1 {
             // 1D case: simple linear indexing
@@ -522,6 +523,7 @@ impl CpuFft {
     }
     
     /// Transpose a complex matrix stored as interleaved real/imaginary values
+    #[allow(dead_code)]
     fn transpose_complex(&self, data: &[f32], rows: usize, cols: usize) -> Result<Vec<f32>> {
         let mut result = vec![0.0; data.len()];
         
@@ -541,6 +543,7 @@ impl CpuFft {
     }
 
     /// Execute FFT along a specific axis
+    #[allow(dead_code)]
     fn fft_along_axis(&self, input: &[f32], layout: &Layout, axis: usize) -> Result<Vec<f32>> {
         // Create a temporary FFT operator for this axis
         let axis_config = CpuFftConfig {

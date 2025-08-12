@@ -359,7 +359,7 @@ impl ModernBert {
 
         let mut layers = Vec::with_capacity(config.num_hidden_layers);
         for layer_id in 0..config.num_hidden_layers {
-            let layer_uses_local_attention = layer_id % config.global_attn_every_n_layers != 0;
+            let layer_uses_local_attention = !layer_id.is_multiple_of(config.global_attn_every_n_layers);
             layers.push(ModernBertLayer::load(
                 vb.pp(format!("model.layers.{layer_id}")),
                 config,

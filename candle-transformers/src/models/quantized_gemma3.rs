@@ -369,7 +369,7 @@ impl ModelWeights {
             };
 
             // Sliding window pattern hardcoded to 6 because it's not explicitly defined
-            let is_sliding = (layer_idx + 1) % sliding_window_type > 0;
+            let is_sliding = !(layer_idx + 1).is_multiple_of(sliding_window_type);
             let sliding_window_size = is_sliding.then_some(sliding_window_size);
             let layer_rope_frequency = if is_sliding {
                 rope_freq_base_sliding

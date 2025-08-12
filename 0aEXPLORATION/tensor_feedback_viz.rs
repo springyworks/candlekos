@@ -653,7 +653,7 @@ impl TensorClosedLoopViz {
                 for i in 0..kernel.len() {
                     if i == 4 { // center
                         kernel[i] = 4.0 * center_value;
-                    } else if i % 2 == 0 { // corners
+                    } else if i.is_multiple_of(2) { // corners
                         kernel[i] = -0.5 * center_value;
                     } else { // edges
                         kernel[i] = -center_value;

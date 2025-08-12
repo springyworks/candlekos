@@ -544,7 +544,7 @@ impl Stack {
                 let mut objs = self.pop_to_marker()?;
                 let pydict = self.last()?;
                 if let Object::Dict(d) = pydict {
-                    if objs.len() % 2 != 0 {
+                    if !objs.len().is_multiple_of(2) {
                         crate::bail!("setitems: not an even number of objects")
                     }
                     while let Some(value) = objs.pop() {
@@ -564,7 +564,7 @@ impl Stack {
             OpCode::Dict => {
                 let mut objs = self.pop_to_marker()?;
                 let mut pydict = vec![];
-                if objs.len() % 2 != 0 {
+                if !objs.len().is_multiple_of(2) {
                     crate::bail!("setitems: not an even number of objects")
                 }
                 while let Some(value) = objs.pop() {

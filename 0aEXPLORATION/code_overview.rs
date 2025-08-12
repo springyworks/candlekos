@@ -41,7 +41,7 @@ fn main() -> std::io::Result<()> {
                 }
             }
             
-            println!("📄 **{}**", filename);
+            println!("📄 **{filename}**");
             if doc_lines.len() >= 2 {
                 println!("   {}", doc_lines[0]);
                 println!("   {}", doc_lines[1]);

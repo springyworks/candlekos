@@ -164,7 +164,6 @@ impl CustomOp1 for crate::cuda_backend::ScanDim {
     }
 
     fn cuda_fwd(&self, storage: &CudaStorage, layout: &Layout) -> Result<(CudaStorage, Shape)> {
-        use crate::cuda_backend::CudaDType; // for typed access
         let shape = layout.shape().clone();
         macro_rules! run_t {
             ($ty:ty) => {{

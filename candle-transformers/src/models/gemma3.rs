@@ -445,7 +445,7 @@ impl Model {
         let mut layers = Vec::with_capacity(cfg.num_hidden_layers);
         let vb_l = vb_m.pp("layers");
         for layer_idx in 0..cfg.num_hidden_layers {
-            let sliding_window = (layer_idx + 1) % cfg.sliding_window_pattern > 0;
+            let sliding_window = !(layer_idx + 1).is_multiple_of(cfg.sliding_window_pattern);
             let layer = DecoderLayer::new(
                 use_flash_attn,
                 cfg,

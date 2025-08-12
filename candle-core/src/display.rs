@@ -235,7 +235,7 @@ trait TensorFormatter {
                 if let Ok(vs) = t.to_vec1::<Self::Elem>() {
                     for (i, v) in vs.into_iter().enumerate() {
                         if i > 0 {
-                            if i % elements_per_line == 0 {
+                            if i.is_multiple_of(elements_per_line) {
                                 write!(f, ",")?;
                                 Self::write_newline_indent(indent, f)?
                             } else {

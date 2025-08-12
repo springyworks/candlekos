@@ -44,6 +44,9 @@ anyhow = { workspace = true }
 clap = { workspace = true }
 criterion = { workspace = true }
 
+[build-dependencies]
+cc = "1.0"
+
 [features]
 default = []
 cuda = ["cudarc", "dep:candle-kernels", "dep:ug-cuda", "float8/cuda"]
@@ -52,6 +55,19 @@ mkl = ["dep:libc", "dep:intel-mkl-src"]
 accelerate = ["dep:libc", "dep:accelerate-src"]
 metal = ["dep:metal", "dep:candle-metal-kernels", "dep:ug-metal"]
 fft = ["dep:rustfft", "dep:realfft"]
+## Gate the experimental CUDA FFT implementation (uses cuFFT via cudarc APIs that may not be available in all versions).
+## This is OFF by default; enable explicitly with `--features cuda-fft` when your toolchain supports it.
+## Umbrella GPU FFT feature (keeps the existing name as alias for compatibility)
+cuda-fft = ["gpu-fft"]
+## Unified GPU FFT switch; enables FFT provider plumbing on CUDA backends
+gpu-fft = []
+## Optional provider using VkFFT (portable across CUDA/HIP/Vulkan/OpenCL/Metal).
+## Implementation to be wired through an external crate in a follow-up.
+gpu-fft-vkfft = ["gpu-fft"]
+
+# Enable actual VkFFT FFI wiring (off by default to avoid system deps).
+# When enabled, we'll compile a small C wrapper against the vendored VkFFT.
+gpu-fft-vkfft-ffi = ["gpu-fft-vkfft"]
 
 [[bench]]
 name = "bench_main"

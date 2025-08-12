@@ -45,7 +45,7 @@ impl GpuTensorFeedback {
             Device::Cpu
         });
         
-        println!("🚀 Using device: {:?}", device);
+        println!("🚀 Using device: {device:?}");
         
         // PROPER: Configure tensor display globally
         set_print_options(PrinterOptions {
@@ -61,8 +61,8 @@ impl GpuTensorFeedback {
         let tensor_b = Self::create_wave_pattern(&device)?;
         
         println!("🚀 Initial GPU Tensors:");
-        println!("Tensor A: {}", tensor_a);
-        println!("Tensor B: {}", tensor_b);
+        println!("Tensor A: {tensor_a}");
+        println!("Tensor B: {tensor_b}");
 
         Ok(Self {
             window,
@@ -294,8 +294,8 @@ impl GpuTensorFeedback {
     
     fn update_title(&mut self) {
         let device_name = match self.device.location() {
-            candle_core::DeviceLocation::Cuda { gpu_id } => format!("CUDA:{}", gpu_id),
-            candle_core::DeviceLocation::Metal { gpu_id } => format!("Metal:{}", gpu_id),
+            candle_core::DeviceLocation::Cuda { gpu_id } => format!("CUDA:{gpu_id}"),
+            candle_core::DeviceLocation::Metal { gpu_id } => format!("Metal:{gpu_id}"),
             candle_core::DeviceLocation::Cpu => "CPU".to_string(),
         };
         

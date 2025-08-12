@@ -414,7 +414,7 @@ fn run_quantize_safetensors(
     let qtensors = tensors
         .into_par_iter()
         .map(|(name, tensor)| {
-            let should_quantize = tensor.rank() == 2 && tensor.dim(1)? % block_size == 0;
+            let should_quantize = tensor.rank() == 2 && (tensor.dim(1)?).is_multiple_of(block_size);
             println!("  quantizing {name} {tensor:?} {should_quantize}");
             let tensor = if should_quantize {
                 QTensor::quantize(&tensor, dtype)?

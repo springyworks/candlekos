@@ -427,7 +427,7 @@ fn test_cpu_fft_magnitude_phase() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cuda")]
+#[cfg(all(feature = "cuda", feature = "cuda-fft"))]
 #[test]
 fn test_cuda_fft_basic() -> Result<()> {
     let device = Device::new_cuda(0)?;
@@ -463,7 +463,7 @@ fn test_cuda_fft_basic() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cuda")]
+#[cfg(all(feature = "cuda", feature = "cuda-fft"))]
 #[test]
 fn test_cuda_cpu_fft_consistency() -> Result<()> {
     let cpu_device = Device::Cpu;

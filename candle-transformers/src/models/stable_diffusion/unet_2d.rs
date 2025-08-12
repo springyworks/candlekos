@@ -320,7 +320,7 @@ impl UNet2DConditionModel {
         let num_upsamplers = n_blocks - 1;
         let default_overall_up_factor = 2usize.pow(num_upsamplers as u32);
         let forward_upsample_size =
-            height % default_overall_up_factor != 0 || width % default_overall_up_factor != 0;
+            !height.is_multiple_of(default_overall_up_factor) || !width.is_multiple_of(default_overall_up_factor);
         // 0. center input if necessary
         let xs = if self.config.center_input_sample {
             ((xs * 2.0)? - 1.0)?

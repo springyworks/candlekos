@@ -101,8 +101,8 @@ impl RgbTensor {
         let r = self.red()? * 0.299;
         let g = self.green()? * 0.587;
         let b = self.blue()? * 0.114;
-        let gray = (r? + g?)? + b?;
-        gray
+        
+        ((r? + g?)? + b?)
     }
 }
 
@@ -110,7 +110,7 @@ fn main() -> Result<()> {
     println!("🎨 Compound Data Examples in Candle");
     
     let device = Device::cuda_if_available(0)?;
-    println!("Using device: {:?}\n", device);
+    println!("Using device: {device:?}\n");
     
     // Example 1: Complex numbers
     println!("🔢 Example 1: Complex Numbers");

@@ -677,7 +677,7 @@ impl Backend for ShardedSafeTensors {
         let mut shape = view.shape().to_vec();
         let size = shape[dim];
 
-        if size % world_size != 0 {
+        if !size.is_multiple_of(world_size) {
             return Err(Error::ShapeMismatchSplit {
                 shape: shape.into(),
                 dim,

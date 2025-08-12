@@ -376,7 +376,7 @@ impl Tensor {
                     }
                     Op::UpsampleNearest1D { arg, target_size } => {
                         let (_n, c, size) = arg.dims3()?;
-                        if target_size % size != 0 {
+                        if !target_size.is_multiple_of(size) {
                             crate::bail!("backward not supported for non integer upscaling factors")
                         }
                         let scale = target_size / size;
@@ -392,7 +392,7 @@ impl Tensor {
                         target_w,
                     } => {
                         let (_n, c, h, w) = arg.dims4()?;
-                        if target_h % h != 0 || target_w % w != 0 {
+                        if !target_h.is_multiple_of(h) || !target_w.is_multiple_of(w) {
                             crate::bail!("backward not supported for non integer upscaling factors")
                         }
                         let scale_h = target_h / h;

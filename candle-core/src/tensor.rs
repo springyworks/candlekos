@@ -2750,7 +2750,7 @@ impl Tensor {
                         if real_input {
                             output_dims[rank - 1] = (output_dims[rank - 1] / 2 + 1) * 2;
                         } else {
-                            output_dims[rank - 1] *= 2;
+                            // Complex-to-complex keeps the same float length along the FFT axis
                         }
                         println!("[DEBUG] fft: output shape = {output_dims:?}");
                         let out = Tensor::from_vec(result, output_dims, transposed.device())?;
@@ -2804,9 +2804,9 @@ impl Tensor {
                                 // Create output tensor with appropriate shape
                                 let mut output_dims = self.dims().to_vec();
                                 if real_input {
-                                    output_dims[dim] = (output_dims[dim] / 2 + 1) * 2; // Complex output
+                                    output_dims[dim] = (output_dims[dim] / 2 + 1) * 2; // Real-to-complex packs along the axis
                                 } else {
-                                    output_dims[dim] *= 2; // Already complex, so double for interleaved
+                                    // Complex-to-complex keeps the same float length along the FFT axis
                                 }
                                 
                                 let output_layout = Layout::contiguous(output_dims.clone());
@@ -3012,8 +3012,11 @@ impl Tensor {
                                 let cuda_slice = cuda_storage.as_cuda_slice::<f32>()?;
                                 let cuda_storage_slice = crate::cuda_backend::CudaStorageSlice::F32(cuda_slice.clone());
                                 let result = fft_op.fft_f32(&cuda_storage_slice, dev, layout)?;
-                                
-                                let output_layout = Layout::contiguous(self.dims());
+                                // Adjust output dims: input complex length (n/2+1)*2 -> real n = len - 2
+                                let mut output_dims = self.dims().to_vec();
+                                let input_dim_size = output_dims[dim];
+                                output_dims[dim] = input_dim_size.saturating_sub(2);
+                                let output_layout = Layout::contiguous(output_dims.clone());
                                 Ok(crate::tensor::from_storage(
                                     crate::Storage::Cuda(result),
                                     output_layout.shape().clone(),

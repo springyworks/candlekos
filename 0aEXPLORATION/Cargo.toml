@@ -66,3 +66,7 @@ path = "gpu_direct_display.rs"
 [[bin]]
 name = "fft_overview"
 path = "fft_overview.rs"
+
+[[bin]]
+name = "gpu_fft2_dual_pane"
+path = "gpu_fft2_dual_pane.rs"

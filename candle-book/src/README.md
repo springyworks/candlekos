@@ -1,7 +1,9 @@
 # Introduction
 
-{{#include ../../README.md:goals}}
+<!-- Include goals section from the main README.md -->
+{{#include ../../README.md#goals}}
 
-{{#include ../../README.md:features}}
+<!-- Include features section from the main README.md -->
+{{#include ../../README.md#features}}
 
 This book will introduce step by step how to use `candle`.

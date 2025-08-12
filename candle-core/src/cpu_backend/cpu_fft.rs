@@ -1,3 +1,6 @@
+//! Professional CPU FFT implementation using RustFFT for high-performance signal processing operations.
+//! Provides 1D, 2D, and multi-dimensional FFT operations with real-to-complex and complex-to-complex transforms.
+
 // CPU FFT implementation using Intel MKL DFT or pure Rust fallback
 use crate::{Result};
 use crate::layout::Layout;
@@ -179,9 +182,17 @@ impl CpuFft {
 
     #[cfg(not(feature = "mkl"))]
     fn fft_rust_f32(&self, input: &[f32], layout: &Layout, n: usize) -> Result<Vec<f32>> {
+            if self.config.real_input && self.config.forward {
+                let shape = layout.shape();
+                let dims = shape.dims();
+                let total_size = shape.elem_count();
+                let batch_size = total_size / n;
+                let stride = layout.stride()[self.dim];
+                println!("[DEBUG] cpu_fft: n = {}, batch_size = {}, stride = {}, dims = {:?}, input.len() = {}", n, batch_size, stride, dims, input.len());
+            }
         #[cfg(feature = "fft")]
         {
-            // Pure Rust FFT implementation using RustFFT
+            // Professional Rust FFT implementation using RustFFT
             use rustfft::{FftPlanner, num_complex::Complex};
             
             let mut planner = FftPlanner::new();
@@ -191,49 +202,153 @@ impl CpuFft {
                 planner.plan_fft_inverse(n)
             };
 
-            let total_size = layout.shape().elem_count();
-            let batch_size = total_size / n;
+            let shape = layout.shape();
+            let dims = shape.dims();
+            let total_size = shape.elem_count();
             
-            let mut output = Vec::with_capacity(total_size * 2);
+            // Calculate batch size correctly for the FFT dimension
+            let batch_size = total_size / n;
+            let stride = layout.stride()[self.dim];
+            
+            let mut output = Vec::new();
 
-            for batch in 0..batch_size {
-                let start_idx = batch * n;
-                let end_idx = start_idx + n;
-                
-                // Convert input to complex numbers
-                let mut buffer: Vec<Complex<f32>> = if self.config.real_input {
-                    input[start_idx..end_idx]
-                        .iter()
-                        .map(|&x| Complex::new(x, 0.0))
-                        .collect()
-                } else {
-                    // Assume input is interleaved real/imaginary
-                    input[start_idx * 2..end_idx * 2]
-                        .chunks_exact(2)
-                        .map(|chunk| Complex::new(chunk[0], chunk[1]))
-                        .collect()
-                };
-
-                // Perform FFT
-                fft.process(&mut buffer);
-
-                // Apply normalization if requested
-                if self.config.normalized {
-                    let norm_factor = if self.config.forward {
-                        1.0 / (n as f32).sqrt()
-                    } else {
-                        1.0 / (n as f32).sqrt()
-                    };
+            // Handle real-to-complex vs complex-to-real FFT
+            if self.config.real_input {
+                if self.config.forward {
+                    // Forward real-to-complex FFT: input size n, output size (n/2+1)*2
+                    output.reserve(batch_size * (n / 2 + 1) * 2);
                     
-                    for val in buffer.iter_mut() {
-                        *val *= norm_factor;
+                    for batch in 0..batch_size {
+                        // Calculate the starting position for this batch
+                        let batch_start = self.calculate_batch_start(batch, dims, stride, n);
+                        
+                        // Extract real input data with proper striding
+                        let mut real_input: Vec<f32> = Vec::with_capacity(n);
+                        for i in 0..n {
+                            let idx = batch_start + i * stride;
+                            if idx < input.len() {
+                                real_input.push(input[idx]);
+                            } else {
+                                return Err(crate::Error::Msg(format!("Real input index out of bounds: trying to access {} in array of length {}", idx, input.len())).bt());
+                            }
+                        }
+                        
+                        // Convert to complex and perform FFT
+                        let mut buffer: Vec<Complex<f32>> = real_input
+                            .iter()
+                            .map(|&x| Complex::new(x, 0.0))
+                            .collect();
+
+                        fft.process(&mut buffer);
+
+                        // Apply normalization if requested
+                        if self.config.normalized {
+                            let norm_factor = 1.0 / (n as f32).sqrt();
+                            for val in buffer.iter_mut() {
+                                *val *= norm_factor;
+                            }
+                        }
+
+                        // For real FFT, only output first (n/2+1) complex values (Hermitian symmetry)
+                        let output_len = n / 2 + 1;
+                        for i in 0..output_len {
+                            output.push(buffer[i].re);
+                            output.push(buffer[i].im);
+                        }
+                    }
+                } else {
+                    // Inverse complex-to-real FFT: input size (n/2+1)*2, output size n
+                    // Use RustFFT's RealFftPlanner for inverse real FFT
+                    let n = input.len() - 2;
+                    let real_input_size = input.len();
+                    let num_batches = 1; // Only batch size 1 supported for now
+                    output.reserve(num_batches * n);
+
+                    use realfft::RealFftPlanner;
+                    let mut real_planner = RealFftPlanner::<f32>::new();
+                    let irfft = real_planner.plan_fft_inverse(n);
+
+                    for batch in 0..num_batches {
+                        let batch_start = batch * real_input_size;
+                        let input_slice = &input[batch_start..batch_start + real_input_size];
+                        // Convert interleaved real/imag to Vec<Complex<f32>>
+                        let mut spectrum = Vec::with_capacity(n / 2 + 1);
+                        for i in 0..(n / 2 + 1) {
+                            let re = input_slice[i * 2];
+                            let im = input_slice[i * 2 + 1];
+                            spectrum.push(Complex::new(re, im));
+                        }
+                        let mut out = vec![0.0f32; n];
+                        irfft.process(&mut spectrum, &mut out).map_err(|e| crate::Error::Msg(format!("realfft irfft error: {}", e)).bt())?;
+                        // Apply normalization if requested
+                        if self.config.normalized {
+                            let norm_factor = 1.0 / (n as f32).sqrt();
+                            for val in out.iter_mut() {
+                                *val *= norm_factor;
+                            }
+                        }
+                        output.extend_from_slice(&out);
+                    // End of irfft batch loop
                     }
                 }
+            } else {
+                // Complex-to-complex FFT: output same size as input
+                output.reserve(total_size);
 
-                // Convert back to interleaved format
-                for complex_val in buffer {
-                    output.push(complex_val.re);
-                    output.push(complex_val.im);
+                for batch in 0..batch_size {
+                    // Extract complex input data with improved indexing logic
+                    let mut buffer: Vec<Complex<f32>> = Vec::with_capacity(n);
+                    
+                    // Check if we have enough data for n complex numbers (2*n floats)
+                    let expected_complex_size = batch_size * n * 2;
+                    if input.len() != expected_complex_size {
+                        // Input size doesn't match expected complex array size
+                        // This might be a real array being treated as complex
+                        if input.len() == batch_size * n {
+                            // Real input being processed as complex - convert it
+                            let real_batch_start = batch * n;
+                            for i in 0..n {
+                                let real_idx = real_batch_start + i;
+                                if real_idx < input.len() {
+                                    buffer.push(Complex::new(input[real_idx], 0.0));
+                                } else {
+                                    return Err(crate::Error::Msg(format!("Real-as-complex input index out of bounds: trying to access {} in array of length {}", real_idx, input.len())).bt());
+                                }
+                            }
+                        } else {
+                            return Err(crate::Error::Msg(format!("Input size mismatch: expected {} (complex) or {} (real) floats, got {}", expected_complex_size, batch_size * n, input.len())).bt());
+                        }
+                    } else {
+                        // True complex input - use complex indexing
+                        let complex_batch_start = batch * n * 2;
+                        for i in 0..n {
+                            let real_idx = complex_batch_start + i * 2;
+                            let imag_idx = real_idx + 1;
+                            
+                            if imag_idx < input.len() {
+                                buffer.push(Complex::new(input[real_idx], input[imag_idx]));
+                            } else {
+                                return Err(crate::Error::Msg(format!("Complex input index out of bounds: trying to access {}..{} in array of length {} (batch {}, i {})", real_idx, imag_idx + 1, input.len(), batch, i)).bt());
+                            }
+                        }
+                    }
+
+                    // Perform FFT
+                    fft.process(&mut buffer);
+
+                    // Apply normalization if requested
+                    if self.config.normalized {
+                        let norm_factor = 1.0 / (n as f32).sqrt();
+                        for val in buffer.iter_mut() {
+                            *val *= norm_factor;
+                        }
+                    }
+
+                    // Convert back to interleaved format
+                    for complex_val in buffer {
+                        output.push(complex_val.re);
+                        output.push(complex_val.im);
+                    }
                 }
             }
 
@@ -243,6 +358,47 @@ impl CpuFft {
         #[cfg(not(feature = "fft"))]
         {
             Err(crate::Error::Msg("FFT not available. Enable 'fft' feature for RustFFT fallback".to_string()).bt())
+        }
+    }
+    
+    /// Calculate the starting index for a batch in the input array
+    fn calculate_batch_start(&self, batch: usize, dims: &[usize], _stride: usize, n: usize) -> usize {
+        if dims.len() == 1 {
+            // 1D case: simple linear indexing
+            batch * n
+        } else {
+            // Multi-dimensional case: calculate position considering the FFT dimension
+            let mut batch_idx = batch;
+            let mut start = 0;
+            let mut remaining_dims = Vec::new();
+            
+            // Collect dimensions excluding the FFT dimension
+            for (i, &dim_size) in dims.iter().enumerate() {
+                if i != self.dim {
+                    remaining_dims.push(dim_size);
+                }
+            }
+            
+            // Calculate multi-dimensional index from flat batch index
+            for (i, &dim_size) in remaining_dims.iter().enumerate().rev() {
+                let coord = batch_idx % dim_size;
+                batch_idx /= dim_size;
+                
+                // Map back to original dimension index
+                let mut orig_dim = i;
+                if orig_dim >= self.dim {
+                    orig_dim += 1; // Adjust for skipped FFT dimension
+                }
+                
+                // Calculate contribution to linear index
+                let mut dim_stride = 1;
+                for j in (orig_dim + 1)..dims.len() {
+                    dim_stride *= dims[j];
+                }
+                start += coord * dim_stride;
+            }
+            
+            start
         }
     }
 
@@ -281,7 +437,7 @@ impl CpuFft {
 
 /// 2D FFT implementation
 impl CpuFft {
-    /// Execute 2D FFT on the last two dimensions
+    /// Execute 2D FFT using row-column decomposition
     pub fn fft2_f32(&self, input: &[f32], layout: &Layout) -> Result<Vec<f32>> {
         let dims = layout.dims();
         
@@ -289,25 +445,99 @@ impl CpuFft {
             return Err(crate::Error::Msg("2D FFT requires at least 2 dimensions".to_string()).bt());
         }
         
-        // First do FFT on the second-to-last dimension, then on the last dimension
-        let intermediate = self.fft_along_axis(input, layout, dims.len() - 2)?;
+        let h = dims[dims.len() - 2];
+        let w = dims[dims.len() - 1];
         
-        // Create new layout for the intermediate result
-        let mut intermediate_dims = dims.to_vec();
-        if self.config.real_input {
-            intermediate_dims[dims.len() - 2] = (intermediate_dims[dims.len() - 2] / 2 + 1) * 2;
+        // For simplicity, assume input is contiguous and handle in simple 2D layout
+        // First, apply 1D FFT to each row
+        let row_config = CpuFftConfig {
+            forward: self.config.forward,
+            normalized: false, // Apply normalization only at the end
+            real_input: self.config.real_input,
+        };
+        
+        let mut temp_result = Vec::new();
+        let effective_w = if self.config.real_input { (w / 2 + 1) * 2 } else { w * 2 };
+        
+        // Process each row
+        for row in 0..h {
+            let row_start = row * w;
+            let row_end = row_start + w;
+            
+            if row_end <= input.len() {
+                let row_data = &input[row_start..row_end];
+                
+                // Create a layout for this row
+                let row_layout = Layout::contiguous(vec![w]);
+                let row_fft = CpuFft::new(row_config, 0);
+                let row_result = row_fft.fft_f32(row_data, &row_layout)?;
+                
+                temp_result.extend_from_slice(&row_result);
+            } else {
+                return Err(crate::Error::Msg(format!("Row bounds error: trying to access {}..{} in array of length {}", row_start, row_end, input.len())).bt());
+            }
         }
-        let intermediate_layout = Layout::contiguous(intermediate_dims);
         
-        // Create a new FFT op for the second pass (now working with complex data)
-        let second_pass_config = CpuFftConfig {
+        // Now apply 1D FFT to each column
+        let col_config = CpuFftConfig {
             forward: self.config.forward,
             normalized: self.config.normalized,
-            real_input: false, // Second pass is always complex-to-complex
+            real_input: false, // Always complex after first FFT
         };
-        let second_pass_fft = CpuFft::new(second_pass_config, dims.len() - 1);
         
-        second_pass_fft.fft_along_axis(&intermediate, &intermediate_layout, dims.len() - 1)
+        let mut final_result = vec![0.0; temp_result.len()];
+        let temp_w = effective_w / 2; // Number of complex elements per row
+        
+        // Process each column
+        for col in 0..temp_w {
+            let mut col_data = Vec::with_capacity(h * 2);
+            
+            // Extract column data (complex interleaved)
+            for row in 0..h {
+                let idx = row * effective_w + col * 2;
+                if idx + 1 < temp_result.len() {
+                    col_data.push(temp_result[idx]);     // real
+                    col_data.push(temp_result[idx + 1]); // imag
+                } else {
+                    return Err(crate::Error::Msg(format!("Column extraction bounds error: trying to access {}..{} in array of length {}", idx, idx + 2, temp_result.len())).bt());
+                }
+            }
+            
+            // Apply FFT to this column
+            let col_layout = Layout::contiguous(vec![h]);
+            let col_fft = CpuFft::new(col_config, 0);
+            let col_result = col_fft.fft_f32(&col_data, &col_layout)?;
+            
+            // Put the result back into the final array
+            for (row, chunk) in col_result.chunks(2).enumerate() {
+                let idx = row * effective_w + col * 2;
+                if idx + 1 < final_result.len() && chunk.len() == 2 {
+                    final_result[idx] = chunk[0];     // real
+                    final_result[idx + 1] = chunk[1]; // imag
+                }
+            }
+        }
+        
+        Ok(final_result)
+    }
+    
+    /// Transpose a complex matrix stored as interleaved real/imaginary values
+    fn transpose_complex(&self, data: &[f32], rows: usize, cols: usize) -> Result<Vec<f32>> {
+        let mut result = vec![0.0; data.len()];
+        
+        for r in 0..rows {
+            for c in 0..cols {
+                let src_idx = (r * cols + c) * 2;
+                let dst_idx = (c * rows + r) * 2;
+                
+                if src_idx + 1 < data.len() && dst_idx + 1 < result.len() {
+                    result[dst_idx] = data[src_idx];         // real part
+                    result[dst_idx + 1] = data[src_idx + 1]; // imaginary part
+                }
+            }
+        }
+        
+        Ok(result)
     }
 
     /// Execute FFT along a specific axis

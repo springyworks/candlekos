@@ -9,19 +9,19 @@ candle-nn = { path = "../candle-nn" }
 candle-transformers = { path = "../candle-transformers" }
 fastrand = "2.0"
 imageproc = "0.25"
+minifb = "0.27"
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
 
 [features]
 default = []
 cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
 cudnn = ["candle-core/cudnn", "candle-nn/cudnn", "candle-transformers/cudnn"]
+fft = ["candle-core/fft"]
 
 [[bin]]
 name = "code_overview"
 path = "code_overview.rs"
-
-[[bin]]
-name = "test_5d_tensors"
-path = "test_5d_tensors.rs"
 
 [[bin]]
 name = "test_higher_dims"
@@ -40,5 +40,29 @@ name = "realtime_yolo"
 path = "realtime_yolo.rs"
 
 [[bin]]
-name = "video_processor"
-path = "video_processor.rs"
+name = "fft_visualizer"
+path = "fft_visualizer.rs"
+
+[[bin]]
+name = "tensor_feedback_viz"
+path = "tensor_feedback_viz.rs"
+
+[[bin]]
+name = "tensor_feedback_simple"
+path = "tensor_feedback_simple.rs"
+
+[[bin]]
+name = "gpu_tensor_feedback"
+path = "gpu_tensor_feedback.rs"
+
+[[bin]]
+name = "gpu_stream_display"
+path = "gpu_stream_display.rs"
+
+[[bin]]
+name = "gpu_direct_display"
+path = "gpu_direct_display.rs"
+
+[[bin]]
+name = "fft_overview"
+path = "fft_overview.rs"

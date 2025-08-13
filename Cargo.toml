@@ -10,6 +10,8 @@ members = [
     "candle-wasm-tests",
     "tensor-tools",
     "0aEXPLORATION",
+    "0aEXPLORATION/notebooks",
+    "0aEXPLORATION/notebooks/eguiplot",
 ]
 exclude = [
     "candle-book",

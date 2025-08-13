@@ -1,5 +1,6 @@
 use candle_core::{Device, Result, Tensor};
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
+use font8x8::legacy::BASIC_LEGACY as FONT8; // 8x8 ASCII bitmap font
 use std::time::Instant;
 
 const WINDOW_WIDTH: usize = 1200;
@@ -145,6 +146,95 @@ fn print_help(opts: &VizOptions, left_pat: usize, right_pat: usize, paused: bool
     );
 }
 
+// --- simple text drawing (8x8 bitmap) into ARGB buffer ---
+fn blend_pixel(dst: &mut u32, src: u32) {
+    // ARGB 8:8:8:8, src may contain alpha; do src over dst
+    let sa = ((src >> 24) & 0xFF) as u32;
+    if sa == 0 { return; }
+    if sa == 255 { *dst = src; return; }
+    let da = ((*dst >> 24) & 0xFF) as u32;
+    let sr = ((src >> 16) & 0xFF) as u32;
+    let sg = ((src >> 8) & 0xFF) as u32;
+    let sb = (src & 0xFF) as u32;
+    let dr = ((*dst >> 16) & 0xFF) as u32;
+    let dg = ((*dst >> 8) & 0xFF) as u32;
+    let db = (*dst & 0xFF) as u32;
+    // pre-multiplied style blending: out = s + d*(1-a)
+    let a = sa as f32 / 255.0;
+    let na = (sa + ((da as f32) * (1.0 - a)) as u32).min(255);
+    let rr = (sr as f32 * a + dr as f32 * (1.0 - a)).round() as u32;
+    let rg = (sg as f32 * a + dg as f32 * (1.0 - a)).round() as u32;
+    let rb = (sb as f32 * a + db as f32 * (1.0 - a)).round() as u32;
+    *dst = (na << 24) | (rr << 16) | (rg << 8) | rb;
+}
+
+fn draw_char(buf: &mut [u32], stride: usize, x: usize, y: usize, ch: char, color: u32, scale: usize) {
+    if ch as usize >= 128 { return; }
+    let glyph = FONT8[ch as usize];
+    for (row, bits) in glyph.iter().enumerate() {
+        for col in 0..8 {
+            if (bits >> col) & 1 == 1 {
+                // Draw left-to-right without horizontal flip
+                let gx = x as isize + (col as isize) * (scale as isize);
+                let gy = y as isize + (row as isize) * (scale as isize);
+                for dy in 0..scale {
+                    for dx in 0..scale {
+                        let px = gx + dx as isize;
+                        let py = gy + dy as isize;
+            if px >= 0 && py >= 0 {
+                            let pxu = px as usize;
+                            let pyu = py as usize;
+                            if pxu < stride && pyu < WINDOW_HEIGHT {
+                let dst = &mut buf[pyu * stride + pxu];
+                blend_pixel(dst, color);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn draw_text(buf: &mut [u32], stride: usize, x: usize, y: usize, text: &str, color: u32, scale: usize) {
+    let mut cx = x;
+    for ch in text.chars() {
+        if ch == '\n' {
+            cx = x;
+            continue;
+        }
+        draw_char(buf, stride, cx, y, ch, color, scale);
+        cx += 8 * scale + 1; // 1px spacing
+        if cx >= stride { break; }
+    }
+}
+
+fn text_size(text: &str, scale: usize) -> (usize, usize) {
+    let w = text.chars().filter(|&c| c != '\n').count() * (8 * scale + 1);
+    let h = 8 * scale;
+    (w, h)
+}
+
+fn draw_rect(buf: &mut [u32], stride: usize, x: usize, y: usize, w: usize, h: usize, color: u32) {
+    for yy in y..y.saturating_add(h).min(WINDOW_HEIGHT) {
+        for xx in x..x.saturating_add(w).min(stride) {
+            let dst = &mut buf[yy * stride + xx];
+            blend_pixel(dst, color);
+        }
+    }
+}
+
+fn pattern_name(idx: usize) -> &'static str {
+    match idx % 6 {
+        0 => "ripples",
+        1 => "gabor",
+        2 => "cross-gauss",
+        3 => "spiral",
+        4 => "lissajous",
+        _ => "square-harm",
+    }
+}
+
 fn tensor_to_pixels(img: &Tensor, x_off: usize, opts: VizOptions) -> Result<Vec<u32>> {
     let cpu = img.to_device(&Device::Cpu)?;
     let dims = cpu.dims().to_vec();
@@ -267,6 +357,35 @@ fn main() -> Result<()> {
         for i in 0..buf.len() { buf[i] = left[i] | right[i]; }
         // separator
         for y in 0..WINDOW_HEIGHT { buf[y * WINDOW_WIDTH + PANE_W] = 0xFF00FF00; }
+
+        // Overlays: compact status text per pane
+        let scale = 2usize; // larger for readability
+        let white = 0xFFFFFFFF;
+        let shadow = 0x80000000; // semi-transparent black
+        let bg = 0x7F000000;     // translucent dark background
+        // Left title
+        let left_title = format!("L | {}", pattern_name(left_pat));
+        let (ltw, lth) = text_size(&left_title, scale);
+        draw_rect(&mut buf, WINDOW_WIDTH, 6, 6, ltw + 6, lth + 6, bg);
+        draw_text(&mut buf, WINDOW_WIDTH, 9, 9, &left_title, shadow, scale);
+        draw_text(&mut buf, WINDOW_WIDTH, 8, 8, &left_title, white, scale);
+        // Right title (offset by pane)
+        let right_title = format!("R | {}", pattern_name(right_pat));
+        let (rtw, rth) = text_size(&right_title, scale);
+        draw_rect(&mut buf, WINDOW_WIDTH, PANE_W + 6, 6, rtw + 6, rth + 6, bg);
+        draw_text(&mut buf, WINDOW_WIDTH, PANE_W + 9, 9, &right_title, shadow, scale);
+        draw_text(&mut buf, WINDOW_WIDTH, PANE_W + 8, 8, &right_title, white, scale);
+        // Global status at bottom-left
+        let status = if opts.use_log {
+            format!("mode=log(k={:.0}) shift={} paused={}", opts.log_k, opts.fftshift, paused)
+        } else {
+            format!("mode=gamma(g={:.1}) shift={} paused={}", opts.gamma, opts.fftshift, paused)
+        };
+        let (sw, sh) = text_size(&status, scale);
+        let sy0 = WINDOW_HEIGHT.saturating_sub(sh + 10);
+        draw_rect(&mut buf, WINDOW_WIDTH, 6, sy0 - 2, sw + 6, sh + 6, bg);
+        draw_text(&mut buf, WINDOW_WIDTH, 9, sy0 + 1, &status, shadow, scale);
+        draw_text(&mut buf, WINDOW_WIDTH, 8, sy0, &status, white, scale);
         win.update_with_buffer(&buf, WINDOW_WIDTH, WINDOW_HEIGHT).unwrap();
     }
 

@@ -6,3 +6,7 @@ rustflags = ["-C", "target-feature=+simd128"]
 
 [target.x86_64-apple-darwin]
 rustflags = ["-C", "target-feature=-avx,-avx2"]
+
+[alias]
+run-viz = "run -p candle-exploration --features fft --bin tensor_feedback_viz"
+run-viz-gpu = "run -p candle-exploration --features 'cuda fft gpu-fft-vkfft-ffi' --bin tensor_feedback_viz"

@@ -1,0 +1,16 @@
+[package]
+name = "candle-eguiplot"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+candle-core = { path = "../../../candle-core", default-features = false }
+anyhow = "1"
+eframe = { version = "0.27", default-features = false, features = ["glow"] }
+egui = "0.27"
+once_cell = "1"
+crossbeam-channel = "0.5"
+winit = { version = "0.29" }

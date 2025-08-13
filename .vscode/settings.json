@@ -7,5 +7,11 @@
   // Note: setting keys can vary slightly across Jupyter extension versions.
   // If VS Code shows these as unknown, use Settings UI to copy exact keys for your version.
   "jupyter.showPlotViewerForPlots": true,
-  "jupyter.alwaysShowPlotViewer": true
+  "jupyter.alwaysShowPlotViewer": true,
+  "workbench.colorCustomizations": {
+    "editor.background": "#010101",
+    "activityBar.background": "#25302D",
+    "titleBar.activeBackground": "#34433F",
+    "titleBar.activeForeground": "#F9FAFA"
+  }
 }

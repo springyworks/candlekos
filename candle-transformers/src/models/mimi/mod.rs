@@ -1,6 +1,6 @@
 //! mimi model
 //!
-//! [Mimi](https://huggingface.co/kyutai/mimi) is a state of the art audio
+//! [Mimi](https://huggingface.co/kyutai/mimi) is an audio
 //! compression model using an encoder/decoder architecture with residual vector
 //! quantization. The candle implementation supports streaming meaning that it's
 //! possible to encode or decode a stream of audio tokens on the flight to provide

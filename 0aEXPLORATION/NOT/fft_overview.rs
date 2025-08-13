@@ -1,16 +1,16 @@
-//! FFT Implementation Files Overview - Lists all production FFT files with their documentation descriptions
-//! Provides a comprehensive view of the professional FFT system implementation across the Candle codebase
+//! FFT Implementation Files Overview - Lists FFT files with their documentation descriptions
+//! Provides an overview of the FFT system implementation across the Candle codebase
 
 use std::fs;
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
-    println!("🚀 Candle Professional FFT Implementation Overview\n");
+    println!("🚀 Candle FFT Implementation Overview\n");
     
     let fft_files = vec![
         ("candle-core/src/cpu_backend/cpu_fft.rs", "Core CPU FFT Implementation"),
         ("candle-core/src/cuda_backend/cuda_fft.rs", "Core CUDA FFT Implementation"), 
-        ("candle-kernels/src/fft.cu", "Professional CUDA Kernels"),
+    ("candle-kernels/src/fft.cu", "CUDA Kernels"),
         ("candle-core/tests/fft_tests.rs", "Comprehensive Test Suite"),
         ("candle-core/tests/fft_feature_check.rs", "Feature Gate Validation"),
         ("FEATURE_TESTING.md", "Feature Testing Documentation"),
@@ -77,12 +77,12 @@ fn main() -> std::io::Result<()> {
         }
     }
     
-    println!("\n🎯 **Ready for Production Use:**");
+    println!("\n🎯 **Available Components:**");
     println!("   ✅ 1D FFT operations (real and complex)");
     println!("   ✅ Multi-dimensional FFT operations");  
     println!("   ✅ CUDA GPU acceleration");
     println!("   ✅ Feature gate system and user protection");
-    println!("   ✅ Professional documentation and testing");
+    println!("   ✅ Documentation and tests");
     println!("   ✅ Windowing functions and spectral analysis");
     
     Ok(())

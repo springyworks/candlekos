@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/CMakeFiles/glslang-main-populate"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/CMakeFiles/glslang-main-populate.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/CMakeFiles/glslang-main-populate-complete.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-build.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-configure.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-download.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-install.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-patch.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-test.rule"
+		},
+		{
+			"file" : "/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glslang-main-populate"
+		],
+		"name" : "glslang-main-populate"
+	}
+}

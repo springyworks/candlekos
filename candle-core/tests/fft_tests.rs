@@ -1,4 +1,4 @@
-//! Comprehensive FFT test suite for validating professional signal processing operations.
+//! FFT test suite for validating signal processing operations.
 //! Tests 1D, 2D, multi-dimensional FFT operations, windowing functions, and edge cases.
 
 #![cfg(feature = "fft")]

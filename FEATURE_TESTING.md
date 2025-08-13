@@ -8,7 +8,7 @@ This document explains how Candle uses feature gates to manage optional function
 The FFT (Fast Fourier Transform) functionality in Candle requires the `fft` feature to be enabled. This feature provides:
 
 - CPU-based FFT operations using RustFFT
-- Professional-grade 1D, 2D, and multi-dimensional FFT operations
+- 1D, 2D, and multi-dimensional FFT operations
 - Real-to-complex and complex-to-complex transforms
 - Windowing functions and spectral analysis tools
 

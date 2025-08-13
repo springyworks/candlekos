@@ -1,4 +1,4 @@
-//! Professional CPU FFT implementation using RustFFT for high-performance signal processing operations.
+//! CPU FFT implementation using RustFFT for signal processing operations.
 //! Provides 1D, 2D, and multi-dimensional FFT operations with real-to-complex and complex-to-complex transforms.
 
 // CPU FFT implementation using Intel MKL DFT or pure Rust fallback
@@ -192,7 +192,7 @@ impl CpuFft {
             }
         #[cfg(feature = "fft")]
         {
-            // Professional Rust FFT implementation using RustFFT
+            // FFT implementation using RustFFT
             use rustfft::{FftPlanner, num_complex::Complex};
             
             let mut planner = FftPlanner::new();

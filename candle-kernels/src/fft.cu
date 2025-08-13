@@ -1,8 +1,8 @@
-// Professional FFT CUDA kernels
+// FFT CUDA kernels
 // High-performance implementations for windowing, magnitude/phase extraction, and FFT shift
 // Provides normalization and utility functions for cuFFT operations
 
-//! Professional CUDA kernels for FFT support operations including windowing and magnitude computation.
+//! CUDA kernels for FFT support operations including windowing and magnitude computation.
 //! Provides optimized GPU kernels for spectral analysis, phase extraction, and frequency domain operations.
 
 #include <cuda_runtime.h>
@@ -41,7 +41,7 @@ extern "C" __global__ void fft_normalize_c64(
 }
 
 // ============================================================================
-// Professional Window Function Kernels
+// Window Function Kernels
 // ============================================================================
 
 extern "C" __global__ void apply_hann_window(
@@ -100,7 +100,7 @@ extern "C" __global__ void apply_blackman_window(
 }
 
 // ============================================================================
-// Professional Complex Number Operations
+// Complex Number Operations
 // ============================================================================
 
 extern "C" __global__ void complex_magnitude_kernel(
@@ -152,7 +152,7 @@ extern "C" __global__ void complex_power_kernel(
 }
 
 // ============================================================================
-// Professional FFT Shift Operations
+// FFT Shift Operations
 // ============================================================================
 
 __device__ unsigned int calculate_shifted_index(

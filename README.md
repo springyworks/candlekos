@@ -59,7 +59,7 @@ These online demos run entirely in your browser:
 - [Segment Anything Model](https://huggingface.co/spaces/radames/candle-segment-anything-wasm): Image segmentation.
 - [BLIP](https://huggingface.co/spaces/radames/Candle-BLIP-Image-Captioning): image captioning.
 
-We also provide some command line based examples using state of the art models:
+We also provide some command line based examples using widely-used models:
 
 - [LLaMA v1, v2, and v3](./candle-examples/examples/llama/): general LLM, includes
   the SOLAR-10.7B variant.

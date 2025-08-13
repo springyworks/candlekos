@@ -1,0 +1,14 @@
+# Target labels
+ glslang-main-populate
+# Source files and their labels
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/CMakeFiles/glslang-main-populate
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/CMakeFiles/glslang-main-populate.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/CMakeFiles/glslang-main-populate-complete.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-build.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-configure.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-download.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-install.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-mkdir.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-patch.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-test.rule
+/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/src/glslang-main-populate-stamp/glslang-main-populate-update.rule

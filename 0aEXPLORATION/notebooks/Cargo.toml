@@ -13,7 +13,7 @@ fft = ["candle-core/fft"]
 candle-core = { path = "../../candle-core", default-features = false }
 candle-nn = { path = "../../candle-nn", default-features = false }
 anyhow = "1"
-thiserror = "1"
+thiserror = "2"
 image = { version = "0.24" }
 base64 = "0.21"
 

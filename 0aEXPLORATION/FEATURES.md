@@ -76,6 +76,9 @@ Integrates with CI (`.github/workflows/ci.yml` and `nightly-powerset.yml`).
 | Scan ops | (core) | `cargo test -p candle-core --test scan_tests` | Inclusive/exclusive scan; CUDA accelerates implicitly |
 | GPU FFT smoke (real) | `cuda,fft,gpu-fft` | included (gpu_fft_smoke.rs) | Forward+inverse real roundtrip w/ scale detection |
 | GPU FFT smoke (c2c) | `cuda,fft,gpu-fft` | included (gpu_fft_smoke_complex.rs) | Complex roundtrip; tolerances & scale handling |
+| FFT normalization tests | `fft` | `cargo test --features fft --test fft_normalization_tests` | Confirms (norm=true) roundtrip scale & mixed-scale behavior |
+| FFT benches | `fft` (+ optional `cuda,gpu-fft`) | `cargo bench --features fft[,cuda,gpu-fft]` | Adds 1D rfft/complex benchmarks (criterion) |
+| FFT debug macro | `fft-debug` or env | `CANDLE_FFT_DEBUG=1 ...` | Emits `[fft-debug]` lines when enabled (zero-cost otherwise) |
 
 Guidelines:
 1. Provide a small always‑compiled feature check test per optional subsystem (done for FFT).
@@ -84,6 +87,8 @@ Guidelines:
 4. Exercise experimental GPU layers in nightly, non‑blocking steps (continue-on-error) to keep velocity.
 5. Document any new feature interactions here and add invariants in `feature_guards.rs`.
 6. GPU FFT smoke tests perform scale normalization detection (some providers scale forward/inverse); assertions adapt accordingly.
+7. Keep FFT-specific benchmarking lightweight (small 1D sizes) to conserve CI time; larger multidim benches can live out-of-tree.
+8. Prefer using shared helpers (`fft_test_utils.rs`) for tolerances/scale detection to avoid drift between tests.
 
 ## SemVer & Stability
 

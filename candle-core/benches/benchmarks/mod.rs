@@ -7,6 +7,8 @@ pub(crate) mod random;
 pub(crate) mod reduce;
 pub(crate) mod unary;
 pub(crate) mod where_cond;
+#[cfg(feature = "fft")]
+pub(crate) mod fft;
 
 use candle_core::{Device, Result};
 

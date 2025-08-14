@@ -26,4 +26,18 @@ jobs:
           #   * Optional VkFFT layers (gpu-fft-vkfft, gpu-fft-vkfft-ffi)
           # Failures ignored to keep nightly green when CUDA toolchain or deps absent.
           cargo run -p xtask -- check
+      - name: candle-core gpu fft test build (non-fatal)
+        continue-on-error: true
+        run: |
+          # Build and run only the minimal gpu fft smoke tests if CUDA available.
+          # Skip fully running all tests to keep runtime low; focus on early linkage failures.
+          set -e
+          echo "Attempting candle-core GPU FFT smoke tests"
+          if cargo test -p candle-core --no-run --features "cuda,fft,gpu-fft" 2>/dev/null; then
+            # run filtered tests to limit scope
+            cargo test -p candle-core --features "cuda,fft,gpu-fft" --test gpu_fft_smoke -- gpu_fft_forward_inverse_roundtrip || true
+            cargo test -p candle-core --features "cuda,fft,gpu-fft" --test gpu_fft_smoke_complex -- gpu_fft_c2c_roundtrip || true
+          else
+            echo "Skipping gpu fft smoke run; build failed or CUDA unavailable"
+          fi
 

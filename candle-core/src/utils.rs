@@ -43,3 +43,17 @@ pub fn with_simd128() -> bool {
 pub fn with_f16c() -> bool {
     cfg!(target_feature = "f16c")
 }
+
+/// Lightweight debug macro for FFT development.
+/// Usage: fft_debug!("message: {}", value);
+/// Activated if compiled with `--features fft-debug` OR env var CANDLE_FFT_DEBUG=1/true at runtime.
+#[macro_export]
+macro_rules! fft_debug {
+    ($($arg:tt)*) => {{
+        #[allow(unused)]
+        {
+            let enabled = cfg!(feature = "fft-debug") || std::env::var("CANDLE_FFT_DEBUG").map(|v| v=="1" || v.eq_ignore_ascii_case("true")).unwrap_or(false);
+            if enabled { eprintln!("[fft-debug] {}", format!($($arg)*)); }
+        }
+    }};
+}

@@ -4,6 +4,8 @@
 // reconstruction within tolerance (considering possible provider scaling).
 
 use candle_core::{Device, Result, Tensor};
+mod fft_test_utils; // shared helpers
+use fft_test_utils::{FFT_EPS_COMPLEX, expected_sin_cos, assert_approx_scaled, split_interleaved_complex};
 
 #[test]
 fn gpu_fft_c2c_roundtrip() -> Result<()> {
@@ -20,21 +22,7 @@ fn gpu_fft_c2c_roundtrip() -> Result<()> {
     let time = freq.ifft(0, false)?;
     let host = time.to_device(&Device::Cpu)?.to_vec1::<f32>()?;
 
-    // Detect uniform scale factor (skip first imaginary component etc.)
-    let mut scale = None;
-    for i in (0..host.len()).step_by(2) { // real parts only for scale detection
-        let orig_re = ( (i/2) as f32 ).sin();
-        if orig_re.abs() > 1e-6 { scale = Some(host[i]/orig_re); break; }
-    }
-    if let Some(s) = scale { if (s - 1.0).abs() < 1e-3 { scale = Some(1.0); } }
-
-    for i in 0..n {
-        let expected_re = (i as f32).sin();
-        let expected_im = (i as f32).cos();
-        let got_re = host[2*i]   / scale.unwrap_or(1.0);
-        let got_im = host[2*i+1] / scale.unwrap_or(1.0);
-        assert!((got_re - expected_re).abs() < 7e-3, "re mismatch i={i} got={got_re} exp={expected_re}");
-        assert!((got_im - expected_im).abs() < 7e-3, "im mismatch i={i} got={got_im} exp={expected_im}");
-    }
+    // Use helper to compare interleaved complex sinusoid.
+    assert_approx_scaled(&host, &expected_sin_cos(n), FFT_EPS_COMPLEX);
     Ok(())
 }

@@ -69,6 +69,9 @@ gpu-fft-vkfft = ["gpu-fft"]
 # When enabled, we'll compile a small C wrapper against the vendored VkFFT.
 gpu-fft-vkfft-ffi = ["gpu-fft-vkfft"]
 
+# Enable lightweight debug logging for FFT development (no-op unless explicitly enabled).
+fft-debug = []
+
 [[bench]]
 name = "bench_main"
 harness = false

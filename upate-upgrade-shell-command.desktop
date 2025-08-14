@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Update and Upgrade Script
-Comment=Run apt update/upgrade/autoremove/clean in a terminal and stay open when done
-Exec=bash -c "set -e; sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y && sudo apt clean && sudo apt autoclean; echo; read -n1 -rsp 'Done. Press any key to close...'"
-Terminal=true
-Icon=utilities-terminal
-Categories=System;Utility;
-

@@ -201,13 +201,13 @@ fn test_cpu_fftn_3d() -> Result<()> {
     
     let tensor = Tensor::from_vec(data, &[d, h, w], &device)?;
     
-    // Test 1: 3D FFT on all dimensions
+    // Test 1: 3D FFT on all dimensions (real_input applies only to last dim per implementation)
     let fft_3d = tensor.fftn([0usize, 1, 2], true, false)?;
-    assert_eq!(fft_3d.dims(), &[d * 2, h * 2, (w / 2 + 1) * 2]);
+    assert_eq!(fft_3d.dims(), &[d, h, (w / 2 + 1) * 2]);
     
     // Test 2: 2D FFT on last two dimensions
     let fft_2d = tensor.fftn([1usize, 2], true, false)?;
-    assert_eq!(fft_2d.dims(), &[d, h * 2, (w / 2 + 1) * 2]);
+    assert_eq!(fft_2d.dims(), &[d, h, (w / 2 + 1) * 2]);
     
     // Test 3: 1D FFT on last dimension (should be same as regular fft)
     let fft_1d = tensor.fftn([2usize], true, false)?;
@@ -266,11 +266,9 @@ fn test_cpu_fftn_high_dimensional() -> Result<()> {
     
     let tensor = Tensor::from_vec(data, &dims, &device)?;
     
-    // FFT on last 3 dimensions
+    // FFT on last 3 dimensions (only final dimension expands for real input)
     let result = tensor.fftn([2usize, 3, 4], true, false)?;
-    
-    // Check output shape
-    let expected_dims = [2, 4, 8 * 2, 16 * 2, (8 / 2 + 1) * 2];
+    let expected_dims = [2, 4, 8, 16, (8 / 2 + 1) * 2];
     assert_eq!(result.dims(), &expected_dims);
     
     println!("High-dimensional FFT test passed!");

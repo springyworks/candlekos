@@ -1,0 +1,29 @@
+name: Nightly Feature Powerset
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  powerset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run limited powerset checks
+        run: cargo run -p xtask -- check-all
+      - name: Run limited powerset tests
+        run: cargo run -p xtask -- test-all
+      - name: Advanced core GPU FFT combos (informational, ignore failures)
+        continue-on-error: true
+        env:
+          XTASK_CORE_FFT: "1"
+        run: |
+          # Advanced GPU FFT provider stacks:
+          #   * Baseline gpu-fft (alias cuda-fft) plumbing
+          #   * Optional VkFFT layers (gpu-fft-vkfft, gpu-fft-vkfft-ffi)
+          # Failures ignored to keep nightly green when CUDA toolchain or deps absent.
+          cargo run -p xtask -- check
+

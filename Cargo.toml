@@ -12,6 +12,7 @@ members = [
     "0aEXPLORATION",
     "0aEXPLORATION/notebooks",
     "0aEXPLORATION/notebooks/eguiplot",
+    "xtask",
 ]
 exclude = [
     "candle-book",

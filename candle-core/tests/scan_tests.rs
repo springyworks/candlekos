@@ -1,4 +1,15 @@
 use candle_core::{test_device, test_utils::to_vec2_round, Device, Result, Tensor, D};
+// Additional direct tests for the explicit inclusive_scan / exclusive_scan helpers
+// (distinct from cumsum), ensuring their CUDA fallback semantics are exercised.
+
+fn scan_api_wrappers(device: &Device) -> Result<()> {
+    let t = Tensor::new(&[1f32,2.,3.,4.], device)?;
+    let inc = t.inclusive_scan(0)?; // should match cumsum
+    assert_eq!(inc.to_vec1::<f32>()?, &[1.,3.,6.,10.]);
+    let exc = t.exclusive_scan(0)?; // shifted with zero seed
+    assert_eq!(exc.to_vec1::<f32>()?, &[0.,1.,3.,6.]);
+    Ok(())
+}
 
 fn scan_1d_basic(device: &Device) -> Result<()> {
     // Test basic 1D scan operations
@@ -168,7 +179,7 @@ fn scan_different_dtypes(device: &Device) -> Result<()> {
     let expected = &[1e10, 3e10, 6e10, 10e10];
     let actual = result.to_vec1::<f64>()?;
     for (a, e) in actual.iter().zip(expected) {
-        assert!((a - e).abs() < 1e-6, "Expected {}, got {}", e, a);
+        assert!((a - e).abs() < 1e-6, "Expected {e}, got {a}");
     }
     
     Ok(())
@@ -207,7 +218,7 @@ fn scan_performance_large(device: &Device) -> Result<()> {
     
     // All ones cumsum should be [1, 2, 3, ..., n]
     for (i, &val) in result_vec.iter().enumerate() {
-        assert_eq!(val, (i + 1) as f32, "Mismatch at index {}", i);
+        assert_eq!(val, (i + 1) as f32, "Mismatch at index {i}");
     }
     
     // Test 2D large tensor
@@ -254,8 +265,8 @@ fn scan_numerical_stability(device: &Device) -> Result<()> {
     
     // Should alternate between 1 and 0
     for (i, &val) in result_vec.iter().enumerate() {
-        let expected = if i % 2 == 0 { 1.0 } else { 0.0 };
-        assert_eq!(val, expected, "Alternating pattern failed at index {}", i);
+        let expected = if i.is_multiple_of(2) { 1.0 } else { 0.0 };
+        assert_eq!(val, expected, "Alternating pattern failed at index {i}");
     }
     
     Ok(())
@@ -266,7 +277,7 @@ fn scan_memory_patterns(device: &Device) -> Result<()> {
     
     // Non-power-of-2 sizes
     let sizes = if device.is_cuda() {
-        vec![17, 33, 65, 129, 257, 513, 1025.min(1024)] // clamp to <=1024
+        vec![17, 33, 65, 129, 257, 513, 1024] // clamp to <=1024
     } else {
         vec![17, 33, 65, 129, 257, 513, 1025, 2049]
     };
@@ -330,6 +341,7 @@ test_device!(scan_strided_tensor, scan_strided_tensor_cpu, scan_strided_tensor_c
 test_device!(scan_performance_large, scan_performance_large_cpu, scan_performance_large_cuda, scan_performance_large_metal);
 test_device!(scan_numerical_stability, scan_numerical_stability_cpu, scan_numerical_stability_cuda, scan_numerical_stability_metal);
 test_device!(scan_memory_patterns, scan_memory_patterns_cpu, scan_memory_patterns_cuda, scan_memory_patterns_metal);
+test_device!(scan_api_wrappers, scan_api_wrappers_cpu, scan_api_wrappers_cuda, scan_api_wrappers_metal);
 
 // Additional CUDA-specific stress tests
 #[cfg(feature = "cuda")]

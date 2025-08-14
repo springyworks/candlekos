@@ -11,7 +11,7 @@ fn main() -> Result<()> {
     println!("🧪 Testing Higher Dimensional Tensors in Candle");
     
     let device = Device::cuda_if_available(0)?;
-    println!("Using device: {:?}\n", device);
+    println!("Using device: {device:?}\n");
     
     // Test 6D tensor
     let shape_6d = vec![2, 3, 4, 5, 6, 7];

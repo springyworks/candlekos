@@ -2717,9 +2717,55 @@ impl Tensor {
     /// * `dim` - The dimension along which to compute the FFT
     /// * `real_input` - Whether the input is real (true) or complex (false)
     /// * `normalized` - Whether to apply normalization (divide by sqrt(n))
+    ///
+    /// Performs a 1D Fast Fourier Transform along a chosen axis.
+    ///
+    /// This low-level primitive expects an interleaved complex format for complex-to-complex
+    /// transforms (real/imag pairs stored contiguously along the target axis). For real input
+    /// transforms set `real_input=true` and provide a real-valued tensor; the output then uses
+    /// an interleaved complex representation with length `(n/2 + 1) * 2` along that axis.
+    ///
+    /// Feature flags & backends:
+    /// - Requires the `fft` feature for CPU (RustFFT + RealFFT providers).
+    /// - On GPU, enabling `cuda` plus one of `gpu-fft` / `cuda-fft` (alias) activates provider
+    ///   backends; optional `gpu-fft-vkfft` (and `gpu-fft-vkfft-ffi`) switch implementation.
+    /// - Without GPU FFT features, calling this on a CUDA tensor will return an error.
+    ///
+    /// Normalization: when `normalized=true` the forward transform applies a `1/sqrt(n)` scale
+    /// (mirroring many ML frameworks optional orthonormal transforms). Use the corresponding
+    /// inverse with the same flag to achieve round‑trip identity within floating error.
+    ///
+    /// # Examples
+    ///
+    /// Basic real FFT on CPU (requires enabling the `fft` feature when compiling Candle):
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "fft")] {
+    /// use candle_core::{Tensor, Device};
+    /// let signal = Tensor::arange(0f32, 8f32, &Device::Cpu)?; // length 8 real signal
+    /// let spectrum = signal.fft(0, true, true)?;              // real -> complex spectrum
+    /// assert_eq!(spectrum.rank(), 1);
+    /// // Output logical complex length is 8/2+1 = 5 (stored as 10 f32 values)
+    /// assert_eq!(spectrum.dims()[0], (8/2 + 1) * 2);
+    /// # }
+    /// # Ok::<(), candle_core::Error>(())
+    /// ```
+    ///
+    /// Performing a complex-to-complex FFT (provide interleaved real/imag pairs):
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "fft")] {
+    /// use candle_core::{Tensor, Device};
+    /// // Construct a length-4 complex vector: (1+0i, 0+1i, 1-1i, 0-1i)
+    /// let data: [f32; 8] = [1.,0., 0.,1., 1.,-1., 0.,-1.];
+    /// let complex = Tensor::from_slice(&data, (8,), &Device::Cpu)?; // interleaved
+    /// let out = complex.fft(0, false, true)?; // complex->complex
+    /// assert_eq!(out.dims()[0], 8); // same float length (still interleaved)
+    /// # }
+    /// # Ok::<(), candle_core::Error>(())
+    /// ```
     pub fn fft<D: Dim>(&self, dim: D, real_input: bool, normalized: bool) -> Result<Self> {
         let dim = dim.to_index(self.shape(), "fft")?;
-        println!("[DEBUG] fft: input shape = {:?}, axis = {}, real_input = {}", self.dims(), dim, real_input);
         // Validate input dtype
         if !matches!(self.dtype(), DType::F32 | DType::F64) {
             bail!("FFT is only supported for floating-point tensors (f32, f64)");
@@ -2752,7 +2798,7 @@ impl Tensor {
                         } else {
                             // Complex-to-complex keeps the same float length along the FFT axis
                         }
-                        println!("[DEBUG] fft: output shape = {output_dims:?}");
+                        // output dims computed above; no debug print in release.
                         let out = Tensor::from_vec(result, output_dims, transposed.device())?;
                         // Permute back to original axis order
                         if dim != rank - 1 {
@@ -3389,17 +3435,18 @@ impl Tensor {
     /// * `normalized` - Whether to apply normalization
     /// 
     /// # Examples
-    /// ```
-    /// use candle_core::{Tensor, Device, DType};
+    ///
+    /// Enable the `fft` feature to run these examples:
+    /// `cargo doc --features fft --open` or `cargo test --features fft`.
+    ///
+    /// ```ignore
+    /// use candle_core::{Tensor, Device};
+    /// # fn run() -> candle_core::Result<()> {
     /// let device = Device::Cpu;
     /// let tensor = Tensor::randn(0f32, 1f32, &[8, 16, 32], &device)?;
-    /// 
-    /// // 3D FFT on all dimensions
-    /// let result = tensor.fftn([0usize, 1, 2], true, false)?;
-    /// 
-    /// // 2D FFT on last 2 dimensions (equivalent to fft2)
-    /// let result2 = tensor.fftn([1usize, 2], true, false)?;
-    /// # Ok::<(), candle_core::Error>(())
+    /// let result = tensor.fftn([0usize, 1, 2], true, false)?; // 3D
+    /// let result2 = tensor.fftn([1usize, 2], true, false)?;   // 2D subset
+    /// # Ok(()) }
     /// ```
     pub fn fftn<D: Dims>(&self, dims: D, real_input: bool, normalized: bool) -> Result<Self> {
         let dims = dims.to_indexes(self.shape(), "fftn")?;

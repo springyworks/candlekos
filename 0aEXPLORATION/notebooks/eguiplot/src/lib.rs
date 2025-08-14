@@ -87,16 +87,14 @@ fn run_egui_window(rx: Receiver<Command>) {
     #[cfg(target_os = "linux")]
     let native_options = {
         use eframe::NativeOptions;
-        // Import both extensions so with_any_thread is available regardless of backend.
-        use winit::platform::x11::EventLoopBuilderExtX11;
-        use winit::platform::wayland::EventLoopBuilderExtWayland;
-        let mut opts = NativeOptions::default();
-        opts.event_loop_builder = Some(Box::new(|builder| {
-            // Allow creating the event loop off the main thread on Linux.
-            winit::platform::x11::EventLoopBuilderExtX11::with_any_thread(builder, true);
-            winit::platform::wayland::EventLoopBuilderExtWayland::with_any_thread(builder, true);
-        }));
-        opts
+        NativeOptions {
+            event_loop_builder: Some(Box::new(|builder| {
+                // Call extension methods using fully-qualified syntax without importing traits.
+                winit::platform::x11::EventLoopBuilderExtX11::with_any_thread(builder, true);
+                winit::platform::wayland::EventLoopBuilderExtWayland::with_any_thread(builder, true);
+            })),
+            ..Default::default()
+        }
     };
 
     #[cfg(not(target_os = "linux"))]
@@ -309,7 +307,7 @@ fn tensor_to_rgba_u8_rgb(t: &Tensor) -> Result<(Vec<u8>, usize, usize)> {
     Ok((rgba, w, h))
 }
 
-fn min_max_2d(m: &Vec<Vec<f32>>) -> (f32, f32) {
+fn min_max_2d(m: &[Vec<f32>]) -> (f32, f32) {
     let mut min_v = f32::INFINITY;
     let mut max_v = f32::NEG_INFINITY;
     for row in m.iter() {

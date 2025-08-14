@@ -128,39 +128,30 @@ impl XLMRobertaSelfAttention {
     ) -> Result<Tensor> {
         let mixed_query_layer = self.query.forward(hidden_states)?;
         let is_cross_attention = encoder_hidden_states.is_some();
-        let (key_layer, value_layer, attention_mask) = if is_cross_attention
-            && past_key_value.is_some()
-        {
-            let key_layer = past_key_value.unwrap().0.clone();
-            let value_layer = past_key_value.unwrap().1.clone();
-            let attention_mask = encoder_attention_mask.unwrap().clone();
-            (key_layer, value_layer, Some(attention_mask))
-        } else if is_cross_attention {
-            let key_layer =
-                self.transpose_for_scores(&self.key.forward(encoder_hidden_states.unwrap())?)?;
-            let value_layer =
-                self.transpose_for_scores(&self.value.forward(encoder_hidden_states.unwrap())?)?;
-            let attention_mask = encoder_attention_mask.unwrap();
-            (key_layer, value_layer, Some(attention_mask.clone()))
-        } else if past_key_value.is_some() {
-            let mut key_layer = self.transpose_for_scores(&self.key.forward(hidden_states)?)?;
-            let mut value_layer = self.transpose_for_scores(&self.value.forward(hidden_states)?)?;
-            key_layer = Tensor::cat(
-                &[
-                    past_key_value.clone().as_ref().unwrap().0.clone(),
-                    key_layer,
-                ],
-                2,
-            )?;
-            value_layer = Tensor::cat(
-                &[past_key_value.as_ref().unwrap().1.clone(), value_layer],
-                2,
-            )?;
-            (key_layer, value_layer, Some(attention_mask.clone()))
-        } else {
-            let key_layer = self.transpose_for_scores(&self.key.forward(hidden_states)?)?;
-            let value_layer = self.transpose_for_scores(&self.value.forward(hidden_states)?)?;
-            (key_layer, value_layer, Some(attention_mask.clone()))
+        let (key_layer, value_layer, attention_mask) = match (is_cross_attention, past_key_value) {
+            (true, Some((pk, pv))) => {
+                let attention_mask = encoder_attention_mask.expect("encoder_attention_mask required when cross-attention with past_key_value").clone();
+                (pk.clone(), pv.clone(), Some(attention_mask))
+            }
+            (true, None) => {
+                let enc = encoder_hidden_states.expect("encoder_hidden_states required for cross-attention");
+                let key_layer = self.transpose_for_scores(&self.key.forward(enc)?)?;
+                let value_layer = self.transpose_for_scores(&self.value.forward(enc)?)?;
+                let attention_mask = encoder_attention_mask.expect("encoder_attention_mask required for cross-attention");
+                (key_layer, value_layer, Some(attention_mask.clone()))
+            }
+            (false, Some((pk, pv))) => {
+                let mut key_layer = self.transpose_for_scores(&self.key.forward(hidden_states)?)?;
+                let mut value_layer = self.transpose_for_scores(&self.value.forward(hidden_states)?)?;
+                key_layer = Tensor::cat(&[pk.clone(), key_layer], 2)?;
+                value_layer = Tensor::cat(&[pv.clone(), value_layer], 2)?;
+                (key_layer, value_layer, Some(attention_mask.clone()))
+            }
+            (false, None) => {
+                let key_layer = self.transpose_for_scores(&self.key.forward(hidden_states)?)?;
+                let value_layer = self.transpose_for_scores(&self.value.forward(hidden_states)?)?;
+                (key_layer, value_layer, Some(attention_mask.clone()))
+            }
         };
 
         let query_layer = self.transpose_for_scores(&mixed_query_layer)?;

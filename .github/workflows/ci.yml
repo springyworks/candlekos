@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        combo: [ "", "cuda", "cuda,fft", "cuda,cudnn", "fft" ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install minimal CUDA dependencies (placeholder)
+        if: contains(matrix.combo, 'cuda')
+        run: |
+          echo "TODO: install CUDA dependencies for CI environment if needed"
+      - name: Build & test (feature combo)
+        run: |
+          if [ "${{ matrix.combo }}" = "" ]; then
+            cargo test -p candle-exploration --no-run
+          else
+            cargo test -p candle-exploration --no-run --features "${{ matrix.combo }}"
+          fi
+      - name: Run xtask check + test canonical
+        if: matrix.combo == ''
+        run: |
+          cargo run -p xtask -- check
+          cargo run -p xtask -- test

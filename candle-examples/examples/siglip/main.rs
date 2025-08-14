@@ -140,7 +140,7 @@ pub fn main() -> anyhow::Result<()> {
     )?
     .to_device(&device)?;
     let vb =
-        unsafe { VarBuilder::from_mmaped_safetensors(&[model_file.clone()], DType::F32, &device)? };
+        unsafe { VarBuilder::from_mmaped_safetensors(std::slice::from_ref(&model_file), DType::F32, &device)? };
     let model = siglip::Model::new(&config, vb)?;
     let (input_ids, vec_seq) = tokenize_sequences(&config, args.sequences, &tokenizer, &device)?;
     let (_logits_per_text, logits_per_image) = model.forward(&images, &input_ids)?;

@@ -201,7 +201,7 @@ fn shortcut(index: usize, p: usize, block: &Block) -> Result<(usize, Bl)> {
 fn yolo(p: usize, block: &Block) -> Result<(usize, Bl)> {
     let classes = block.get("classes")?.parse::<usize>()?;
     let flat = int_list_of_string(block.get("anchors")?)?;
-    if flat.len() % 2 != 0 {
+    if !flat.len().is_multiple_of(2) {
         candle::bail!("even number of anchors");
     }
     let flat = flat.into_iter().map(|i| i as usize).collect::<Vec<_>>();
@@ -268,7 +268,7 @@ impl Darknet {
         Ok(image_width)
     }
 
-    pub fn build_model(&self, vb: VarBuilder) -> Result<Func> {
+    pub fn build_model(&self, vb: VarBuilder) -> Result<Func<'_>> {
         let mut blocks: Vec<(usize, Bl)> = vec![];
         let mut prev_channels: usize = 3;
         for (index, block) in self.blocks.iter().enumerate() {

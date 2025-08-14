@@ -492,3 +492,22 @@ If you encounter an error like this one `called `Result::unwrap()` on an `Err` v
 `c:\Windows\System32\nvcuda.dll` -> `cuda.dll`
 `c:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\bin\cublas64_12.dll` -> `cublas.dll`
 `c:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\bin\curand64_10.dll` -> `curand.dll`
+
+## Quick run a single Rust file (workspace aware)
+
+When browsing the repository you may want to run a standalone `main` that lives in a crate (e.g. one of the exploration binaries) just by its path without remembering the crate name or bin target. A helper subcommand is available:
+
+```
+cargo run -p xtask -- run-file 0aEXPLORATION/gpu_stream_display.rs -- --help
+```
+
+The command will:
+- Detect which workspace crate owns the file.
+- If the file matches an existing declared `[[bin]]` target or an auto-discovered `src/bin/<name>.rs`, it runs that binary.
+- If it's the crate root `src/main.rs`, it runs the crate normally.
+- Otherwise it creates a temporary binary under `src/bin/` (copied, not symlinked), runs it, then cleans it up.
+- Automatically enables any `required-features` declared for that binary (unless you already passed an explicit `--features ...`).
+
+Anything after `--` is forwarded to the program being run.
+
+This enables a frictionless "run by path" workflow from editors or scripts.

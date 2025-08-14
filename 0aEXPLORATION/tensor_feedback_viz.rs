@@ -14,6 +14,7 @@ macro_rules! viz_debug { ($($t:tt)*) => { eprintln!("[viz-debug] {}", format!($(
 #[cfg(not(feature = "viz-debug"))]
 macro_rules! viz_debug { ($($t:tt)*) => {}; }
 
+#[allow(dead_code)] // numerous experimental helper methods not always invoked in current modes
 struct TensorClosedLoopViz {
     window: Window,
     device: Device,
@@ -65,7 +66,7 @@ enum FilterType {
 
 impl TensorClosedLoopViz {
     // Debug helper: safely obtain a flat Vec<f32> from any tensor while printing shape info.
-    fn debug_flat_vec(&self, tensor: &Tensor, label: &str) -> Result<Vec<f32>> {
+    fn debug_flat_vec(&self, tensor: &Tensor, _label: &str) -> Result<Vec<f32>> {
         let shape = tensor.shape();
         let dims = shape.dims();
         if dims.len() != 1 {
@@ -76,250 +77,24 @@ impl TensorClosedLoopViz {
         }
         viz_debug!("{} already flat shape {:?}", label, dims);
         tensor.to_vec1::<f32>()
-    }
-    fn new() -> Result<Self> {
-        let window = Window::new(
-            "🔄 Candle Tensor Closed Loop System - [1-5] Modes [F1-F5] Filters [WASD] Controls [R] Reset",
-            WINDOW_WIDTH,
-            WINDOW_HEIGHT,
-            WindowOptions::default(),
-        ).unwrap();
+    /*
+    NOTE: The following experimental transformation & modulation helpers are
+    currently not part of the active feedback loop pipeline. They are retained
+    for future experimentation (geometry, FFT domain manipulation, custom
+    convolution, spatial modulation). Commented out to keep builds warning-free.
 
-        let device = Device::Cpu;
-        
-        // Initialize tensors with interesting patterns
-        let tensor_a = Self::create_initial_pattern(&device, 0)?;
-        let tensor_b = Self::create_initial_pattern(&device, 1)?;
-
-        Ok(Self {
-            window,
-            device,
-            tensor_a,
-            tensor_b,
-            time: 0.0,
-            coupling_strength: 0.3,
-            rotation_speed: 0.1,
-            zoom_factor: 1.02,
-            noise_level: 0.01,
-            mode: ProcessingMode::DirectCoupling,
-            filter_type: FilterType::None,
-            phase: 0.0,
-            decay_rate: 0.995,
-            divergence_strength: 0.15,
-            last_report_coupling: 0.3,
-            last_report_rotation: 0.1,
-            last_report_mode: None,
-            last_report_filter: None,
-            last_report_noise: true, // noise_level > 0
-        })
-    }
-    
-    fn create_initial_pattern(device: &Device, pattern_type: i32) -> Result<Tensor> {
-        let mut data = vec![0.0f32; TENSOR_WIDTH * TENSOR_HEIGHT];
-        
-        let center_x = TENSOR_WIDTH as f32 / 2.0;
-        let center_y = TENSOR_HEIGHT as f32 / 2.0;
-        
-        for y in 0..TENSOR_HEIGHT {
-            for x in 0..TENSOR_WIDTH {
-                let dx = x as f32 - center_x;
-                let dy = y as f32 - center_y;
-                let r = (dx * dx + dy * dy).sqrt();
-                let angle = dy.atan2(dx);
-                
-                let value = match pattern_type {
-                    0 => {
-                        // Spiral pattern
-                        let spiral = (r * 0.1 + angle * 2.0).sin() * 0.5 + 0.5;
-                        spiral * (-r * 0.01).exp()
-                    },
-                    1 => {
-                        // Concentric circles with interference
-                        let circles = (r * 0.2).sin() * (r * 0.15 + angle).cos();
-                        (circles * 0.5 + 0.5) * (-r * 0.008).exp()
-                    },
-                    _ => {
-                        // Default: simple gradient
-                        (x as f32 / TENSOR_WIDTH as f32) * (y as f32 / TENSOR_HEIGHT as f32)
-                    }
-                };
-                
-                data[y * TENSOR_WIDTH + x] = value;
-            }
-        }
-        
-        Tensor::from_vec(data, &[1, 1, TENSOR_HEIGHT, TENSOR_WIDTH], device)
-    }
-    
-    fn apply_transform(&self, input: &Tensor) -> Result<Tensor> {
-        match self.mode {
-            ProcessingMode::DirectCoupling => {
-                self.apply_geometric_transform(input)
-            },
-            ProcessingMode::CrossCoupling => {
-                let rotated = self.apply_rotation(input)?;
-                self.apply_zoom(&rotated)
-            },
-            ProcessingMode::Interference => {
-                let fft_transformed = self.apply_fft_transform(input)?;
-                self.apply_frequency_filter(&fft_transformed)
-            },
-            ProcessingMode::Convolution => {
-                self.apply_convolution(input)
-            },
-            ProcessingMode::FFTCoupling => {
-                self.apply_fft_transform(input)
-            },
-        }
-    }
-    
-    fn apply_geometric_transform(&self, input: &Tensor) -> Result<Tensor> {
-        let squeezed = input.squeeze(0)?.squeeze(0)?;
-        let data = self.debug_flat_vec(&squeezed, "apply_geometric_transform.input")?;
-        let mut output = vec![0.0f32; TENSOR_WIDTH * TENSOR_HEIGHT];
-        
-        let center_x = TENSOR_WIDTH as f32 / 2.0;
-        let center_y = TENSOR_HEIGHT as f32 / 2.0;
-        let angle = self.time * self.rotation_speed;
-        let zoom = self.zoom_factor;
-        
-        for y in 0..TENSOR_HEIGHT {
-            for x in 0..TENSOR_WIDTH {
-                // Apply rotation and zoom around center
-                let dx = (x as f32 - center_x) / zoom;
-                let dy = (y as f32 - center_y) / zoom;
-                
-                let rotated_x = dx * angle.cos() - dy * angle.sin() + center_x;
-                let rotated_y = dx * angle.sin() + dy * angle.cos() + center_y;
-                
-                // Bilinear interpolation
-                if rotated_x >= 0.0 && rotated_x < TENSOR_WIDTH as f32 - 1.0 &&
-                   rotated_y >= 0.0 && rotated_y < TENSOR_HEIGHT as f32 - 1.0 {
-                    
-                    let x0 = rotated_x.floor() as usize;
-                    let y0 = rotated_y.floor() as usize;
-                    let x1 = x0 + 1;
-                    let y1 = y0 + 1;
-                    
-                    let fx = rotated_x - x0 as f32;
-                    let fy = rotated_y - y0 as f32;
-                    
-                    let v00 = data[y0 * TENSOR_WIDTH + x0];
-                    let v10 = data[y0 * TENSOR_WIDTH + x1];
-                    let v01 = data[y1 * TENSOR_WIDTH + x0];
-                    let v11 = data[y1 * TENSOR_WIDTH + x1];
-                    
-                    let interpolated = v00 * (1.0 - fx) * (1.0 - fy) +
-                                     v10 * fx * (1.0 - fy) +
-                                     v01 * (1.0 - fx) * fy +
-                                     v11 * fx * fy;
-                    
-                    output[y * TENSOR_WIDTH + x] = interpolated * self.decay_rate;
-                }
-            }
-        }
-        
-        // Add some noise for interesting dynamics
-        if self.noise_level > 0.0 {
-            for i in 0..output.len() {
-                let noise = (fastrand::f32() - 0.5) * self.noise_level;
-                output[i] = (output[i] + noise).clamp(0.0, 1.0);
-            }
-        }
-        
-        Tensor::from_vec(output, &[1, 1, TENSOR_HEIGHT, TENSOR_WIDTH], &self.device)
-    }
-    
-    fn apply_rotation(&self, input: &Tensor) -> Result<Tensor> {
-        // Simple 90-degree rotation for cross-coupling
-        let squeezed = input.squeeze(0)?.squeeze(0)?;
-        let data = self.debug_flat_vec(&squeezed, "apply_rotation.input")?;
-        let mut output = vec![0.0f32; TENSOR_WIDTH * TENSOR_HEIGHT];
-        
-        for y in 0..TENSOR_HEIGHT {
-            for x in 0..TENSOR_WIDTH {
-                let new_x = TENSOR_HEIGHT - 1 - y;
-                let new_y = x;
-                if new_x < TENSOR_WIDTH && new_y < TENSOR_HEIGHT {
-                    output[new_y * TENSOR_WIDTH + new_x] = data[y * TENSOR_WIDTH + x];
-                }
-            }
-        }
-        
-        Tensor::from_vec(output, &[1, 1, TENSOR_HEIGHT, TENSOR_WIDTH], &self.device)
-    }
-    
-    fn apply_zoom(&self, input: &Tensor) -> Result<Tensor> {
-        let squeezed = input.squeeze(0)?.squeeze(0)?;
-        let data = self.debug_flat_vec(&squeezed, "apply_zoom.input")?;
-        let mut output = vec![0.0f32; TENSOR_WIDTH * TENSOR_HEIGHT];
-        
-        let zoom = 1.0 + 0.1 * (self.time * 0.5).sin();
-        let center_x = TENSOR_WIDTH as f32 / 2.0;
-        let center_y = TENSOR_HEIGHT as f32 / 2.0;
-        
-        for y in 0..TENSOR_HEIGHT {
-            for x in 0..TENSOR_WIDTH {
-                let src_x = ((x as f32 - center_x) / zoom + center_x) as i32;
-                let src_y = ((y as f32 - center_y) / zoom + center_y) as i32;
-                
-                if src_x >= 0 && src_x < TENSOR_WIDTH as i32 && 
-                   src_y >= 0 && src_y < TENSOR_HEIGHT as i32 {
-                    output[y * TENSOR_WIDTH + x] = data[src_y as usize * TENSOR_WIDTH + src_x as usize];
-                }
-            }
-        }
-        
-        Tensor::from_vec(output, &[1, 1, TENSOR_HEIGHT, TENSOR_WIDTH], &self.device)
-    }
-    
-    fn apply_fft_transform(&self, input: &Tensor) -> Result<Tensor> {
-        // Apply 2D FFT, modify frequency domain, then inverse FFT
-        let squeezed = input.squeeze(0)?.squeeze(0)?; // Remove batch and channel dims to get [H, W]
-        
-        // Apply 2D FFT if available, otherwise use magnitude directly
-        match squeezed.fft2(true, false) {
-            Ok(fft_result) => {
-                let magnitude = fft_result.fft_magnitude()?;
-                // Modify frequency domain - apply a frequency filter
-                let modified = self.apply_frequency_filter(&magnitude)?;
-                Ok(modified.unsqueeze(0)?.unsqueeze(0)?)
-            }
-            Err(_) => {
-                // Fallback to simple processing if FFT2 fails
-                let data = squeezed.flatten_all()?.to_vec1::<f32>()?;
-                let processed: Vec<f32> = data.iter()
-                    .enumerate()
-                    .map(|(i, &x)| x * (1.0 + 0.1 * (self.time + i as f32 * 0.01).sin()))
-                    .collect();
-                let result = Tensor::from_vec(processed, squeezed.shape(), &self.device)?;
-                Ok(result.unsqueeze(0)?.unsqueeze(0)?)
-            }
-        }
-    }
-    
-    fn apply_frequency_filter(&self, freq_tensor: &Tensor) -> Result<Tensor> {
-    let data = freq_tensor.squeeze(0)?.squeeze(0)?.flatten_all()?.to_vec1::<f32>()?;
-        let mut output = vec![0.0f32; data.len()];
-        
-        let center_x = TENSOR_WIDTH / 2;
-        let center_y = TENSOR_HEIGHT / 2;
-        
-        for y in 0..TENSOR_HEIGHT {
-            for x in 0..TENSOR_WIDTH {
-                let dx = x as i32 - center_x as i32;
-                let dy = y as i32 - center_y as i32;
-                let freq = ((dx * dx + dy * dy) as f32).sqrt();
-                
-                // Apply frequency-dependent filter
-                let filter_value = match self.filter_type {
-                    FilterType::None => 1.0,
-                    FilterType::Gaussian => (-freq * freq / 1000.0).exp(),
-                    FilterType::Sobel => if freq > 10.0 && freq < 50.0 { 1.0 } else { 0.1 },
-                    FilterType::Laplacian => freq * freq / 10000.0,
-                    FilterType::Emboss => if freq > 5.0 { (freq / 20.0).sin() } else { 0.0 },
-                };
-                
+    <BEGIN archived helpers>
+    fn apply_transform(&self, input: &Tensor) -> Result<Tensor> { /* original implementation */ unimplemented!() }
+    fn apply_geometric_transform(&self, input: &Tensor) -> Result<Tensor> { unimplemented!() }
+    fn apply_rotation(&self, input: &Tensor) -> Result<Tensor> { unimplemented!() }
+    fn apply_zoom(&self, input: &Tensor) -> Result<Tensor> { unimplemented!() }
+    fn apply_fft_transform(&self, input: &Tensor) -> Result<Tensor> { unimplemented!() }
+    fn apply_frequency_filter(&self, freq_tensor: &Tensor) -> Result<Tensor> { unimplemented!() }
+    fn apply_convolution(&self, input: &Tensor) -> Result<Tensor> { unimplemented!() }
+    fn create_modulation_from_tensor(&self, tensor: &Tensor, phase: f32) -> Result<Vec<f32>> { unimplemented!() }
+    fn apply_tensor_modulation(&self, tensor: &Tensor, modulation: &[f32], strength: f32) -> Result<Tensor> { unimplemented!() }
+    <END archived helpers>
+    */
                 output[y * TENSOR_WIDTH + x] = data[y * TENSOR_WIDTH + x] * filter_value;
             }
         }
@@ -684,7 +459,7 @@ impl TensorClosedLoopViz {
     }
     
     // Extract frequency modulation pattern from FFT result
-    fn extract_frequency_modulation(&self, fft_tensor: &Tensor, energy: f32) -> Result<Vec<f32>> {
+    fn extract_frequency_modulation(&self, _fft_tensor: &Tensor, energy: f32) -> Result<Vec<f32>> {
     // We only need shape; no direct use of underlying values here so skip flatten to avoid cost.
         let mut modulation = vec![0.0f32; TENSOR_WIDTH * TENSOR_HEIGHT];
         

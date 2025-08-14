@@ -1,3 +1,4 @@
+use candle_exploration::feature_guards; // compile-time feature invariants
 use candle_core::{Device, Result, Tensor};
 use candle_core::display::{set_print_options, PrinterOptions};
 use minifb::{Key, Window, WindowOptions};
@@ -39,11 +40,16 @@ impl GpuTensorFeedback {
             WindowOptions::default(),
         ).unwrap();
 
-        // 🚀 Use CUDA device for tensor operations!
-        let device = Device::new_cuda(0).unwrap_or_else(|_| {
-            println!("⚠️ CUDA not available, falling back to CPU");
+        // 🚀 Use CUDA device for tensor operations if compiled with the feature.
+        let device = if feature_guards::HAS_CUDA {
+            Device::new_cuda(0).unwrap_or_else(|_| {
+                println!("⚠️ CUDA runtime not available at run time, falling back to CPU (was compiled with --features=cuda)");
+                Device::Cpu
+            })
+        } else {
+            println!("ℹ️ Compiled without 'cuda' feature, using CPU device.");
             Device::Cpu
-        });
+        };
         
         println!("🚀 Using device: {device:?}");
         
@@ -129,12 +135,12 @@ impl GpuTensorFeedback {
     fn apply_rotation(&self, input: &Tensor) -> Result<Tensor> {
         // Create rotation parameters as GPU tensors
         let angle = self.time * 0.1;
-        let cos_a = angle.cos();
-        let sin_a = angle.sin();
+    let _cos_a = angle.cos();
+    let _sin_a = angle.sin();
         
-        // Create coordinate grids on GPU
-        let y_coords: Vec<f32> = (0..TENSOR_HEIGHT).map(|y| y as f32 - TENSOR_HEIGHT as f32 / 2.0).collect();
-        let x_coords: Vec<f32> = (0..TENSOR_WIDTH).map(|x| x as f32 - TENSOR_WIDTH as f32 / 2.0).collect();
+    // Create coordinate grids on GPU (currently unused for simplified effect)
+    let _y_coords: Vec<f32> = (0..TENSOR_HEIGHT).map(|y| y as f32 - TENSOR_HEIGHT as f32 / 2.0).collect();
+    let _x_coords: Vec<f32> = (0..TENSOR_WIDTH).map(|x| x as f32 - TENSOR_WIDTH as f32 / 2.0).collect();
         
         // Simple rotation effect using tensor operations
         let decay_factor = Tensor::from_slice(&[0.995f32], &[], &self.device)?;

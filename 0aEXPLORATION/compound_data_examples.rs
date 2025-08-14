@@ -7,13 +7,14 @@
 // Example: Working with compound data in Candle using workarounds
 use candle_core::{Device, Result, Tensor, DType, IndexOp};
 
-// Example: Complex numbers using multiple tensors approach
+/// Complex numbers represented by separate real & imaginary tensors.
 struct ComplexTensor {
     real: Tensor,
     imag: Tensor,
 }
 
 impl ComplexTensor {
+    /// Construct a new complex tensor from matching real & imaginary parts.
     fn new(real: Tensor, imag: Tensor) -> Result<Self> {
         if real.shape() != imag.shape() {
             panic!("Real and imaginary parts must have same shape");
@@ -21,6 +22,8 @@ impl ComplexTensor {
         Ok(Self { real, imag })
     }
 
+    /// Allocate a zero‑initialized complex tensor of the given shape on `device`.
+    #[allow(dead_code)]
     fn zeros(shape: impl Into<candle_core::Shape>, device: &Device) -> Result<Self> {
         let shape = shape.into();
         let real = Tensor::zeros(shape.clone(), DType::F32, device)?;
@@ -28,11 +31,13 @@ impl ComplexTensor {
         Ok(Self { real, imag })
     }
 
+    /// Shape accessor (same for real & imaginary parts).
     fn shape(&self) -> &candle_core::Shape {
         self.real.shape()
     }
 
     // Complex addition: (a + bi) + (c + di) = (a + c) + (b + d)i
+    /// Element‑wise complex addition.
     fn add(&self, other: &ComplexTensor) -> Result<ComplexTensor> {
         let real = (&self.real + &other.real)?;
         let imag = (&self.imag + &other.imag)?;
@@ -40,6 +45,7 @@ impl ComplexTensor {
     }
 
     // Complex multiplication: (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
+    /// Element‑wise complex multiplication.
     fn mul(&self, other: &ComplexTensor) -> Result<ComplexTensor> {
         let ac = (&self.real * &other.real)?;
         let bd = (&self.imag * &other.imag)?;
@@ -52,6 +58,7 @@ impl ComplexTensor {
     }
 
     // Magnitude: |a + bi| = sqrt(a² + b²)
+    /// Pointwise magnitude (L2 norm) of each complex value.
     fn magnitude(&self) -> Result<Tensor> {
         let real_sq = (&self.real * &self.real)?;
         let imag_sq = (&self.imag * &self.imag)?;
@@ -61,11 +68,14 @@ impl ComplexTensor {
 }
 
 // Example: RGB pixels using packed representation
+/// Packed RGB tensor where the last dimension is exactly 3 (R,G,B).
 struct RgbTensor {
     data: Tensor, // Shape: [..., 3] where last dim is [R, G, B]
 }
 
 impl RgbTensor {
+    /// Validate and wrap an existing tensor with last dim 3.
+    #[allow(dead_code)]
     fn new(data: Tensor) -> Result<Self> {
         let dims = data.dims();
         if dims.is_empty() || dims[dims.len() - 1] != 3 {
@@ -74,35 +84,42 @@ impl RgbTensor {
         Ok(Self { data })
     }
 
+    /// Allocate an RGB tensor given the *spatial* shape (the 3 channel dim is appended).
+    #[allow(dead_code)]
     fn zeros(mut shape: Vec<usize>, device: &Device) -> Result<Self> {
         shape.push(3); // Add RGB dimension
         let data = Tensor::zeros(shape, DType::F32, device)?;
         Ok(Self { data })
     }
 
+    /// Shape accessor.
     fn shape(&self) -> &candle_core::Shape {
         self.data.shape()
     }
 
+    /// Slice out the red channel.
     fn red(&self) -> Result<Tensor> {
         self.data.i((.., 0))
     }
 
+    /// Slice out the green channel.
     fn green(&self) -> Result<Tensor> {
         self.data.i((.., 1))
     }
 
+    /// Slice out the blue channel.
     fn blue(&self) -> Result<Tensor> {
         self.data.i((.., 2))
     }
 
     // Grayscale conversion: 0.299*R + 0.587*G + 0.114*B
+    /// Convert to a single‑channel grayscale tensor (weighted luminance).
     fn to_grayscale(&self) -> Result<Tensor> {
         let r = self.red()? * 0.299;
         let g = self.green()? * 0.587;
         let b = self.blue()? * 0.114;
         
-        ((r? + g?)? + b?)
+    (r? + g?)? + b?
     }
 }
 

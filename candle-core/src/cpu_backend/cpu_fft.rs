@@ -392,10 +392,14 @@ impl CpuFft {
                 }
                 
                 // Calculate contribution to linear index
-                let mut dim_stride = 1;
-                for j in (orig_dim + 1)..dims.len() {
-                    dim_stride *= dims[j];
-                }
+                // Previous implementation used a for-range loop to compute the product of the
+                // remaining dimensions. Clippy flagged it as a needless range loop; using an
+                // iterator product both shortens the code and conveys intent clearly.
+                let dim_stride: usize = if orig_dim + 1 < dims.len() {
+                    dims[orig_dim + 1..].iter().product()
+                } else {
+                    1
+                };
                 start += coord * dim_stride;
             }
             

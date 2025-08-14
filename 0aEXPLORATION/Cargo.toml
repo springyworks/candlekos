@@ -14,12 +14,15 @@ minifb = "0.27"
 font8x8 = "0.3"
 tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
+egui = { version = "0.27", default-features = true }
+eframe = { version = "0.27", default-features = true }
 
 [features]
 default = []
 cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
 cudnn = ["candle-core/cudnn", "candle-nn/cudnn", "candle-transformers/cudnn"]
 fft = ["candle-core/fft"]
+viz-debug = [] # enables additional debug logging paths in tensor_feedback_viz
 
 [[bin]]
 name = "code_overview"
@@ -38,37 +41,36 @@ name = "compound_data_examples"
 path = "compound_data_examples.rs"
 
 [[bin]]
-name = "realtime_yolo"
-path = "realtime_yolo.rs"
-
-[[bin]]
-name = "fft_visualizer"
-path = "fft_visualizer.rs"
-
-[[bin]]
 name = "tensor_feedback_viz"
 path = "tensor_feedback_viz.rs"
+required-features = ["cuda"]
 
 [[bin]]
 name = "tensor_feedback_simple"
 path = "tensor_feedback_simple.rs"
+required-features = ["cuda"]
 
 [[bin]]
 name = "gpu_tensor_feedback"
 path = "gpu_tensor_feedback.rs"
+required-features = ["cuda"]
 
 [[bin]]
 name = "gpu_stream_display"
 path = "gpu_stream_display.rs"
+required-features = ["cuda"]
 
-[[bin]]
-name = "gpu_direct_display"
-path = "gpu_direct_display.rs"
 
 [[bin]]
 name = "fft_overview"
-path = "fft_overview.rs"
+path = "NOT/fft_overview.rs"
+required-features = ["fft"]
 
 [[bin]]
 name = "gpu_fft2_dual_pane"
 path = "gpu_fft2_dual_pane.rs"
+required-features = ["cuda", "fft"]
+
+[[bin]]
+name = "egui_scan_demo"
+path = "egui_scan_demo.rs"

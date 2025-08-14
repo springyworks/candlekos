@@ -85,8 +85,6 @@ impl StreamedTensorDisplay {
         
                 println!("🚀 Device: {device:?}");
         
-        // Allocate pinned host memory for fast transfers", device);
-        
         // Configure tensor display
         set_print_options(PrinterOptions {
             edge_items: 3,
@@ -101,7 +99,7 @@ impl StreamedTensorDisplay {
         let tensor_b = Self::create_initial_tensor_b(&device)?;
         
         // Allocate pinned host memory for fast transfers
-        let (pinned_buffer_a, pinned_buffer_b) = match &device {
+        let (_pinned_buffer_a, _pinned_buffer_b) = match &device {
             Device::Cuda(_) => {
                 (
                     Some(vec![0.0f32; TENSOR_WIDTH * TENSOR_HEIGHT]),
@@ -143,7 +141,7 @@ impl StreamedTensorDisplay {
                 let angle = dy.atan2(dx);
                 
                 // Spiral pattern
-                let value = ((radius * 0.1 + angle * 3.0).sin() * 0.5 + 0.5);
+                let value = (radius * 0.1 + angle * 3.0).sin() * 0.5 + 0.5;
                 data.push(value);
             }
         }
@@ -161,7 +159,7 @@ impl StreamedTensorDisplay {
                 let ny = y as f32 / TENSOR_HEIGHT as f32 * 4.0;
                 
                 // Wave interference pattern
-                let value = ((nx * std::f32::consts::PI).sin() * (ny * std::f32::consts::PI).cos() * 0.5 + 0.5);
+                let value = (nx * std::f32::consts::PI).sin() * (ny * std::f32::consts::PI).cos() * 0.5 + 0.5;
                 data.push(value);
             }
         }
@@ -171,7 +169,7 @@ impl StreamedTensorDisplay {
     
     /// 🚀 STREAM-OPTIMIZED: Update tensors using GPU operations with async transfer
     fn update_tensors_gpu_stream(&mut self) -> Result<()> {
-        let start_time = Instant::now();
+    let _start_time = Instant::now(); // unused timing placeholder (underscore to silence warning)
         
         // Shape validation and correction
         if self.tensor_a.dims() != [TENSOR_HEIGHT, TENSOR_WIDTH] {
@@ -277,7 +275,7 @@ impl StreamedTensorDisplay {
             FeedbackMode::Reduction => {
                 // Reduction operations and broadcasting (GPU-only)
                 let mean_a = self.tensor_a.mean_all()?.unsqueeze(0)?.unsqueeze(0)?;
-                let max_a = self.tensor_a.max(0)?.max(0)?; // 2D max reduction
+                let _max_a = self.tensor_a.max(0)?.max(0)?; // 2D max reduction (currently unused)
                 let sum_b = self.tensor_b.sum_all()?.unsqueeze(0)?.unsqueeze(0)?;
                 
                 // Broadcast reductions back
@@ -387,7 +385,7 @@ impl StreamedTensorDisplay {
     }
     
     /// Apply 2D convolution (simplified - real conv2d would need proper implementation)
-    fn apply_conv2d(&self, tensor: &Tensor, kernel: &Tensor) -> Result<Tensor> {
+    fn apply_conv2d(&self, tensor: &Tensor, _kernel: &Tensor) -> Result<Tensor> {
         // Simplified convolution approximation using tensor operations
         // Real implementation would use proper conv2d operations
         

@@ -78,6 +78,8 @@ Integrates with CI (`.github/workflows/ci.yml` and `nightly-powerset.yml`).
 | GPU FFT smoke (c2c) | `cuda,fft,gpu-fft` | included (gpu_fft_smoke_complex.rs) | Complex roundtrip; tolerances & scale handling |
 | FFT normalization tests | `fft` | `cargo test --features fft --test fft_normalization_tests` | Confirms (norm=true) roundtrip scale & mixed-scale behavior |
 | FFT benches | `fft` (+ optional `cuda,gpu-fft`) | `cargo bench --features fft[,cuda,gpu-fft]` | Adds 1D rfft/complex benchmarks (criterion) |
+| FFT large benches | `fft` (+ env) | `CANDLE_FFT_LARGE=1 cargo bench --features fft` | Opt-in 2D size (avoid default CI cost) |
+| FFT ratio bench | `fft` (+ env) | `CANDLE_FFT_RATIO=1 cargo bench --features fft,cuda,gpu-fft` | Compares CPU vs GPU RFFT timing |
 | FFT debug macro | `fft-debug` or env | `CANDLE_FFT_DEBUG=1 ...` | Emits `[fft-debug]` lines when enabled (zero-cost otherwise) |
 
 Guidelines:
@@ -89,6 +91,8 @@ Guidelines:
 6. GPU FFT smoke tests perform scale normalization detection (some providers scale forward/inverse); assertions adapt accordingly.
 7. Keep FFT-specific benchmarking lightweight (small 1D sizes) to conserve CI time; larger multidim benches can live out-of-tree.
 8. Prefer using shared helpers (`fft_test_utils.rs`) for tolerances/scale detection to avoid drift between tests.
+9. Use env vars `CANDLE_FFT_LARGE` / `CANDLE_FFT_RATIO` for optional heavier/diagnostic benches.
+10. Enable quick internal tracing with `--features fft-debug` or `CANDLE_FFT_DEBUG=1` for development, avoid committing logs.
 
 ## SemVer & Stability
 

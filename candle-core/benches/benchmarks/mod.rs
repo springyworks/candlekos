@@ -9,6 +9,10 @@ pub(crate) mod unary;
 pub(crate) mod where_cond;
 #[cfg(feature = "fft")]
 pub(crate) mod fft;
+#[cfg(feature = "fft")]
+pub(crate) mod fft_large;
+#[cfg(feature = "fft")]
+pub(crate) mod fft_ratio;
 
 use candle_core::{Device, Result};
 

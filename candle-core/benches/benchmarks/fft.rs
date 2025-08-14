@@ -1,5 +1,5 @@
 #![cfg(feature = "fft")]
-use criterion::{black_box, Criterion};
+use criterion::{black_box, Criterion, criterion_group};
 use candle_core::{Device, Tensor, Result};
 use super::{BenchDevice, BenchDeviceHandler};
 
@@ -33,7 +33,9 @@ fn bench_fft_complex(c: &mut Criterion) {
     }
 }
 
-pub fn benches(c: &mut Criterion) {
+fn fft_benches(c: &mut Criterion) {
     bench_rfft(c);
     bench_fft_complex(c);
 }
+
+criterion_group!(benches, fft_benches);

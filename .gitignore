@@ -46,3 +46,7 @@ out.wav
 bria.mp3
 bria.safetensors
 bria.wav
+
+# Ignore generated notebook images
+0aEXPLORATION/candle_notebooks/images_store/
+*.png

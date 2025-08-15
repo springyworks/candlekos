@@ -1,0 +1,8 @@
+[package]
+name = "candle_tensor_augment"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+candle-core = { path = "../../candle-core" }
+meval = "0.2"

@@ -9,12 +9,12 @@ pub trait VecOps: num_traits::NumAssign + Copy {
     /// The length of `lhs` and `rhs` have to be at least `len`. `res` has to point to a valid
     /// element.
     #[inline(always)]
-    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) { unsafe {
         *res = Self::zero();
         for i in 0..len {
             *res += *lhs.add(i) * *rhs.add(i)
         }
-    }
+    }}
 
     /// Sum of all elements in a vector.
     ///
@@ -23,12 +23,12 @@ pub trait VecOps: num_traits::NumAssign + Copy {
     /// The length of `xs` must be at least `len`. `res` has to point to a valid
     /// element.
     #[inline(always)]
-    unsafe fn vec_reduce_sum(xs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_reduce_sum(xs: *const Self, res: *mut Self, len: usize) { unsafe {
         *res = Self::zero();
         for i in 0..len {
             *res += *xs.add(i)
         }
-    }
+    }}
 
     /// Maximum element in a non-empty vector.
     ///
@@ -37,12 +37,12 @@ pub trait VecOps: num_traits::NumAssign + Copy {
     /// The length of `xs` must be at least `len` and positive. `res` has to point to a valid
     /// element.
     #[inline(always)]
-    unsafe fn vec_reduce_max(xs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_reduce_max(xs: *const Self, res: *mut Self, len: usize) { unsafe {
         *res = *xs;
         for i in 1..len {
             *res = (*res).max(*xs.add(i))
         }
-    }
+    }}
 
     /// Minimum element in a non-empty vector.
     ///
@@ -51,12 +51,12 @@ pub trait VecOps: num_traits::NumAssign + Copy {
     /// The length of `xs` must be at least `len` and positive. `res` has to point to a valid
     /// element.
     #[inline(always)]
-    unsafe fn vec_reduce_min(xs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_reduce_min(xs: *const Self, res: *mut Self, len: usize) { unsafe {
         *res = *xs;
         for i in 1..len {
             *res = (*res).min(*xs.add(i))
         }
-    }
+    }}
 }
 
 impl VecOps for f32 {
@@ -71,14 +71,14 @@ impl VecOps for f32 {
     }
 
     #[inline(always)]
-    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) { unsafe {
         super::vec_dot_f32(lhs, rhs, res, len)
-    }
+    }}
 
     #[inline(always)]
-    unsafe fn vec_reduce_sum(xs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_reduce_sum(xs: *const Self, res: *mut Self, len: usize) { unsafe {
         super::vec_sum(xs, res, len)
-    }
+    }}
 }
 
 impl VecOps for half::f16 {
@@ -93,11 +93,11 @@ impl VecOps for half::f16 {
     }
 
     #[inline(always)]
-    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) { unsafe {
         let mut res_f32 = 0f32;
         super::vec_dot_f16(lhs, rhs, &mut res_f32, len);
         *res = half::f16::from_f32(res_f32);
-    }
+    }}
 }
 
 impl VecOps for f64 {
@@ -123,11 +123,11 @@ impl VecOps for half::bf16 {
     }
 
     #[inline(always)]
-    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) {
+    unsafe fn vec_dot(lhs: *const Self, rhs: *const Self, res: *mut Self, len: usize) { unsafe {
         let mut res_f32 = 0f32;
         super::vec_dot_bf16(lhs, rhs, &mut res_f32, len);
         *res = half::bf16::from_f32(res_f32);
-    }
+    }}
 }
 impl VecOps for u8 {
     #[inline(always)]

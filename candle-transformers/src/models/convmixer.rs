@@ -52,14 +52,14 @@ fn block(dim: usize, kernel_size: usize, vb: VarBuilder) -> Result<impl Module> 
     }))
 }
 
-fn convmixer(
+fn convmixer<'a>(
     nclasses: usize,
     dim: usize,
     depth: usize,
     kernel_size: usize,
     patch_size: usize,
-    vb: VarBuilder,
-) -> Result<candle_nn::Func<'static>> {
+    vb: VarBuilder<'a>,
+) -> Result<candle_nn::Func<'a>> {
     let conv2d_cfg = Conv2dConfig {
         stride: patch_size,
         ..Default::default()
@@ -70,20 +70,21 @@ fn convmixer(
         .map(|index| block(dim, kernel_size, vb.pp(3 + index)))
         .collect::<Result<Vec<_>>>()?;
     let fc = candle_nn::linear(dim, nclasses, vb.pp(25))?;
-    Ok(candle_nn::func(move |xs| {
+    // Move everything into a boxed closure to satisfy 'static lifetime requirements.
+    let closure = move |xs: &candle::Tensor| -> Result<candle::Tensor> {
         let mut xs = xs.apply(&conv1)?.gelu_erf()?.apply_t(&bn1, false)?;
         for block in blocks.iter() {
             xs = xs.apply(block)?
         }
-        // This performs the adaptive average pooling with a target size of (1, 1).
         xs.mean(3)?.mean(2)?.apply(&fc)
-    }))
+    };
+    Ok(candle_nn::func(closure))
 }
 
-pub fn c1536_20(nclasses: usize, vb: VarBuilder) -> Result<candle_nn::Func<'static>> {
+pub fn c1536_20<'a>(nclasses: usize, vb: VarBuilder<'a>) -> Result<candle_nn::Func<'a>> {
     convmixer(nclasses, 1536, 20, 9, 7, vb)
 }
 
-pub fn c1024_20(nclasses: usize, vb: VarBuilder) -> Result<candle_nn::Func<'static>> {
+pub fn c1024_20<'a>(nclasses: usize, vb: VarBuilder<'a>) -> Result<candle_nn::Func<'a>> {
     convmixer(nclasses, 1024, 20, 9, 14, vb)
 }

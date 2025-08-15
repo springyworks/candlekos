@@ -8,6 +8,8 @@ pub use base64;
 // Expression evaluation (parsed math expressions over tensors)
 pub mod expr;
 pub use expr::{ExprEnv, eval_expr};
+pub mod helper;
+pub use helper::set_notebook_cwd;
 
 use ::base64::Engine as _;
 use ::base64::engine::general_purpose::STANDARD as BASE64;

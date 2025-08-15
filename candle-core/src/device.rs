@@ -413,7 +413,7 @@ impl Device {
         }
     }
 
-    pub(crate) unsafe fn alloc_uninit(&self, shape: &Shape, dtype: DType) -> Result<Storage> {
+    pub(crate) unsafe fn alloc_uninit(&self, shape: &Shape, dtype: DType) -> Result<Storage> { unsafe {
         match self {
             Device::Cpu => {
                 let storage = CpuDevice.alloc_uninit(shape, dtype)?;
@@ -428,7 +428,7 @@ impl Device {
                 Ok(Storage::Metal(storage))
             }
         }
-    }
+    }}
 
     pub(crate) fn storage_from_slice<D: WithDType>(&self, data: &[D]) -> Result<Storage> {
         match self {

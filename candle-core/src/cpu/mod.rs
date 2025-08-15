@@ -87,6 +87,8 @@ pub use neon::CurrentCpu;
 ))]
 #[inline(always)]
 pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f32, k: usize) {
+    // SAFETY: Caller upholds that a_row, b_row, c are valid for reads/writes of k contiguous f32 elements.
+    unsafe {
     let np = k & !(CurrentCpu::STEP - 1);
 
     let mut sum = CurrentCpu::zero_array();
@@ -104,11 +106,11 @@ pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f
 
     CurrentCpu::vec_reduce(sum, c);
 
-    // leftovers
+    // leftovers (still within outer unsafe fn scope, no nested unsafe needed)
     for i in np..k {
         *c += *a_row.add(i) * (*b_row.add(i));
     }
-}
+}}
 
 #[cfg(not(any(
     target_feature = "neon",
@@ -119,7 +121,8 @@ pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f
 pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f32, k: usize) {
     // leftovers
     for i in 0..k {
-        *c += *a_row.add(i) * (*b_row.add(i));
+    // SAFETY: pointer validity guaranteed by caller.
+    *c += *a_row.add(i) * (*b_row.add(i));
     }
 }
 
@@ -130,6 +133,8 @@ pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f
 ))]
 #[inline(always)]
 pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
+    // SAFETY: Caller upholds that row and b are valid for the specified length.
+    unsafe {
     let np = k & !(CurrentCpu::STEP - 1);
 
     let mut sum = CurrentCpu::zero_array();
@@ -148,7 +153,7 @@ pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
     for i in np..k {
         *b += *row.add(i)
     }
-}
+}}
 
 #[cfg(not(any(
     target_feature = "neon",
@@ -159,6 +164,7 @@ pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
 pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
     *b = 0f32;
     for i in 0..k {
+        // SAFETY: i < k ensures row.add(i) valid, b valid for write.
         *b += *row.add(i)
     }
 }
@@ -166,6 +172,8 @@ pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
 #[cfg(target_feature = "avx2")]
 #[inline(always)]
 pub(crate) unsafe fn vec_dot_f16(a_row: *const f16, b_row: *const f16, c: *mut f32, k: usize) {
+    // SAFETY: Caller upholds pointer validity and alignment for a_row, b_row, c over k elements.
+    unsafe {
     let mut sumf = 0.0f32;
     let np = k & !(CurrentCpuF16::STEP - 1);
 
@@ -186,14 +194,17 @@ pub(crate) unsafe fn vec_dot_f16(a_row: *const f16, b_row: *const f16, c: *mut f
 
     // leftovers
     for i in np..k {
+        // SAFETY: bounds checked, pointers valid.
         sumf += (*a_row.add(i)).to_f32() * (*b_row.add(i)).to_f32();
     }
     *c = sumf;
-}
+}}
 
 #[cfg(target_feature = "avx2")]
 #[inline(always)]
 pub(crate) unsafe fn vec_dot_bf16(a_row: *const bf16, b_row: *const bf16, c: *mut f32, k: usize) {
+    // SAFETY: Caller upholds pointer validity and alignment for a_row, b_row, c over k elements.
+    unsafe {
     let mut sumf = 0.0f32;
     let np = k & !(CurrentCpuBF16::STEP - 1);
 
@@ -214,10 +225,11 @@ pub(crate) unsafe fn vec_dot_bf16(a_row: *const bf16, b_row: *const bf16, c: *mu
 
     // leftovers
     for i in np..k {
+        // SAFETY: bounds checked, pointers valid.
         sumf += (*a_row.add(i)).to_f32() * (*b_row.add(i)).to_f32();
     }
     *c = sumf;
-}
+}}
 
 #[cfg(not(target_feature = "avx2"))]
 #[inline(always)]

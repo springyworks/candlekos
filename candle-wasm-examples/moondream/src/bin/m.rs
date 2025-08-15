@@ -96,8 +96,8 @@ impl Model {
         let start = Date::now();
         let image_embeds = &image.unsqueeze(0)?;
         let image_embeds = match &self.model {
-            SelectedModel::Moondream(ref m) => image_embeds.apply(m.vision_encoder())?,
-            SelectedModel::Quantized(ref m) => image_embeds.apply(m.vision_encoder())?,
+            SelectedModel::Moondream(m) => image_embeds.apply(m.vision_encoder())?,
+            SelectedModel::Quantized(m) => image_embeds.apply(m.vision_encoder())?,
         };
         console_log!(
             "loaded and encoded the image {image:?} in {:?}",

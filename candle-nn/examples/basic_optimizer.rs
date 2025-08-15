@@ -11,9 +11,11 @@ fn gen_data() -> Result<(Tensor, Tensor)> {
     // Generate some sample linear data.
     let w_gen = Tensor::new(&[[3f32, 1.]], &Device::Cpu)?;
     let b_gen = Tensor::new(-2f32, &Device::Cpu)?;
-    let gen = Linear::new(w_gen, Some(b_gen));
+    // Avoid using identifier `gen` (reserved in newer editions for potential syntax),
+    // use `generator` instead.
+    let generator = Linear::new(w_gen, Some(b_gen));
     let sample_xs = Tensor::new(&[[2f32, 1.], [7., 4.], [-4., 12.], [5., 8.]], &Device::Cpu)?;
-    let sample_ys = gen.forward(&sample_xs)?;
+    let sample_ys = generator.forward(&sample_xs)?;
     Ok((sample_xs, sample_ys))
 }
 

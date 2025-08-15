@@ -52,9 +52,9 @@ fn sgd_linear_regression() -> Result<()> {
     // Generate some linear data, y = 3.x1 + x2 - 2.
     let w_gen = Tensor::new(&[[3f32, 1.]], &Device::Cpu)?;
     let b_gen = Tensor::new(-2f32, &Device::Cpu)?;
-    let gen = Linear::new(w_gen, Some(b_gen));
+    let generator = Linear::new(w_gen, Some(b_gen));
     let sample_xs = Tensor::new(&[[2f32, 1.], [7., 4.], [-4., 12.], [5., 8.]], &Device::Cpu)?;
-    let sample_ys = gen.forward(&sample_xs)?;
+    let sample_ys = generator.forward(&sample_xs)?;
 
     // Now use backprop to run a linear regression between samples and get the coefficients back.
     let w = Var::new(&[[0f32, 0.]], &Device::Cpu)?;
@@ -99,9 +99,9 @@ print(m.bias)
 fn adamw_linear_regression() -> Result<()> {
     let w_gen = Tensor::new(&[[3f32, 1.]], &Device::Cpu)?;
     let b_gen = Tensor::new(-2f32, &Device::Cpu)?;
-    let gen = Linear::new(w_gen, Some(b_gen));
+    let generator = Linear::new(w_gen, Some(b_gen));
     let sample_xs = Tensor::new(&[[2f32, 1.], [7., 4.], [-4., 12.], [5., 8.]], &Device::Cpu)?;
-    let sample_ys = gen.forward(&sample_xs)?;
+    let sample_ys = generator.forward(&sample_xs)?;
 
     // Now use backprop to run a linear regression between samples and get the coefficients back.
     let w = Var::new(&[[0f32, 0.]], &Device::Cpu)?;
@@ -129,9 +129,9 @@ fn adamw_linear_regression_varmap() -> Result<()> {
     // Similar as the previous test but using a VarMap.
     let w_gen = Tensor::new(&[[3f32, 1.]], &Device::Cpu)?;
     let b_gen = Tensor::new(-2f32, &Device::Cpu)?;
-    let gen = Linear::new(w_gen, Some(b_gen));
+    let generator = Linear::new(w_gen, Some(b_gen));
     let sample_xs = Tensor::new(&[[2f32, 1.], [7., 4.], [-4., 12.], [5., 8.]], &Device::Cpu)?;
-    let sample_ys = gen.forward(&sample_xs)?;
+    let sample_ys = generator.forward(&sample_xs)?;
 
     let mut var_map = candle_nn::VarMap::new();
 

@@ -2815,7 +2815,7 @@ impl BackendDevice for CpuDevice {
     }
 
     #[allow(clippy::uninit_vec)]
-    unsafe fn alloc_uninit(&self, shape: &Shape, dtype: DType) -> Result<CpuStorage> {
+    unsafe fn alloc_uninit(&self, shape: &Shape, dtype: DType) -> Result<CpuStorage> { unsafe {
         let elem_count = shape.elem_count();
         // The code below is highly unsafe but hopefully not directly unsound as we only consider
         // types that are Copy, not Drop, and for which all bit patterns are proper values.
@@ -2864,7 +2864,7 @@ impl BackendDevice for CpuDevice {
             }
         };
         Ok(storage)
-    }
+    }}
 
     fn zeros_impl(&self, shape: &Shape, dtype: DType) -> Result<CpuStorage> {
         let elem_count = shape.elem_count();

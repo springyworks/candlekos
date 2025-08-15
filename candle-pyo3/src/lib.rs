@@ -1,5 +1,9 @@
 #![allow(clippy::redundant_closure_call)]
 #![allow(clippy::useless_conversion)]
+// Temporary: Silence numerous warnings emitted due to PyO3 macro-generated unsafe fn bodies
+// (Rust 2024 implicit unsafe-in-unsafe-fn changes). Upstream PyO3 will likely wrap these in
+// explicit unsafe blocks; until then we allow the lint to keep a clean build.
+#![allow(unsafe_op_in_unsafe_fn)]
 use float8::F8E4M3;
 use half::{bf16, f16};
 use pyo3::exceptions::{PyTypeError, PyValueError};

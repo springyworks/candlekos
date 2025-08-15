@@ -285,7 +285,7 @@ impl MmapedSafetensors {
     /// # Safety
     ///
     /// The unsafe is inherited from [`memmap2::MmapOptions`].
-    pub unsafe fn new<P: AsRef<Path>>(p: P) -> Result<Self> {
+    pub unsafe fn new<P: AsRef<Path>>(p: P) -> Result<Self> { unsafe {
         let p = p.as_ref();
         let file = std::fs::File::open(p).map_err(|e| Error::from(e).with_path(p))?;
         let file = memmap2::MmapOptions::new()
@@ -303,7 +303,7 @@ impl MmapedSafetensors {
             safetensors: vec![safetensors],
             routing: None,
         })
-    }
+    }}
 
     /// Creates a wrapper around multiple memory mapped file and deserialize the safetensors headers.
     ///
@@ -312,7 +312,7 @@ impl MmapedSafetensors {
     /// # Safety
     ///
     /// The unsafe is inherited from [`memmap2::MmapOptions`].
-    pub unsafe fn multi<P: AsRef<Path>>(paths: &[P]) -> Result<Self> {
+    pub unsafe fn multi<P: AsRef<Path>>(paths: &[P]) -> Result<Self> { unsafe {
         let mut routing = HashMap::new();
         let mut safetensors = vec![];
         for (index, p) in paths.iter().enumerate() {
@@ -338,7 +338,7 @@ impl MmapedSafetensors {
             safetensors,
             routing: Some(routing),
         })
-    }
+    }}
 
     pub fn load(&self, name: &str, dev: &Device) -> Result<Tensor> {
         self.get(name)?.load(dev)
@@ -435,7 +435,7 @@ impl MmapedFile {
     /// # Safety
     ///
     /// The unsafe is inherited from [`memmap2::MmapOptions`].
-    pub unsafe fn new<P: AsRef<Path>>(p: P) -> Result<Self> {
+    pub unsafe fn new<P: AsRef<Path>>(p: P) -> Result<Self> { unsafe {
         let p = p.as_ref();
         let file = std::fs::File::open(p).map_err(|e| Error::from(e).with_path(p))?;
         let inner = memmap2::MmapOptions::new()
@@ -445,7 +445,7 @@ impl MmapedFile {
             inner,
             path: p.to_path_buf(),
         })
-    }
+    }}
 
     pub fn deserialize(&self) -> Result<SafeTensors<'_>> {
         let st = safetensors::SafeTensors::deserialize(&self.inner)

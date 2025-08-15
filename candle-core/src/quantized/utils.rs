@@ -64,7 +64,7 @@ pub(super) unsafe fn make_qx_quants(
     x: *const f32,
     ls: *mut i8,
     rmse_type: i32,
-) -> f32 {
+) -> f32 { unsafe {
     let mut max = 0f32;
     let mut amax = 0f32;
     for i in 0..n {
@@ -195,7 +195,7 @@ pub(super) unsafe fn make_qx_quants(
         }
     }
     scale
-}
+}}
 
 // https://github.com/ggerganov/llama.cpp/blob/8183159cf3def112f6d1fe94815fce70e1bffa12/k_quants.c#L224
 pub(super) fn make_qkx1_quants(nmax: i32, ntry: usize, x: &[f32]) -> (f32, f32) {

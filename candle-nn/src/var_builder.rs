@@ -517,7 +517,11 @@ impl<'a> VarBuilder<'a> {
         dtype: DType,
         dev: &Device,
     ) -> Result<Self> {
-        let tensors = candle::safetensors::MmapedSafetensors::multi(paths)?;
+    // SAFETY: We are inside an unsafe constructor whose safety contract inherits from
+    // memmap2::MmapOptions. We perform no additional unsafe operations besides calling
+    // the underlying multi() which maps the files. Caller upholds that the provided paths
+    // are valid for memory mapping for the duration of the returned VarBuilder usage.
+    let tensors = unsafe { candle::safetensors::MmapedSafetensors::multi(paths)? };
         Ok(Self::from_backend(Box::new(tensors), dtype, dev.clone()))
     }
 
@@ -616,7 +620,9 @@ impl ShardedSafeTensors {
         dtype: DType,
         dev: &Device,
     ) -> Result<ShardedVarBuilder<'static>> {
-        let tensors = candle::safetensors::MmapedSafetensors::multi(paths)?;
+    // SAFETY: See safety contract on ShardedSafeTensors::var_builder mirroring
+    // VarBuilder::from_mmaped_safetensors above regarding validity of the mapped files.
+    let tensors = unsafe { candle::safetensors::MmapedSafetensors::multi(paths)? };
         let backend = ShardedSafeTensors(tensors);
         Ok(VarBuilderArgs::new_with_args(backend, dtype, dev))
     }

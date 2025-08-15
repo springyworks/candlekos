@@ -16,6 +16,7 @@ tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 egui = { version = "0.27", default-features = true }
 eframe = { version = "0.27", default-features = true }
+meval = { version = "0.2", optional = true }
 
 [features]
 default = []
@@ -23,41 +24,42 @@ cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
 cudnn = ["candle-core/cudnn", "candle-nn/cudnn", "candle-transformers/cudnn"]
 fft = ["candle-core/fft"]
 viz-debug = [] # enables additional debug logging paths in tensor_feedback_viz
+expr-fields = ["dep:meval"]
 
 [[bin]]
 name = "code_overview"
-path = "code_overview.rs"
+path = "src/bin/code_overview.rs"
 
 [[bin]]
 name = "test_higher_dims"
-path = "test_higher_dims.rs"
+path = "src/bin/test_higher_dims.rs"
 
 [[bin]]
 name = "test_custom_types"
-path = "test_custom_types.rs"
+path = "src/bin/test_custom_types.rs"
 
 [[bin]]
 name = "compound_data_examples"
-path = "compound_data_examples.rs"
+path = "src/bin/compound_data_examples.rs"
 
 [[bin]]
 name = "tensor_feedback_viz"
-path = "tensor_feedback_viz.rs"
+path = "src/bin/tensor_feedback_viz.rs"
 required-features = ["cuda"]
 
 [[bin]]
 name = "tensor_feedback_simple"
-path = "tensor_feedback_simple.rs"
+path = "src/bin/tensor_feedback_simple.rs"
 required-features = ["cuda"]
 
 [[bin]]
 name = "gpu_tensor_feedback"
-path = "gpu_tensor_feedback.rs"
+path = "src/bin/gpu_tensor_feedback.rs"
 required-features = ["cuda"]
 
 [[bin]]
 name = "gpu_stream_display"
-path = "gpu_stream_display.rs"
+path = "src/bin/gpu_stream_display.rs"
 required-features = ["cuda"]
 
 
@@ -68,9 +70,13 @@ required-features = ["fft"]
 
 [[bin]]
 name = "gpu_fft2_dual_pane"
-path = "gpu_fft2_dual_pane.rs"
+path = "src/bin/gpu_fft2_dual_pane.rs"
 required-features = ["cuda", "fft"]
 
 [[bin]]
 name = "egui_scan_demo"
-path = "egui_scan_demo.rs"
+path = "src/bin/egui_scan_demo.rs"
+
+[[bin]]
+name = "test_5d_tensors"
+path = "src/bin/test_5d_tensors.rs"

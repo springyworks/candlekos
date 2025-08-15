@@ -1,19 +1,19 @@
 [package]
-name = "candle-notebook"
+name = "candle-notebooks"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [features]
 default = []
 # Forward common optional features to underlying crates.
-cuda = ["candle-core/cuda", "candle-nn/cuda"]
+cuda = ["candle-core/cuda"]
 fft = ["candle-core/fft"]
 
 [dependencies]
 candle-core = { path = "../../candle-core", default-features = false }
-candle-nn = { path = "../../candle-nn", default-features = false }
 anyhow = "1"
-thiserror = "1"
 image = { version = "0.24" }
 base64 = "0.21"
+html-escape = "0.2"
+arithmetic-parser = "0.4.0-beta.1"
 

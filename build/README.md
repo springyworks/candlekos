@@ -61,3 +61,15 @@ IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libOSDependent.a"
 - These files are generated; regenerate by reconfiguring/rebuilding the native components (CMake/Ninja). Don’t hand‑edit exported target files.
 - Keep host toolchains consistent (compiler, stdlib, libstdc++/libc++ versions) to avoid ABI/linking issues when Rust links against these `.a` files.
 - If you only use CPU Candle, you can ignore this directory.
+
+## CPU and GPU tensor ops this supports (beyond just VkFFT)
+
+- FFT (CPU and GPU): CPU paths live in Rust; GPU paths may use Vulkan (VkFFT) or CUDA backends when enabled.
+- Scan (prefix-sum) and related parallel primitives: CPU implementations in Rust; GPU paths may rely on C/C++ kernels or backend libraries where available.
+- Convolution and spectral ops: Some experimental/prototype implementations may compile native helpers for performance studies.
+
+These integrations are optional and feature-gated; the pure-Rust CPU paths remain first-class.
+
+## Exploration playground
+
+The `0aEXPLORATION/` directory is a sandbox for ideas, experiments, and demos (CPU and GPU). Expect notebooks and prototypes that feed into productionized features. The native build artifacts here help validate and benchmark these ideas before upstreaming into core crates.

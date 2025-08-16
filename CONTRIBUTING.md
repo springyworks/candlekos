@@ -7,19 +7,17 @@ Thanks for your interest in contributing! This fork (springyworks/candlekos) tra
 - Feature branches (public when PR-ready): e.g. `candle-addition-springyworks-16aug2025`. Keep WIP local until ready.
 - Local-only branches (private): keep experimental/dev branches unpushed.
 
-## Opening a friendly PR upstream
-When proposing changes to upstream:
-1. Rebase/merge upstream `main` so your branch is up-to-date.
-2. Keep commits tidy and scoped; include rationale in commit messages.
-3. Open a PR from `springyworks:candle-...` to `huggingface:main` with a concise title and polite summary:
-   - Problem statement and motivation.
-   - What changed (high level), and why this approach.
-   - Any feature flags, defaults, or compatibility notes.
-   - Benchmarks/test evidence where relevant.
-4. Be respectful and responsive to review feedback. Aim for constructive dialogue.
+## Draft PR workflow (friendly and iterative)
+- Prefer opening a Draft PR first to invite early feedback without pressure to merge.
+- Keep the title concise and the description welcoming; clearly state it’s exploratory and feedback is appreciated.
+- Convert to “Ready for review” when tests/docs are solid and scope is converged.
+
+## Exploration playground
+- Use `0aEXPLORATION/` for prototypes, notebooks, and proofs-of-concept (CPU/GPU), including tensor ops like scan and FFT.
+- Promote successful experiments into core crates behind feature flags; retain docs/benchmarks explaining tradeoffs.
 
 ## Native builds in this fork
-Some features (e.g., GPU FFT via Vulkan) rely on C/C++ components built via CMake/Ninja. See `build/README.md` for details on VkFFT and glslang targets and how Rust crates link to them via `build.rs`, `cc`, and `bindgen`.
+Some features (e.g., GPU FFT via Vulkan, or GPU scans) rely on C/C++ components built via CMake/Ninja. See `build/README.md` for details on how these artifacts integrate with Rust crates via `build.rs`, `cc`, and `bindgen`.
 
 ## Development setup
 - Rust: stable toolchain; run `cargo build` and `cargo test` in crate roots.

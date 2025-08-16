@@ -1,0 +1,5 @@
+# Keep research notebooks in repo but exclude from PR diffs
+0aEXPLORATION/research/**/*.ipynb -diff linguist-generated
+0aEXPLORATION/research/**/*.ipynb.bak -diff linguist-generated
+# Treat as binary to avoid merge conflicts on outputs
+0aEXPLORATION/research/**/*.ipynb binary

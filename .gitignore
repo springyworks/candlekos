@@ -50,3 +50,7 @@ bria.wav
 # Ignore generated notebook images
 0aEXPLORATION/candle_notebooks/images_store/
 *.png
+
+# Local build dirs and caches
+build/
+.cache/

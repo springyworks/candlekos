@@ -1,0 +1,30 @@
+# Exclude generated/build artifacts and third_party vendored code from secret scanning
+# Paths are evaluated relative to repository root
+
+# Build and cache artifacts
+build/
+.cache/
+
+# Vendored third-party code under heavy churn
+third_party/
+
+# Generated debug/target dirs at workspace root and crates
+**/target/
+**/debug/
+
+# Large binary/model/test assets
+**/*.safetensors
+**/*.gguf
+**/*.bin
+**/*.jpeg
+**/*.png
+**/*.wav
+
+# Notebooks and their hidden junk
+**/*.ipynb
+**/.ipynb_checkpoints/**
+
+# Local editor/project files
+.vscode/**
+.idea/**
+.DS_Store

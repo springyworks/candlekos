@@ -1,5 +1,8 @@
 on:
-  push:
+  pull_request:
+    branches:
+      - candle-addition-springyworks-16aug2025
+      - main
 
 name: Secret Leaks
 
@@ -13,3 +16,6 @@ jobs:
         fetch-depth: 0
     - name: Secret Scanning
       uses: trufflesecurity/trufflehog@main
+      env:
+        # Pass ignore file to action
+        ARGS: "--exclude-paths .trufflehogignore"

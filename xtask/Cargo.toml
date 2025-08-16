@@ -12,7 +12,7 @@ toml = "0.8"
 camino = "1"
 
 [dependencies.cargo_metadata]
-version = "0.18"
+version = "0.21"
 features = ["builder"]
 
 [[bin]]

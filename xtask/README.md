@@ -6,7 +6,7 @@ launcher for arbitrary Rust source files containing a `main` function.
 
 ## Commands
 
-```
+```bash
 xtask list            # Show canonical exploration crate feature combos
 xtask check           # cargo check over canonical feature sets
 xtask check-all       # Broader bounded powerset (size ≤ 3) of features
@@ -36,7 +36,7 @@ The comprehensive command provides a detailed summary with pass/fail counts and 
 
 `run-file` lets you execute a Rust file **just by its path**:
 
-```
+```bash
 cargo run -p xtask -- run-file 0aEXPLORATION/gpu_stream_display.rs
 ```
 
@@ -50,12 +50,13 @@ Behavior:
 - Splits arguments: cargo flags (like `--release`, `--features`) go before the first standalone `--`; anything after `--` is forwarded to the program.
 
 Examples:
-```
+
+```bash
 # Auto features (e.g. enables `cuda` if required)
 cargo run -p xtask -- run-file 0aEXPLORATION/tensor_feedback_simple.rs
 
 # Release build + pass a program arg
-you@host$ cargo run -p xtask -- run-file 0aEXPLORATION/gpu_stream_display.rs --release -- --help
+cargo run -p xtask -- run-file 0aEXPLORATION/gpu_stream_display.rs --release -- --help
 
 # Override features manually (disables auto feature enabling)
 cargo run -p xtask -- run-file 0aEXPLORATION/gpu_stream_display.rs --features cuda,fft
@@ -82,8 +83,9 @@ Add entries to your workspace `workspace.json`:
 (Use `{resource}` rather than `${relativeFile}`; this extension uses `{token}` syntax.)
 
 Optional GPU selection variant:
-```
-{ "command": "CANDLE_CUDA_DEVICE=0 cargo run -p xtask -- run-file {resource}", "name": "Rust: Run current file (GPU 0)", "group": "Rust" }
+
+```bash
+CANDLE_CUDA_DEVICE=0 cargo run -p xtask -- run-file {resource}
 ```
 
 ## Design Notes

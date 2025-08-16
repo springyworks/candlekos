@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/github/license/base-org/node?color=blue)](https://github.com/huggingface/candle/blob/main/LICENSE-MIT)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/huggingface/candle/blob/main/LICENSE-APACHE)
 
+> **📋 Fork Notice**: This is an experimental fork with extensions and explorations. See [`README_additions.md`](README_additions.md) for details on new features and modifications.
+
 Candle is a minimalist ML framework for Rust with a focus on performance (including GPU support) 
 and ease of use. Try our online demos: 
 [whisper](https://huggingface.co/spaces/lmz/candle-whisper),
@@ -40,9 +42,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Having installed `candle` with Cuda support, simply define the `device` to be on GPU:
 
-```diff
-- let device = Device::Cpu;
-+ let device = Device::new_cuda(0)?;
+```rust
+let device = Device::new_cuda(0)?;
 ```
 
 For more advanced examples, please have a look at the following section.

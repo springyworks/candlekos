@@ -72,3 +72,109 @@ pub fn open_color_squares(title: &str) {
 	open(title, &container);
 }
 
+/// Try to open a persistent external native window to display content.
+/// This is a best-effort helper: when the `external-window` feature is enabled,
+/// it will spawn a small `minifb` window showing either a decoded image parsed
+/// from a `data:image/png;base64,...` URL in `body_html`, or a simple text raster.
+/// If the feature is not enabled or something fails, it falls back to inline HTML via `open`.
+pub fn open_external(title: &str, body_html: &str) {
+	#[cfg(feature = "external-window")]
+	{
+		if let Err(e) = crate::egui_window::external::show_minifb_window(title, body_html) {
+			eprintln!("[egui_window::open_external] failed to open external window: {e:?}. Falling back to inline HTML.");
+			open(title, body_html);
+		}
+		return;
+	}
+	#[cfg(not(feature = "external-window"))]
+	{
+		eprintln!("[egui_window::open_external] feature 'external-window' not enabled; rendering inline instead.");
+		open(title, body_html);
+	}
+}
+
+#[cfg(feature = "external-window")]
+mod external {
+	use anyhow::{Context, Result};
+	use base64::Engine;
+	use image::{DynamicImage, GenericImageView};
+	use minifb::{Key, Window, WindowOptions};
+	use std::time::Duration;
+
+	pub fn show_minifb_window(title: &str, body_html: &str) -> Result<()> {
+		// Very small parser: look for a PNG data-url, decode and display it. Otherwise show text.
+		if let Some((w, h, rgba)) = try_extract_png_rgba(body_html).context("parse data-url png")? {
+			show_rgba_window(title, w as usize, h as usize, &rgba)
+		} else {
+			// Render a tiny text message as a placeholder (solid background).
+			// For simplicity we just show a solid-color window with a printed log.
+			eprintln!("[egui_window::external] No data:image/png found; opening a placeholder window.");
+			show_placeholder_window(title)
+		}
+	}
+
+	fn show_rgba_window(title: &str, w: usize, h: usize, rgba: &[u8]) -> Result<()> {
+		// Convert RGBA to packed 0xRRGGBB for minifb
+		let mut buf = vec![0u32; w * h];
+		for (i, px) in buf.iter_mut().enumerate() {
+			let r = rgba[i * 4] as u32;
+			let g = rgba[i * 4 + 1] as u32;
+			let b = rgba[i * 4 + 2] as u32;
+			*px = (r << 16) | (g << 8) | b;
+		}
+
+		let mut window = Window::new(title, w, h, WindowOptions::default())
+			.context("create minifb window")?;
+		// target ~60 FPS if supported by the backend
+		#[allow(deprecated)]
+		{
+			window.limit_update_rate(Some(Duration::from_micros(16_666)));
+		}
+
+		while window.is_open() && !window.is_key_down(Key::Escape) {
+			window.update_with_buffer(&buf, w, h).context("update buffer")?;
+		}
+		Ok(())
+	}
+
+	fn show_placeholder_window(title: &str) -> Result<()> {
+		let w = 320usize; let h = 200usize;
+		let mut buf = vec![0u32; w * h];
+		// dark slate background
+		for px in &mut buf { *px = (30u32 << 16) | (36u32 << 8) | 43u32; }
+		let mut window = Window::new(title, w, h, WindowOptions::default())
+			.context("create placeholder window")?;
+		#[allow(deprecated)]
+		{
+			window.limit_update_rate(Some(Duration::from_micros(16_666)));
+		}
+		while window.is_open() && !window.is_key_down(Key::Escape) {
+			window.update_with_buffer(&buf, w, h).context("update buffer")?;
+		}
+		Ok(())
+	}
+
+	fn try_extract_png_rgba(body_html: &str) -> Result<Option<(u32, u32, Vec<u8>)>> {
+		if let Some(idx) = body_html.find("data:image/png;base64,") {
+			let start = idx + "data:image/png;base64,".len();
+			// stop at first quote or tag end
+			let end = body_html[start..]
+				.find(['"', '\'', '>'].as_ref())
+				.map(|o| start + o)
+				.unwrap_or(body_html.len());
+			let b64 = &body_html[start..end];
+			let data = base64::engine::general_purpose::STANDARD
+				.decode(b64)
+				.context("decode base64 png")?;
+			let img = image::load_from_memory(&data).context("decode png")?;
+			let (w, h) = img.dimensions();
+			let rgba = match img {
+				DynamicImage::ImageRgba8(i) => i.into_raw(),
+				other => other.to_rgba8().into_raw(),
+			};
+			return Ok(Some((w, h, rgba)));
+		}
+		Ok(None)
+	}
+}
+

@@ -8,6 +8,8 @@ default = []
 # Forward common optional features to underlying crates.
 cuda = ["candle-core/cuda"]
 fft = ["candle-core/fft"]
+## Optional external window support (minifb-based)
+external-window = ["minifb"]
 
 [dependencies]
 candle-core = { path = "../../candle-core", default-features = false }
@@ -16,4 +18,5 @@ image = { version = "0.24" }
 base64 = "0.21"
 html-escape = "0.2"
 arithmetic-parser = "0.4.0-beta.1"
+minifb = { version = "0.27", optional = true }
 

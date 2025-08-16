@@ -17,6 +17,7 @@ use ::image::ImageEncoder;
 use ::anyhow::Result;
 use candle_core::{Tensor, Device}; 
 use std::sync::{Mutex, OnceLock};
+use std::collections::HashMap;
 use std::path::{PathBuf, Path};
 use std::fs;
 use std::fmt::Write as _;
@@ -279,6 +280,31 @@ pub fn show_tensor_gray_captioned(
 	println!("{}", plain);
 	Ok(())
 }
+
+	// ---------------------------------
+	// Notebook-scoped persistent counters
+	// ---------------------------------
+	// These counters live in the candle-notebooks crate and persist for the lifetime of the evcxr
+	// kernel process. They reset when the kernel restarts, but are unaffected by re-running cells.
+	static NB_COUNTERS: OnceLock<Mutex<HashMap<String, usize>>> = OnceLock::new();
+
+	fn counters_map() -> &'static Mutex<HashMap<String, usize>> {
+		NB_COUNTERS.get_or_init(|| Mutex::new(HashMap::new()))
+	}
+
+	/// Increment and return the counter value for the given key.
+	pub fn counter_next(key: &str) -> usize {
+		let mut m = counters_map().lock().expect("nb counters lock");
+		let e = m.entry(key.to_string()).or_insert(0);
+		*e += 1;
+		*e
+	}
+
+	/// Return the current value for the given counter key without incrementing.
+	pub fn counter_current(key: &str) -> usize {
+		let m = counters_map().lock().expect("nb counters lock");
+		*m.get(key).unwrap_or(&0)
+	}
 
 /// Display RGB image then print a caption under it (HTML, monospace).
 /// - Expects (3,H,W). Values are clamped to [0,1].

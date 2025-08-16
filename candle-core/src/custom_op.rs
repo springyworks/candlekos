@@ -1,10 +1,10 @@
+#[cfg(feature = "cuda")]
+use crate::backend::BackendStorage;
+#[cfg(feature = "cuda")]
+use crate::cuda_backend::CudaStorageSlice;
 use crate::op::{BackpropOp, Op};
 use crate::tensor::from_storage;
 use crate::{CpuStorage, CudaStorage, Layout, MetalStorage, Result, Shape, Tensor};
-#[cfg(feature = "cuda")]
-use crate::cuda_backend::CudaStorageSlice;
-#[cfg(feature = "cuda")]
-use crate::backend::BackendStorage;
 use std::sync::Arc;
 
 /// Unary ops that can be defined in user-land.
@@ -157,10 +157,18 @@ pub trait CustomOp3 {
 
 #[cfg(feature = "cuda")]
 impl CustomOp1 for crate::cuda_backend::ScanDim {
-    fn name(&self) -> &'static str { if self.inclusive { "inclusive-scan" } else { "exclusive-scan" } }
+    fn name(&self) -> &'static str {
+        if self.inclusive {
+            "inclusive-scan"
+        } else {
+            "exclusive-scan"
+        }
+    }
 
     fn cpu_fwd(&self, _storage: &CpuStorage, _layout: &Layout) -> Result<(CpuStorage, Shape)> {
-        Err(crate::Error::Cuda("scan cpu path not implemented (no implicit fallback)".into()))
+        Err(crate::Error::Cuda(
+            "scan cpu path not implemented (no implicit fallback)".into(),
+        ))
     }
 
     fn cuda_fwd(&self, storage: &CudaStorage, layout: &Layout) -> Result<(CudaStorage, Shape)> {
@@ -173,7 +181,7 @@ impl CustomOp1 for crate::cuda_backend::ScanDim {
                 return Ok((out_storage, shape));
             }};
         }
-    match storage.slice {
+        match storage.slice {
             CudaStorageSlice::F32(_) => run_t!(f32),
             CudaStorageSlice::F64(_) => run_t!(f64),
             _ => Err(crate::Error::UnsupportedDTypeForOp(storage.dtype(), self.name()).bt()),
@@ -308,7 +316,7 @@ pub trait InplaceOp2 {
     /// The forward pass, as run on a cpu device. Note that the storage can use arbitrary strides,
     /// offsets etc so the associated layout should be used to access it.
     fn cpu_fwd(&self, s1: &mut CpuStorage, l1: &Layout, s2: &CpuStorage, l2: &Layout)
-        -> Result<()>;
+    -> Result<()>;
 
     /// The forward pass, as run on a gpu device. Note that the storage can use arbitrary strides,
     /// offsets etc so the associated layout should be used to access it.

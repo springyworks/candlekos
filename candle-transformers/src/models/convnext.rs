@@ -13,8 +13,8 @@
 //!
 
 use candle::shape::ShapeWithOneHole;
-use candle::{Result, D};
-use candle_nn::{conv2d, layer_norm, linear, Conv2dConfig, Func, VarBuilder};
+use candle::{D, Result};
+use candle_nn::{Conv2dConfig, Func, VarBuilder, conv2d, layer_norm, linear};
 
 #[derive(Clone)]
 pub struct Config {

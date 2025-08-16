@@ -4,9 +4,9 @@ use candle_nn::VarBuilder;
 use candle_transformers::models::colpali::Model;
 use candle_transformers::models::{colpali, paligemma};
 use clap::Parser;
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use image::DynamicImage;
-use pdf2image::{RenderOptionsBuilder, PDF};
+use pdf2image::{PDF, RenderOptionsBuilder};
 use tokenizers::Tokenizer;
 
 struct PageRetriever {

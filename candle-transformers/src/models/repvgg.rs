@@ -11,9 +11,9 @@
 //! - [Official Implementation](https://github.com/DingXiaoH/RepVGG)
 //!
 
-use candle::{Result, Tensor, D};
+use candle::{D, Result, Tensor};
 use candle_nn::{
-    batch_norm, conv2d_no_bias, linear, BatchNorm, Conv2d, Conv2dConfig, Func, VarBuilder,
+    BatchNorm, Conv2d, Conv2dConfig, Func, VarBuilder, batch_norm, conv2d_no_bias, linear,
 };
 
 const CHANNELS_PER_STAGE: [usize; 5] = [64, 64, 128, 256, 512];

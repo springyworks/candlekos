@@ -200,8 +200,13 @@ If you have an addition to this list, please submit a pull request.
 ## Features
 
 - Simple syntax, looks and feels like PyTorch.
-  - Model training.
-  - Embed user-defined ops/kernels, such as [flash-attention v2](https://github.com/huggingface/candle/blob/89ba005962495f2bfbda286e185e9c3c7f5300a3/candle-flash-attn/src/lib.rs#L152).
+    - Model training.
+    - Embed user-defined ops/kernels, such as [flash-attention v2](https://github.com/huggingface/candle/blob/89ba005962495f2bfbda286e185e9c3c7f5300a3/candle-flash-attn/src/lib.rs#L152).
+- Efficient scan operations (prefix sum/cumulative sum).
+    - CUDA implementation: Work-efficient parallel scan using Blelloch algorithm, O(n) time and space complexity.
+    - CPU implementation: Matrix multiplication approach, supports unlimited tensor sizes.
+    - Supports both inclusive and exclusive scan operations on multi-dimensional tensors.
+    - Automatic fallback from GPU to CPU for large tensors (>1024 elements per scan dimension).
 - Backends.
     - Optimized CPU backend with optional MKL support for x86 and Accelerate for macs.
     - CUDA backend for efficiently running on GPUs, multiple GPU distribution via NCCL.
@@ -276,7 +281,62 @@ Cheatsheet:
 
 <!--- ANCHOR_END: cheatsheet --->
 
-<!-- Exploration-only scan/FFT notes have been moved to the sandbox docs to avoid confusion in the main README. -->
+## Scan Operations (Prefix Sum)
+
+Candle provides efficient scan (prefix sum) operations that are essential for many machine learning algorithms, including attention mechanisms, sequence processing, and parallel algorithms.
+
+### Available Methods
+
+```rust
+use candle_core::{Tensor, Device, Result};
+
+fn scan_examples() -> Result<()> {
+    let device = Device::Cpu; // or Device::new_cuda(0)?
+    let input = Tensor::new(&[1.0f32, 2.0, 3.0, 4.0], &device)?;
+    
+    // Inclusive scan (cumulative sum): [1, 3, 6, 10]
+    let inclusive = input.cumsum(0)?;
+    // Alternative: input.inclusive_scan(0)?
+    
+    // Exclusive scan: [0, 1, 3, 6]  
+    let exclusive = input.exclusive_scan(0)?;
+    
+    // Multi-dimensional tensors
+    let tensor_2d = Tensor::new(&[[1.0f32, 2.0], [3.0, 4.0]], &device)?;
+    let row_scan = tensor_2d.cumsum(1)?;    // scan along rows
+    let col_scan = tensor_2d.cumsum(0)?;    // scan along columns
+    
+    Ok(())
+}
+```
+
+### Performance Characteristics
+
+| Backend | Algorithm | Time Complexity | Space Complexity | Size Limit |
+|---------|-----------|-----------------|------------------|------------|
+| **CUDA** | Work-efficient scan (Blelloch) | O(n) | O(n) | ≤ 1024 elements |
+| **CPU** | Matrix multiplication | O(n²) | O(n²) | Unlimited |
+
+### CUDA Implementation
+
+- Uses **work-efficient parallel scan** algorithm (Blelloch) 
+- **Single-block implementation** supporting up to 1024 elements per scan dimension
+- **Optimized memory access** with shared memory and coalesced reads
+- **Automatic fallback** to CPU for larger tensors
+
+### CPU Implementation  
+
+- Uses **matrix multiplication** with upper triangular matrices
+- **Leverages optimized BLAS** operations (MKL/Accelerate when available)
+- **No size limitations** but O(n²) complexity for large tensors
+- **Handles non-contiguous tensors** automatically
+
+### Use Cases
+
+- **Attention mechanisms**: Computing attention weights and applying them
+- **Sequence modeling**: Positional encoding and cumulative statistics  
+- **Parallel algorithms**: Prefix operations in neural network layers
+- **Data processing**: Running sums, cumulative probabilities
 
 
 <!--- ANCHOR: structure --->

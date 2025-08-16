@@ -1,5 +1,5 @@
 use super::common::{AttnBlock, ResBlock, TimestepBlock};
-use candle::{DType, Result, Tensor, D};
+use candle::{D, DType, Result, Tensor};
 use candle_nn::VarBuilder;
 
 #[derive(Debug)]

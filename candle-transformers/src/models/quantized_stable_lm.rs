@@ -13,9 +13,9 @@
 //! - [StableLM](https://github.com/Stability-AI/StableLM)
 //!
 
-use crate::quantized_nn::{layer_norm, linear, linear_no_bias, Embedding, Linear};
+use crate::quantized_nn::{Embedding, Linear, layer_norm, linear, linear_no_bias};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{DType, Device, Module, Result, Tensor, D};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, LayerNorm};
 use std::sync::Arc;
 

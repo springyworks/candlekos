@@ -13,8 +13,8 @@
 //! - 🤗 [Model Card](https://huggingface.co/stabilityai/stablelm-3b-4e1t)
 //!
 
-use crate::models::with_tracing::{linear, linear_no_bias, Linear};
-use candle::{DType, Device, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, linear, linear_no_bias};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, LayerNorm, VarBuilder};
 use serde::Deserialize;
 use std::sync::Arc;

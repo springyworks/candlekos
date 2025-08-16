@@ -4,9 +4,9 @@
 //!
 //! See: [Jina Embeddings on HuggingFace](https://huggingface.co/jinaai/jina-embeddings-v2-base-en)
 
-use super::with_tracing::{linear, linear_no_bias, Embedding, Linear};
-use candle::{DType, Device, IndexOp, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, Module, VarBuilder};
+use super::with_tracing::{Embedding, Linear, linear, linear_no_bias};
+use candle::{D, DType, Device, IndexOp, Result, Tensor};
+use candle_nn::{LayerNorm, Module, VarBuilder, layer_norm};
 use serde::Deserialize;
 
 pub const DTYPE: DType = DType::F32;

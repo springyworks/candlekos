@@ -9,9 +9,9 @@
 //!
 
 use super::blip_text;
-use super::with_tracing::{conv2d, linear, Conv2d, Linear};
-use candle::{Module, Result, Tensor, D};
-use candle_nn::{layer_norm, Conv2dConfig, LayerNorm, VarBuilder};
+use super::with_tracing::{Conv2d, Linear, conv2d, linear};
+use candle::{D, Module, Result, Tensor};
+use candle_nn::{Conv2dConfig, LayerNorm, VarBuilder, layer_norm};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]

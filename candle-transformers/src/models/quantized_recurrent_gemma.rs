@@ -15,9 +15,9 @@
 //! - [Model Card](https://ai.google.dev/gemma)
 //!
 
-use crate::quantized_nn::{linear_b as linear, Embedding, Linear};
+use crate::quantized_nn::{Embedding, Linear, linear_b as linear};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use std::sync::Arc;
 
 use crate::models::recurrent_gemma::{Config, Rglru, RmsNorm, RotaryEmbedding, TemporalBlockType};

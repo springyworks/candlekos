@@ -15,9 +15,9 @@
 
 use crate::models::moondream::{Config, VisionConfig};
 use crate::models::quantized_mixformer::MixFormerSequentialForCausalLM as PhiModel;
-use crate::quantized_nn::{layer_norm, linear_b, Linear};
+use crate::quantized_nn::{Linear, layer_norm, linear_b};
 use crate::quantized_var_builder::VarBuilder;
-use candle::{IndexOp, Module, Result, Tensor, D};
+use candle::{D, IndexOp, Module, Result, Tensor};
 
 fn scaled_dot_product_attention(q: &Tensor, k: &Tensor, v: &Tensor) -> Result<Tensor> {
     let dim = q.dim(D::Minus1)?;

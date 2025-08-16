@@ -56,8 +56,8 @@ impl CustomOp1 for LayerNorm {
         layout: &Layout,
     ) -> Result<(candle::CudaStorage, Shape)> {
         use candle::backend::BackendStorage;
-        use candle::cuda_backend::cudarc::driver::{LaunchConfig, PushKernelArg};
         use candle::cuda_backend::WrapErr;
+        use candle::cuda_backend::cudarc::driver::{LaunchConfig, PushKernelArg};
         let (d1, d2) = layout.shape().dims2()?;
         let d1 = d1 as u32;
         let d2 = d2 as u32;

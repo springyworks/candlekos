@@ -6,7 +6,7 @@ extern crate accelerate_src;
 
 use std::path::Path;
 
-use anyhow::{anyhow, Error as E, Result};
+use anyhow::{Error as E, Result, anyhow};
 use clap::Parser;
 
 use candle_transformers::models::stella_en_v5::{
@@ -15,7 +15,7 @@ use candle_transformers::models::stella_en_v5::{
 
 use candle::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
-use hf_hub::{api::sync::Api, Repo};
+use hf_hub::{Repo, api::sync::Api};
 use tokenizers::{PaddingDirection, PaddingParams, PaddingStrategy, Tokenizer};
 
 struct Embedding {

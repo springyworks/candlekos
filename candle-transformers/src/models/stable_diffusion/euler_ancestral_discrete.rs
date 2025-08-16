@@ -4,12 +4,12 @@
 //!
 use super::{
     schedulers::{
-        betas_for_alpha_bar, BetaSchedule, PredictionType, Scheduler, SchedulerConfig,
-        TimestepSpacing,
+        BetaSchedule, PredictionType, Scheduler, SchedulerConfig, TimestepSpacing,
+        betas_for_alpha_bar,
     },
     utils::interp,
 };
-use candle::{bail, Error, Result, Tensor};
+use candle::{Error, Result, Tensor, bail};
 
 /// The configuration for the EulerAncestral Discrete scheduler.
 #[derive(Debug, Clone, Copy)]

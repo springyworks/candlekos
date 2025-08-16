@@ -15,8 +15,8 @@
 
 use crate::{quantized_nn::RmsNorm, utils::repeat_kv};
 use candle::{
-    quantized::{gguf_file, QMatMul},
     DType, Device, IndexOp, Result, Tensor,
+    quantized::{QMatMul, gguf_file},
 };
 use candle_nn::{Embedding, Module};
 use std::collections::HashMap;

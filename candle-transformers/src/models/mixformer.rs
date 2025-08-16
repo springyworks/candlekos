@@ -5,11 +5,11 @@
 //! - [Github](https://huggingface.co/microsoft/phi-1_5)
 //!
 
-use crate::models::with_tracing::{linear, Embedding as E, Linear};
+use crate::models::with_tracing::{Embedding as E, Linear, linear};
 /// MixFormer model.
 /// https://huggingface.co/microsoft/phi-1_5
 /// https://arxiv.org/abs/2309.05463
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use serde::Deserialize;
 

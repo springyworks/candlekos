@@ -5,8 +5,8 @@
 //! - [OLMo 2 Paper](https://arxiv.org/abs/2501.00656)
 //!
 //!
-use candle::{DType, Device, Module, Result, Tensor, D};
-use candle_nn::{linear_b, linear_no_bias, rms_norm, Activation, Linear, RmsNorm, VarBuilder};
+use candle::{D, DType, Device, Module, Result, Tensor};
+use candle_nn::{Activation, Linear, RmsNorm, VarBuilder, linear_b, linear_no_bias, rms_norm};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, serde::Deserialize)]

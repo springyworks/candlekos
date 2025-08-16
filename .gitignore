@@ -50,19 +50,3 @@ bria.wav
 # Ignore generated notebook images
 0aEXPLORATION/candle_notebooks/images_store/
 *.png
-
-# C/C++ toolchain and editor caches
-# clangd/clang cache
-.cache/
-
-# CMake/Ninja build outputs (preserve our curated README)
-build/**
-!build/README.md
-
-# Common CMake side-files if created outside build/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-*.ninja
-.ninja_log
-compile_commands.json

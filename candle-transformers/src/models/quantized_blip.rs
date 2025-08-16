@@ -15,9 +15,9 @@
 //!
 
 use super::quantized_blip_text as blip_text;
-use crate::quantized_nn::{layer_norm, linear, Linear};
+use crate::quantized_nn::{Linear, layer_norm, linear};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{Module, Result, Tensor, D};
+use candle::{D, Module, Result, Tensor};
 use candle_nn::{Conv2d, Conv2dConfig, LayerNorm};
 
 pub type VisionConfig = super::blip::VisionConfig;

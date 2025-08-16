@@ -4,8 +4,8 @@ use super::attention::{
     AttentionBlock, AttentionBlockConfig, SpatialTransformer, SpatialTransformerConfig,
 };
 use super::resnet::{ResnetBlock2D, ResnetBlock2DConfig};
-use crate::models::with_tracing::{conv2d, Conv2d};
-use candle::{Module, Result, Tensor, D};
+use crate::models::with_tracing::{Conv2d, conv2d};
+use candle::{D, Module, Result, Tensor};
 use candle_nn as nn;
 
 #[derive(Debug)]

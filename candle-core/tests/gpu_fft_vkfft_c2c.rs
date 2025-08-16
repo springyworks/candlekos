@@ -1,10 +1,18 @@
-#![cfg(all(feature = "cuda", feature = "gpu-fft", feature = "gpu-fft-vkfft", feature = "gpu-fft-vkfft-ffi"))]
+#![cfg(all(
+    feature = "cuda",
+    feature = "gpu-fft",
+    feature = "gpu-fft-vkfft",
+    feature = "gpu-fft-vkfft-ffi"
+))]
 
-use candle_core::{Device, Result, Tensor, DType};
+use candle_core::{DType, Device, Result, Tensor};
 
 fn make_complex_interleaved(real: &[f32], imag: &[f32]) -> Vec<f32> {
     let mut out = Vec::with_capacity(real.len() * 2);
-    for i in 0..real.len() { out.push(real[i]); out.push(imag[i]); }
+    for i in 0..real.len() {
+        out.push(real[i]);
+        out.push(imag[i]);
+    }
     out
 }
 
@@ -19,7 +27,7 @@ fn vkfft_c2c_f32_roundtrip_last_axis() -> Result<()> {
     // Build complex signal as interleaved real/imag floats
     let mut real = Vec::with_capacity(batch * n_complex);
     let mut imag = Vec::with_capacity(batch * n_complex);
-    for i in 0..(batch*n_complex) {
+    for i in 0..(batch * n_complex) {
         real.push((i as f32).sin() * 0.1);
         imag.push((i as f32).cos() * 0.05);
     }
@@ -30,7 +38,7 @@ fn vkfft_c2c_f32_roundtrip_last_axis() -> Result<()> {
 
     // Forward complex (treat input as complex) then inverse
     let spec = t.fft(1, false, false)?; // forward complex-to-complex (no normalization)
-    let back = spec.ifft(1, true)?;     // inverse complex-to-complex (normalize to recover original)
+    let back = spec.ifft(1, true)?; // inverse complex-to-complex (normalize to recover original)
 
     let back_cpu = back.to_device(&cpu)?;
     let v_back = back_cpu.flatten_all()?.to_vec1::<f32>()?;

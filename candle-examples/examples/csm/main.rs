@@ -11,7 +11,7 @@ use candle_transformers::models::csm::{Config, Model};
 
 use candle::{DType, IndexOp, Tensor};
 use candle_nn::VarBuilder;
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use tokenizers::Tokenizer;
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, clap::ValueEnum)]

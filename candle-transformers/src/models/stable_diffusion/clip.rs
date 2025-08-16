@@ -4,7 +4,7 @@
 //! pairs of images with related texts.
 //!
 //! - [CLIP](https://github.com/openai/CLIP)
-use candle::{DType, Device, Result, Tensor, D};
+use candle::{D, DType, Device, Result, Tensor};
 use candle_nn as nn;
 use candle_nn::Module;
 

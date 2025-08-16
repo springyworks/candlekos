@@ -3,8 +3,8 @@
 
 #[cfg(not(feature = "gpu-fft"))]
 mod stub {
-    use crate::{Result, Layout, bail};
-    use crate::cuda_backend::{CudaStorage, CudaStorageSlice, CudaDevice};
+    use crate::cuda_backend::{CudaDevice, CudaStorage, CudaStorageSlice};
+    use crate::{Layout, Result, bail};
 
     #[derive(Debug, Clone, Copy, Default)]
     pub struct FftConfig {
@@ -20,7 +20,9 @@ mod stub {
     }
 
     impl CudaFft {
-        pub fn new(config: FftConfig, dim: usize) -> Self { Self { config, dim } }
+        pub fn new(config: FftConfig, dim: usize) -> Self {
+            Self { config, dim }
+        }
 
         pub fn fft_f32(
             &self,
@@ -65,9 +67,9 @@ mod impls;
 #[cfg(all(feature = "gpu-fft", feature = "gpu-fft-vkfft"))]
 mod vkfft;
 
-#[cfg(not(feature = "gpu-fft"))]
-pub use stub::*;
 #[cfg(all(feature = "gpu-fft", not(feature = "gpu-fft-vkfft")))]
 pub use impls::*;
+#[cfg(not(feature = "gpu-fft"))]
+pub use stub::*;
 #[cfg(all(feature = "gpu-fft", feature = "gpu-fft-vkfft"))]
 pub use vkfft::*;

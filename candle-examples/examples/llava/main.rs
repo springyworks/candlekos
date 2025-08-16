@@ -5,18 +5,18 @@ pub mod image_processor;
 use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::llama::Cache;
 
-use anyhow::{bail, Error as E, Result};
+use anyhow::{Error as E, Result, bail};
 use candle::{DType, Device, IndexOp, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::models::llava::config::{
     HFGenerationConfig, HFLLaVAConfig, HFPreProcessorConfig,
 };
-use candle_transformers::models::llava::{config::LLaVAConfig, LLaVA};
+use candle_transformers::models::llava::{LLaVA, config::LLaVAConfig};
 use clap::Parser;
 use constants::*;
 use conversation::Conversation;
 use hf_hub::api::sync::Api;
-use image_processor::{process_image, ImageProcessor};
+use image_processor::{ImageProcessor, process_image};
 use std::io::Write;
 use tokenizers::Tokenizer;
 

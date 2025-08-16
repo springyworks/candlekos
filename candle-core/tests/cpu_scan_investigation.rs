@@ -1,4 +1,4 @@
-use candle_core::{Tensor, Device, Result};
+use candle_core::{Device, Result, Tensor};
 
 // Retained as an ignored exploratory test; trimmed verbosity to keep logs clean.
 #[test]

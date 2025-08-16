@@ -1,6 +1,6 @@
 // Audio processing code, adapted from whisper.cpp
 // https://github.com/ggerganov/whisper.cpp
-use super::worker;
+use super::whisper_worker;
 
 pub trait Float: num_traits::Float + num_traits::FloatConst + num_traits::NumAssign {}
 
@@ -167,7 +167,7 @@ fn log_mel_spectrogram_<T: Float + std::fmt::Display>(
     let n_len = samples.len() / fft_step;
 
     // pad audio with at least one extra chunk of zeros
-    let pad = 100 * worker::m::CHUNK_LENGTH / 2;
+    let pad = 100 * whisper_worker::m::CHUNK_LENGTH / 2;
     let n_len = if !n_len.is_multiple_of(pad) {
         (n_len / pad + 1) * pad
     } else {
@@ -199,15 +199,15 @@ fn log_mel_spectrogram_<T: Float + std::fmt::Display>(
 }
 
 pub fn pcm_to_mel<T: Float + std::fmt::Display>(
-    cfg: &worker::m::Config,
+    cfg: &whisper_worker::m::Config,
     samples: &[T],
     filters: &[T],
 ) -> anyhow::Result<Vec<T>> {
     let mel = log_mel_spectrogram_(
         samples,
         filters,
-        worker::m::N_FFT,
-        worker::m::HOP_LENGTH,
+        whisper_worker::m::N_FFT,
+        whisper_worker::m::HOP_LENGTH,
         cfg.num_mel_bins,
         false,
     );

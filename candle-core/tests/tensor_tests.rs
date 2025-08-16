@@ -1,4 +1,4 @@
-use candle_core::{test_device, test_utils, DType, Device, IndexOp, Result, Tensor, D};
+use candle_core::{D, DType, Device, IndexOp, Result, Tensor, test_device, test_utils};
 use float8::F8E4M3;
 
 fn zeros(device: &Device) -> Result<()> {
@@ -1654,10 +1654,14 @@ test_device!(ones, ones_cpu, ones_gpu, ones_metal);
 mod ones_skip_cuda {
     use super::*;
     #[test]
-    fn ones_cpu() -> Result<()> { super::ones(&Device::Cpu) }
+    fn ones_cpu() -> Result<()> {
+        super::ones(&Device::Cpu)
+    }
     #[cfg(feature = "metal")]
     #[test]
-    fn ones_metal() -> Result<()> { super::ones(&Device::new_metal(0)?) }
+    fn ones_metal() -> Result<()> {
+        super::ones(&Device::new_metal(0)?)
+    }
 }
 test_device!(full, full_cpu, full_gpu, full_metal);
 test_device!(const_set, cs_cpu, cs_gpu, cs_metal);

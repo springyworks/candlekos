@@ -9,7 +9,7 @@
 #[cfg(feature = "mkl")]
 extern crate intel_mkl_src;
 
-use anyhow::{bail, Error as E, Result};
+use anyhow::{Error as E, Result, bail};
 use clap::{Parser, ValueEnum};
 
 use candle::{DType, Device, Tensor};
@@ -17,7 +17,7 @@ use candle_transformers::generation::LogitsProcessor;
 use candle_transformers::models::llama::LlamaEosToks;
 use cudarc::driver::safe::CudaDevice;
 use cudarc::nccl::safe::{Comm, Id};
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use std::io::Write;
 use std::rc::Rc;
 

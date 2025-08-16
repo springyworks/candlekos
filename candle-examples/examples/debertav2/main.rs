@@ -10,13 +10,13 @@ use std::path::PathBuf;
 use anyhow::bail;
 use anyhow::{Error as E, Result};
 use candle::{Device, Tensor};
-use candle_nn::ops::softmax;
 use candle_nn::VarBuilder;
+use candle_nn::ops::softmax;
 use candle_transformers::models::debertav2::{Config as DebertaV2Config, DebertaV2NERModel};
 use candle_transformers::models::debertav2::{DebertaV2SeqClassificationModel, Id2Label};
 use candle_transformers::models::debertav2::{NERItem, TextClassificationItem};
 use clap::{ArgGroup, Parser, ValueEnum};
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use tokenizers::{Encoding, PaddingParams, Tokenizer};
 
 enum TaskType {

@@ -1,7 +1,7 @@
-use super::model::{attention, timestep_embedding, Config, EmbedNd};
-use crate::quantized_nn::{linear, linear_b, Linear};
+use super::model::{Config, EmbedNd, attention, timestep_embedding};
+use crate::quantized_nn::{Linear, linear, linear_b};
 use crate::quantized_var_builder::VarBuilder;
-use candle::{DType, IndexOp, Result, Tensor, D};
+use candle::{D, DType, IndexOp, Result, Tensor};
 use candle_nn::{LayerNorm, RmsNorm};
 
 fn layer_norm(dim: usize, vb: VarBuilder) -> Result<LayerNorm> {

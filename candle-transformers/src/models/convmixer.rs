@@ -6,7 +6,7 @@
 //! - 💻 [Github](https://github.com/locuslab/convmixer)
 //!
 use candle::Result;
-use candle_nn::{batch_norm, Conv2dConfig, Module, VarBuilder};
+use candle_nn::{Conv2dConfig, Module, VarBuilder, batch_norm};
 
 #[allow(clippy::many_single_char_names)]
 fn conv2d_same(

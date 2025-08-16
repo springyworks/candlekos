@@ -16,11 +16,11 @@
 /// MPT model used by replit-code-v1_5-3b
 /// https://huggingface.co/replit/replit-code-v1_5-3b/blob/main/modeling_mpt.py
 ///
-use crate::quantized_nn::{layer_norm_no_bias, linear_no_bias, Embedding, Linear};
+use crate::quantized_nn::{Embedding, Linear, layer_norm_no_bias, linear_no_bias};
 pub use crate::quantized_var_builder::VarBuilder;
 /// MPT model used by replit-code-v1_5-3b
 /// https://huggingface.co/replit/replit-code-v1_5-3b/blob/main/modeling_mpt.py
-use candle::{IndexOp, Module, Result, Tensor, D};
+use candle::{D, IndexOp, Module, Result, Tensor};
 use candle_nn::LayerNorm;
 
 pub use super::mpt::Config;

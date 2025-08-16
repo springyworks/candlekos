@@ -4,7 +4,7 @@
 // https://github.com/comfyanonymous/ComfyUI/blob/78e133d0415784924cd2674e2ee48f3eeca8a2aa/comfy/ldm/modules/diffusionmodules/mmdit.py#L1
 // with MMDiT-X support following the Stability-AI/sd3.5 repository.
 // https://github.com/Stability-AI/sd3.5/blob/4e484e05308d83fb77ae6f680028e6c313f9da54/mmditx.py#L1
-use candle::{Module, Result, Tensor, D};
+use candle::{D, Module, Result, Tensor};
 use candle_nn as nn;
 
 use super::blocks::{
@@ -227,10 +227,10 @@ impl MMDiTCore {
     ) -> Result<Tensor> {
         let (mut context, mut x) = (context.clone(), x.clone());
         for (i, joint_block) in self.joint_blocks.iter().enumerate() {
-            if let Some(skip_layers) = &skip_layers {
-                if skip_layers.contains(&i) {
-                    continue;
-                }
+            if let Some(skip_layers) = &skip_layers
+                && skip_layers.contains(&i)
+            {
+                continue;
             }
             (context, x) = joint_block.forward(&context, &x, c)?;
         }

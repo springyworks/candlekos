@@ -10,8 +10,8 @@ use candle::D::Minus1;
 use candle::{Module, Result, Tensor};
 use candle_nn::ops::Identity;
 use candle_nn::{
-    batch_norm, conv2d, conv2d_no_bias, conv_transpose2d, linear, seq, Activation, BatchNorm,
-    BatchNormConfig, Conv2d, Conv2dConfig, ConvTranspose2dConfig, Sequential, VarBuilder,
+    Activation, BatchNorm, BatchNormConfig, Conv2d, Conv2dConfig, ConvTranspose2dConfig,
+    Sequential, VarBuilder, batch_norm, conv_transpose2d, conv2d, conv2d_no_bias, linear, seq,
 };
 
 use crate::models::dinov2::DinoVisionTransformer;

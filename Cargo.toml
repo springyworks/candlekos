@@ -11,7 +11,7 @@ members = [
     "tensor-tools",
     "0aEXPLORATION",
     # Notebook helpers for egui tensor display
-    "0aEXPLORATION/candle_notebooks",
+    "0aEXPLORATION/research/notebooks/candle_notebooks",
     "0aEXPLORATION/candle_tensor_augment",
     "xtask",
 ]

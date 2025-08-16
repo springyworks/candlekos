@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use candle::{IndexOp, D};
+use candle::{D, IndexOp};
 use candle_examples::save_image;
 use clap::{Parser, ValueEnum};
 

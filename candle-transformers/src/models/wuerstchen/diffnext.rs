@@ -1,5 +1,5 @@
 use super::common::{AttnBlock, GlobalResponseNorm, LayerNormNoWeights, TimestepBlock, WLayerNorm};
-use candle::{DType, Module, Result, Tensor, D};
+use candle::{D, DType, Module, Result, Tensor};
 use candle_nn::VarBuilder;
 
 #[derive(Debug)]

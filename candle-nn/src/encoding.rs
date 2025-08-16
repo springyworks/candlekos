@@ -1,6 +1,6 @@
 //! Encoding Utilities. (e.g., one-hot/cold encoding)
 
-use candle::{bail, DType, Result, Tensor, WithDType};
+use candle::{DType, Result, Tensor, WithDType, bail};
 
 /// One-hot/cold encoding.
 ///

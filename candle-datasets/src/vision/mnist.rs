@@ -3,7 +3,7 @@
 //! The files can be obtained from the following link:
 //! <http://yann.lecun.com/exdb/mnist/>
 use candle::{DType, Device, Error, Result, Tensor};
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use parquet::file::reader::{FileReader, SerializedFileReader};
 use std::fs::File;
 use std::io::{self, BufReader, Read};

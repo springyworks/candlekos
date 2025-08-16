@@ -1,5 +1,5 @@
 use candle::{DType, Device, IndexOp, Result, Tensor};
-use candle_nn::{batch_norm, conv2d, conv2d_no_bias, Func, Module, VarBuilder};
+use candle_nn::{Func, Module, VarBuilder, batch_norm, conv2d, conv2d_no_bias};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};

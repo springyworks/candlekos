@@ -8,7 +8,7 @@ use candle_transformers::models::stable_diffusion;
 use std::ops::Div;
 
 use anyhow::{Error as E, Result};
-use candle::{DType, Device, IndexOp, Module, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Module, Tensor};
 use clap::Parser;
 use rand::Rng;
 use stable_diffusion::vae::AutoEncoderKL;

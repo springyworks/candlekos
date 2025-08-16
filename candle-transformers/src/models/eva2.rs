@@ -26,8 +26,8 @@
 //!   <img src="https://github.com/huggingface/candle/raw/main/candle-examples/examples/yolo-v8/assets/bike.jpg" alt="" width=640>
 //! </div>
 //!
-use candle::{IndexOp, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, Linear, Module, VarBuilder};
+use candle::{D, IndexOp, Result, Tensor};
+use candle_nn::{LayerNorm, Linear, Module, VarBuilder, layer_norm};
 
 const IMG_SIZE: usize = 448;
 const PATCH_SIZE: usize = 14;

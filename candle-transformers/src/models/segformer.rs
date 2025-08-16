@@ -14,9 +14,9 @@
 //! - [Model Card](https://huggingface.co/nvidia/mit-b0)
 //!
 
-use crate::models::with_tracing::{conv2d, linear, Conv2d, Linear};
-use candle::{Context, Module, ModuleT, Result, Tensor, D};
-use candle_nn::{conv2d_no_bias, layer_norm, Activation, Conv2dConfig, VarBuilder};
+use crate::models::with_tracing::{Conv2d, Linear, conv2d, linear};
+use candle::{Context, D, Module, ModuleT, Result, Tensor};
+use candle_nn::{Activation, Conv2dConfig, VarBuilder, conv2d_no_bias, layer_norm};
 use serde::Deserialize;
 use std::collections::HashMap;
 

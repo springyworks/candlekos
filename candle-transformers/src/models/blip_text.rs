@@ -7,9 +7,9 @@
 //! - 🤗 [HF Link](https://huggingface.co/Salesforce/blip-image-captioning-base)
 //! - 📝 [Paper](https://arxiv.org/abs/2201.12086)
 //!
-use super::with_tracing::{linear, Embedding, Linear};
-use candle::{Module, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, VarBuilder};
+use super::with_tracing::{Embedding, Linear, linear};
+use candle::{D, Module, Result, Tensor};
+use candle_nn::{LayerNorm, VarBuilder, layer_norm};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]

@@ -4,8 +4,8 @@
 //!
 //! Based on implementation from [huggingface/transformers](https://github.com/huggingface/transformers/blob/main/src/transformers/models/encodec/modeling_encodec.py)
 
-use candle::{DType, IndexOp, Layout, Module, Result, Shape, Tensor, D};
-use candle_nn::{conv1d, Conv1d, ConvTranspose1d, VarBuilder};
+use candle::{D, DType, IndexOp, Layout, Module, Result, Shape, Tensor};
+use candle_nn::{Conv1d, ConvTranspose1d, VarBuilder, conv1d};
 
 // Encodec Model
 // https://github.com/huggingface/transformers/blob/main/src/transformers/models/encodec/modeling_encodec.py

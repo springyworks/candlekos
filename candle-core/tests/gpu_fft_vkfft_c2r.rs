@@ -1,6 +1,11 @@
-#![cfg(all(feature = "cuda", feature = "gpu-fft", feature = "gpu-fft-vkfft", feature = "gpu-fft-vkfft-ffi"))]
+#![cfg(all(
+    feature = "cuda",
+    feature = "gpu-fft",
+    feature = "gpu-fft-vkfft",
+    feature = "gpu-fft-vkfft-ffi"
+))]
 
-use candle_core::{Device, Result, Tensor, DType};
+use candle_core::{DType, Device, Result, Tensor};
 
 #[test]
 fn vkfft_c2r_f32_roundtrip_small_last_axis() -> Result<()> {
@@ -10,7 +15,9 @@ fn vkfft_c2r_f32_roundtrip_small_last_axis() -> Result<()> {
     let cpu = Device::Cpu;
     let cuda = Device::new_cuda(0)?;
 
-    let data: Vec<f32> = (0..batch*n).map(|i| (i as f32).cos() * 0.2 + (i as f32)*1e-3).collect();
+    let data: Vec<f32> = (0..batch * n)
+        .map(|i| (i as f32).cos() * 0.2 + (i as f32) * 1e-3)
+        .collect();
     let t_cpu = Tensor::from_vec(data.clone(), (batch, n), &cpu)?;
     let t_gpu = Tensor::from_vec(data.clone(), (batch, n), &cuda)?;
 

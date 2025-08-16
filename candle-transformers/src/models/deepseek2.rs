@@ -3,10 +3,10 @@
 use std::{f32::consts::PI, sync::Arc};
 
 use candle::{
-    shape::Dim, CpuStorage, CustomOp1, DType, Device, Error, IndexOp, Layout, Result, Shape,
-    Tensor, WithDType, D,
+    CpuStorage, CustomOp1, D, DType, Device, Error, IndexOp, Layout, Result, Shape, Tensor,
+    WithDType, shape::Dim,
 };
-use candle_nn::{embedding, rms_norm, Activation, Embedding, Linear, Module, RmsNorm, VarBuilder};
+use candle_nn::{Activation, Embedding, Linear, Module, RmsNorm, VarBuilder, embedding, rms_norm};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::Deserialize;
 

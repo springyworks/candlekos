@@ -1,6 +1,6 @@
 //! Support for the GGML file format.
 
-use super::{k_quants, GgmlDType, QStorage};
+use super::{GgmlDType, QStorage, k_quants};
 use crate::{Device, Result};
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::collections::HashMap;

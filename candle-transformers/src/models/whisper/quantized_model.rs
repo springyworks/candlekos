@@ -1,7 +1,7 @@
 use super::Config;
-use crate::quantized_nn::{layer_norm, linear, linear_no_bias, Embedding, Linear};
+use crate::quantized_nn::{Embedding, Linear, layer_norm, linear, linear_no_bias};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{Device, IndexOp, Result, Tensor, D};
+use candle::{D, Device, IndexOp, Result, Tensor};
 use candle_nn::{Conv1d, Conv1dConfig, LayerNorm, Module};
 
 fn conv1d(

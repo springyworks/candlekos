@@ -5,8 +5,8 @@
 //! Based on reference implementation from the AlbertMamba project
 //! A fast implementation of mamba for inference only.
 //! Based on Laurent Mazare's rust implementation: [mamba.rs](https://github.com/LaurentMazare/mamba.rs)
-use crate::models::with_tracing::{linear, linear_no_bias, Linear};
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, linear, linear_no_bias};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::{RmsNorm, VarBuilder};
 
 const D_CONV: usize = 4;

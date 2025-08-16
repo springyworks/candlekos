@@ -1,8 +1,8 @@
 use crate::models::{
     qwen3::{Config as Qwen3Config, Qwen3Attention, Qwen3MLP, Qwen3RotaryEmbedding},
-    with_tracing::{linear_no_bias, Linear, RmsNorm},
+    with_tracing::{Linear, RmsNorm, linear_no_bias},
 };
-use candle::{DType, Device, Module, Result, Tensor, D};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use std::sync::Arc;
 
@@ -206,12 +206,12 @@ impl DecoderLayer {
         let self_attn = Qwen3Attention::new(&cfg.into(), rotary, vb.pp("self_attn"))?;
 
         // Decide whether to use MoE or regular MLP based on layer_idx and decoder_sparse_step
-        let feed_forward = if cfg.num_experts > 0 && (layer_idx + 1).is_multiple_of(cfg.decoder_sparse_step)
-        {
-            Qwen3FeedForward::MoE(Qwen3SparseMoeBlock::new(cfg, vb.pp("mlp"))?)
-        } else {
-            Qwen3FeedForward::Mlp(Qwen3MLP::new(&cfg.into(), vb.pp("mlp"))?)
-        };
+        let feed_forward =
+            if cfg.num_experts > 0 && (layer_idx + 1).is_multiple_of(cfg.decoder_sparse_step) {
+                Qwen3FeedForward::MoE(Qwen3SparseMoeBlock::new(cfg, vb.pp("mlp"))?)
+            } else {
+                Qwen3FeedForward::Mlp(Qwen3MLP::new(&cfg.into(), vb.pp("mlp"))?)
+            };
 
         let ln1 = RmsNorm::new(cfg.hidden_size, cfg.rms_norm_eps, vb.pp("input_layernorm"))?;
         let ln2 = RmsNorm::new(
@@ -296,11 +296,7 @@ impl Model {
                         Some(w) => (i + offset) as i64 - j as i64 <= w as i64,
                         None => true,
                     };
-                    if past_ok && sw_ok {
-                        0.
-                    } else {
-                        minf
-                    }
+                    if past_ok && sw_ok { 0. } else { minf }
                 })
             })
             .collect();

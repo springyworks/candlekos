@@ -9,8 +9,8 @@ use clap::{Parser, ValueEnum};
 use rand::prelude::*;
 use rand::rng;
 
-use candle::{DType, Result, Tensor, D};
-use candle_nn::{loss, ops, Conv2d, Linear, Module, ModuleT, Optimizer, VarBuilder, VarMap};
+use candle::{D, DType, Result, Tensor};
+use candle_nn::{Conv2d, Linear, Module, ModuleT, Optimizer, VarBuilder, VarMap, loss, ops};
 
 const IMAGE_DIM: usize = 784;
 const LABELS: usize = 10;

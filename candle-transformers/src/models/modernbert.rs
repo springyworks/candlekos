@@ -6,10 +6,10 @@
 //! - See modernbert in [candle-examples](https://github.com/huggingface/candle/tree/main/candle-examples/) for runnable code
 //!
 
-use candle::{DType, Device, IndexOp, Result, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Result, Tensor};
 use candle_nn::{
-    embedding, layer_norm_no_bias, linear, linear_no_bias, ops::softmax, Embedding, LayerNorm,
-    Linear, Module, VarBuilder,
+    Embedding, LayerNorm, Linear, Module, VarBuilder, embedding, layer_norm_no_bias, linear,
+    linear_no_bias, ops::softmax,
 };
 use serde::Deserialize;
 
@@ -359,7 +359,8 @@ impl ModernBert {
 
         let mut layers = Vec::with_capacity(config.num_hidden_layers);
         for layer_id in 0..config.num_hidden_layers {
-            let layer_uses_local_attention = !layer_id.is_multiple_of(config.global_attn_every_n_layers);
+            let layer_uses_local_attention =
+                !layer_id.is_multiple_of(config.global_attn_every_n_layers);
             layers.push(ModernBertLayer::load(
                 vb.pp(format!("model.layers.{layer_id}")),
                 config,

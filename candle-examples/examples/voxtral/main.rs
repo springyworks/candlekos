@@ -56,7 +56,9 @@ fn main() -> Result<()> {
             std::path::PathBuf::from(input)
         }
     } else {
-        println!("No audio file submitted: Downloading https://huggingface.co/datasets/Narsil/candle_demo/blob/main/samples_jfk.wav");
+        println!(
+            "No audio file submitted: Downloading https://huggingface.co/datasets/Narsil/candle_demo/blob/main/samples_jfk.wav"
+        );
         dataset.get("samples_jfk.wav")?
     };
 

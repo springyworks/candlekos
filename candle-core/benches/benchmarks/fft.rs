@@ -1,7 +1,7 @@
 #![cfg(feature = "fft")]
-use criterion::{black_box, Criterion, criterion_group};
-use candle_core::{Device, Tensor, Result};
 use super::{BenchDevice, BenchDeviceHandler};
+use candle_core::{Device, Result, Tensor};
+use criterion::{Criterion, black_box, criterion_group};
 
 fn bench_rfft(c: &mut Criterion) {
     let handler = BenchDeviceHandler::new().unwrap();
@@ -24,7 +24,7 @@ fn bench_fft_complex(c: &mut Criterion) {
         let name = dev.bench_name("cfft_1d_2048");
         c.bench_function(&name, |b| {
             // Interleaved complex length 2048 -> shape (4096,)
-            let t = Tensor::randn(0f32, 1.0, (2048*2,), &dev).unwrap();
+            let t = Tensor::randn(0f32, 1.0, (2048 * 2,), &dev).unwrap();
             b.iter(|| {
                 let f = t.fft(0, false, false).unwrap();
                 black_box(&f);

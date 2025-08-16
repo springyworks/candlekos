@@ -1,10 +1,10 @@
 //! egui_scan_demo: Display two tensor panes. Left: evolving synthetic tensor. Right: inclusive scan over a selected axis.
 //! Runs on CPU by default; enable `--features cuda` to use GPU if available.
 
-use candle_core::{Device, Result, Tensor, DType};
+use candle_core::{DType, Device, Result, Tensor};
+use candle_exploration::proc_fields::{gray, plasma, sinusoidal_mix, tensor_to_rgba};
 use eframe::egui;
-use std::time::{Instant, Duration};
-use candle_exploration::proc_fields::{sinusoidal_mix, tensor_to_rgba, gray, plasma};
+use std::time::{Duration, Instant};
 
 const W: usize = 128;
 const H: usize = 128;
@@ -14,8 +14,8 @@ struct ScanApp {
     start: Instant,
     last_update: Instant,
     frame: usize,
-    base_tensor: Tensor,  // [H, W]
-    scan_tensor: Tensor,  // [H, W]
+    base_tensor: Tensor, // [H, W]
+    scan_tensor: Tensor, // [H, W]
     axis: usize,
     speed: f32,
     paused: bool,
@@ -24,7 +24,10 @@ struct ScanApp {
 }
 
 #[derive(Copy, Clone, PartialEq)]
-enum Colormap { Gray, Plasma }
+enum Colormap {
+    Gray,
+    Plasma,
+}
 
 impl ScanApp {
     fn new(device: Device) -> Result<Self> {
@@ -50,11 +53,15 @@ impl ScanApp {
     }
 
     fn update_tensors(&mut self) {
-        if self.paused { return; }
+        if self.paused {
+            return;
+        }
         let now = Instant::now();
         let dt = now.duration_since(self.last_update);
         // limit update rate (~60 Hz)
-        if dt < Duration::from_millis(16) { return; }
+        if dt < Duration::from_millis(16) {
+            return;
+        }
         self.last_update = now;
         let elapsed = now.duration_since(self.start).as_secs_f32() * self.speed;
         self.frame += 1;
@@ -62,9 +69,15 @@ impl ScanApp {
             self.base_tensor = base;
             self.scan_tensor = if self.use_exclusive {
                 // add a nominal batch dim to reuse existing API expectations if needed
-                match self.base_tensor.exclusive_scan(self.axis) { Ok(t) => t, Err(_) => self.base_tensor.clone() }
+                match self.base_tensor.exclusive_scan(self.axis) {
+                    Ok(t) => t,
+                    Err(_) => self.base_tensor.clone(),
+                }
             } else {
-                match self.base_tensor.inclusive_scan(self.axis) { Ok(t) => t, Err(_) => self.base_tensor.clone() }
+                match self.base_tensor.inclusive_scan(self.axis) {
+                    Ok(t) => t,
+                    Err(_) => self.base_tensor.clone(),
+                }
             };
         }
     }
@@ -101,10 +114,20 @@ impl eframe::App for ScanApp {
                 let right = self.to_image_pixels(&self.scan_tensor);
                 let img_left = egui::ColorImage::from_rgba_unmultiplied([W, H], &left);
                 let img_right = egui::ColorImage::from_rgba_unmultiplied([W, H], &right);
-                let tex_left = ui.ctx().load_texture("left", img_left, egui::TextureOptions::NEAREST);
-                let tex_right = ui.ctx().load_texture("right", img_right, egui::TextureOptions::NEAREST);
-                ui.vertical(|ui| { ui.label("source"); ui.image(&tex_left); });
-                ui.vertical(|ui| { ui.label(format!("scan axis {}", self.axis)); ui.image(&tex_right); });
+                let tex_left =
+                    ui.ctx()
+                        .load_texture("left", img_left, egui::TextureOptions::NEAREST);
+                let tex_right =
+                    ui.ctx()
+                        .load_texture("right", img_right, egui::TextureOptions::NEAREST);
+                ui.vertical(|ui| {
+                    ui.label("source");
+                    ui.image(&tex_left);
+                });
+                ui.vertical(|ui| {
+                    ui.label(format!("scan axis {}", self.axis));
+                    ui.image(&tex_right);
+                });
             });
         });
         ctx.request_repaint();
@@ -114,12 +137,17 @@ impl eframe::App for ScanApp {
 // (colormaps provided by proc_fields)
 
 fn main() -> Result<()> {
-    let device = if std::env::var("CANDLE_FORCE_CPU").is_ok() { Device::Cpu } else { Device::cuda_if_available(0).unwrap_or(Device::Cpu) };
+    let device = if std::env::var("CANDLE_FORCE_CPU").is_ok() {
+        Device::Cpu
+    } else {
+        Device::cuda_if_available(0).unwrap_or(Device::Cpu)
+    };
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
         "egui_scan_demo",
         native_options,
-        Box::new(|_cc| Box::new(ScanApp::new(device).expect("init app")))
-    ).unwrap();
+        Box::new(|_cc| Box::new(ScanApp::new(device).expect("init app"))),
+    )
+    .unwrap();
     Ok(())
 }

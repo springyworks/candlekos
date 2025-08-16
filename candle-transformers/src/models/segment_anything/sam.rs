@@ -4,7 +4,7 @@ use candle_nn::{Module, VarBuilder};
 use super::image_encoder::ImageEncoderViT;
 use super::mask_decoder::MaskDecoder;
 use super::prompt_encoder::PromptEncoder;
-use super::tiny_vit::{tiny_vit_5m, TinyViT};
+use super::tiny_vit::{TinyViT, tiny_vit_5m};
 
 const PROMPT_EMBED_DIM: usize = 256;
 pub const IMAGE_SIZE: usize = 1024;

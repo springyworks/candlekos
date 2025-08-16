@@ -144,7 +144,7 @@ impl MetalDevice {
         kernel: ug::lang::ssa::Kernel,
     ) -> Result<metal::ComputePipelineState> {
         let mut buf = vec![];
-        ug_metal::code_gen::gen(&mut buf, func_name, &kernel)?;
+        ug_metal::code_gen::r#gen(&mut buf, func_name, &kernel)?;
         let metal_code = String::from_utf8(buf)?;
         let lib = self
             .device

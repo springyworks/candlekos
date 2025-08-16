@@ -17,7 +17,7 @@
 use crate::models::vit::{Config, Embeddings, Encoder};
 use candle::{DType, Result, Tensor};
 use candle_nn::{
-    embedding, layer_norm, linear_no_bias, Embedding, LayerNorm, Linear, Module, VarBuilder,
+    Embedding, LayerNorm, Linear, Module, VarBuilder, embedding, layer_norm, linear_no_bias,
 };
 
 fn default_tie_word_embeddings() -> bool {

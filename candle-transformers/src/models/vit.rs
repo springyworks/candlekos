@@ -15,9 +15,9 @@
 //! - [Model Card](https://huggingface.co/google/vit-base-patch16-224)
 //!
 
-use crate::models::with_tracing::{conv2d, linear, linear_no_bias, Conv2d, Linear};
-use candle::{IndexOp, Module, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, VarBuilder};
+use crate::models::with_tracing::{Conv2d, Linear, conv2d, linear, linear_no_bias};
+use candle::{D, IndexOp, Module, Result, Tensor};
+use candle_nn::{LayerNorm, VarBuilder, layer_norm};
 
 // https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/configuration_vit.py
 #[derive(Debug, Clone, serde::Deserialize)]

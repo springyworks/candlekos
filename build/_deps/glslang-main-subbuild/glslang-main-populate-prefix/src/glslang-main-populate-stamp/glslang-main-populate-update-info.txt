@@ -1,0 +1,7 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The patch step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+command (connected)=/usr/bin/cmake;-Dcan_fetch=YES;-P;/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/tmp/glslang-main-populate-gitupdate.cmake
+command (disconnected)=/usr/bin/cmake;-Dcan_fetch=NO;-P;/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/tmp/glslang-main-populate-gitupdate.cmake
+work_dir=/home/rustuser/projects/rust/from_github/candle/third_party/VkFFT/glslang-main

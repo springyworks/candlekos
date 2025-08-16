@@ -4,7 +4,7 @@
 //! with support for temperature-based sampling, top-k filtering, nucleus sampling (top-p),
 //! and combinations thereof.
 use candle::{Context, DType, Error, Result, Tensor};
-use rand::{distr::Distribution, SeedableRng};
+use rand::{SeedableRng, distr::Distribution};
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Sampling {

@@ -10,9 +10,9 @@
 //!
 //! - [PyTorch Implementation](https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/mobilenetv3.py)
 
-use candle::{Result, Tensor, D};
+use candle::{D, Result, Tensor};
 use candle_nn::{
-    batch_norm, conv2d_no_bias, linear, ops::softmax, Activation, Conv2dConfig, Func, VarBuilder,
+    Activation, Conv2dConfig, Func, VarBuilder, batch_norm, conv2d_no_bias, linear, ops::softmax,
 };
 
 #[derive(Clone, Debug)]

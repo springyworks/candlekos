@@ -12,7 +12,7 @@ use self::{
     text_model::{Activation, ClipTextTransformer},
     vision_model::ClipVisionTransformer,
 };
-use candle::{Result, Tensor, D};
+use candle::{D, Result, Tensor};
 
 pub mod text_model;
 pub mod vision_model;

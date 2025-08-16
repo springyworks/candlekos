@@ -12,7 +12,7 @@ fft = ["candle-core/fft"]
 external-window = ["minifb"]
 
 [dependencies]
-candle-core = { path = "../../candle-core", default-features = false }
+candle-core = { path = "../../../../candle-core", default-features = false }
 anyhow = "1"
 image = { version = "0.24" }
 base64 = "0.21"

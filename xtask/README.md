@@ -12,8 +12,25 @@ xtask check           # cargo check over canonical feature sets
 xtask check-all       # Broader bounded powerset (size ≤ 3) of features
 xtask test            # Build tests (no run) over canonical sets
 xtask test-all        # Same as check-all but for tests
+xtask lint-workspace  # Run clippy lints across the workspace
+xtask comprehensive   # Run comprehensive workspace health check
 xtask run-file <path> [cargo flags / -- program args]
 ```
+
+### Workspace Health Commands
+
+The workspace health commands provide comprehensive testing and analysis:
+
+- **`lint-workspace`**: Runs `cargo clippy` with strict linting across all workspace members
+- **`comprehensive`**: Executes a full workspace health check including:
+  - Workspace compilation check
+  - Feature combination testing
+  - Test build verification  
+  - Clippy linting analysis
+  - Documentation build validation
+  - Code formatting verification
+
+The comprehensive command provides a detailed summary with pass/fail counts and specific error details for debugging.
 
 ### run-file details
 

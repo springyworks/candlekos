@@ -4,8 +4,8 @@
 //! - [Github](https://github.com/metavoiceio/metavoice-src)
 //! - [Website](https://studio.metavoice.ai/)
 
-use candle::{DType, Device, Error as E, IndexOp, Module, Result, Tensor, D};
-use candle_nn::{embedding, linear_b, rms_norm, Embedding, Linear, RmsNorm, VarBuilder};
+use candle::{D, DType, Device, Error as E, IndexOp, Module, Result, Tensor};
+use candle_nn::{Embedding, Linear, RmsNorm, VarBuilder, embedding, linear_b, rms_norm};
 
 // Equivalent to torch.repeat_interleave
 pub(crate) fn repeat_interleave(img: &Tensor, repeats: usize, dim: usize) -> Result<Tensor> {

@@ -2,7 +2,7 @@ use crate::console_log;
 use crate::worker::{ModelData, RunData, Worker, WorkerInput, WorkerOutput};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use yew::{html, Component, Context, Html};
+use yew::{Component, Context, Html, html};
 use yew_agent::{Bridge, Bridged};
 
 async fn fetch_url(url: &str) -> Result<Vec<u8>, JsValue> {

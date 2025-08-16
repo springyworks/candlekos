@@ -6,7 +6,7 @@
 //! - 💻 [Chinese-CLIP](https://github.com/OFA-Sys/Chinese-CLIP)
 //! - 💻 [GH](https://github.com/huggingface/transformers/blob/5af7d41e49bbfc8319f462eb45253dcb3863dfb7/src/transformers/models/chinese_clip/modeling_chinese_clip.py_
 
-use candle::{Context, DType, IndexOp, Module, Result, Shape, Tensor, D};
+use candle::{Context, D, DType, IndexOp, Module, Result, Shape, Tensor};
 use candle_nn as nn;
 
 use super::{Activation, EncoderConfig};

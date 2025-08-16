@@ -1,5 +1,5 @@
 use candle::backend::BackendStorage;
-use candle::{CpuStorage, CustomOp1, DType, Device, IndexOp, Layout, Result, Shape, Tensor, D};
+use candle::{CpuStorage, CustomOp1, D, DType, Device, IndexOp, Layout, Result, Shape, Tensor};
 use candle_nn::var_builder::ShardedVarBuilder as VarBuilder;
 use candle_nn::{Embedding, Linear, Module, RmsNorm};
 use cudarc::nccl::safe::{Comm, ReduceOp};

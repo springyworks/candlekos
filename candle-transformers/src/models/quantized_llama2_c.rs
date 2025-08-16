@@ -15,9 +15,9 @@
 //!
 
 use super::llama2_c::{Cache, Config};
-use crate::quantized_nn::{linear_no_bias as linear, Embedding, Linear, RmsNorm};
+use crate::quantized_nn::{Embedding, Linear, RmsNorm, linear_no_bias as linear};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{DType, IndexOp, Module, Result, Tensor, D};
+use candle::{D, DType, IndexOp, Module, Result, Tensor};
 
 fn silu(xs: &Tensor) -> Result<Tensor> {
     xs / (xs.neg()?.exp()? + 1.0)?

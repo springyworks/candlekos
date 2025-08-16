@@ -6,7 +6,7 @@ extern crate accelerate_src;
 
 use clap::Parser;
 
-use candle::{DType, IndexOp, D};
+use candle::{D, DType, IndexOp};
 use candle_nn::VarBuilder;
 use candle_transformers::models::vit;
 

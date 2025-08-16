@@ -1,6 +1,6 @@
-use crate::models::with_tracing::{linear_no_bias as linear, Linear, RmsNorm};
-use candle::{DType, Device, IndexOp, Result, Tensor, D};
-use candle_nn::{embedding, Embedding, Module, VarBuilder};
+use crate::models::with_tracing::{Linear, RmsNorm, linear_no_bias as linear};
+use candle::{D, DType, Device, IndexOp, Result, Tensor};
+use candle_nn::{Embedding, Module, VarBuilder, embedding};
 use serde::Deserialize;
 use std::collections::HashMap;
 

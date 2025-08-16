@@ -16,7 +16,7 @@ use candle_transformers::models::quantized_metavoice::transformer as qtransforme
 use candle::{DType, IndexOp, Tensor};
 use candle_nn::VarBuilder;
 use hf_hub::api::sync::Api;
-use rand::{distr::Distribution, SeedableRng};
+use rand::{SeedableRng, distr::Distribution};
 
 pub const ENCODEC_NTOKENS: u32 = 1024;
 

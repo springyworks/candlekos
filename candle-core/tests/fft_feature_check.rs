@@ -3,22 +3,28 @@
 // This test file is always compiled. If the `fft` feature is missing we emit clear
 // guidance rather than silently succeeding or producing confusing linkage errors.
 
-use candle_core::{Result};
+use candle_core::Result;
 
 #[test]
 fn fft_feature_check() -> Result<()> {
     #[cfg(feature = "fft")]
     {
         // Minimal smoke: create a tiny tensor and do a 1D real fft via rfft helper.
-        use candle_core::{Tensor, Device};
+        use candle_core::{Device, Tensor};
         let t = Tensor::arange(0f32, 8f32, &Device::Cpu)?;
         let spec = t.rfft(0, false)?;
-        assert!(spec.dims()[0] >= 8, "unexpected rfft output shape: {:?}", spec.dims());
+        assert!(
+            spec.dims()[0] >= 8,
+            "unexpected rfft output shape: {:?}",
+            spec.dims()
+        );
     }
     #[cfg(not(feature = "fft"))]
     {
         // Emit guidance. We still return Ok so test counts as passed but prints help.
-        eprintln!("[fft_feature_check] FFT feature disabled. Enable with: cargo test --features fft");
+        eprintln!(
+            "[fft_feature_check] FFT feature disabled. Enable with: cargo test --features fft"
+        );
     }
     Ok(())
 }

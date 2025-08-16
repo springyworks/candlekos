@@ -89,28 +89,29 @@ pub use neon::CurrentCpu;
 pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f32, k: usize) {
     // SAFETY: Caller upholds that a_row, b_row, c are valid for reads/writes of k contiguous f32 elements.
     unsafe {
-    let np = k & !(CurrentCpu::STEP - 1);
+        let np = k & !(CurrentCpu::STEP - 1);
 
-    let mut sum = CurrentCpu::zero_array();
-    let mut ax = CurrentCpu::zero_array();
-    let mut ay = CurrentCpu::zero_array();
+        let mut sum = CurrentCpu::zero_array();
+        let mut ax = CurrentCpu::zero_array();
+        let mut ay = CurrentCpu::zero_array();
 
-    for i in (0..np).step_by(CurrentCpu::STEP) {
-        for j in 0..CurrentCpu::n() {
-            ax[j] = CurrentCpu::load(a_row.add(i + j * CurrentCpu::EPR));
-            ay[j] = CurrentCpu::load(b_row.add(i + j * CurrentCpu::EPR));
+        for i in (0..np).step_by(CurrentCpu::STEP) {
+            for j in 0..CurrentCpu::n() {
+                ax[j] = CurrentCpu::load(a_row.add(i + j * CurrentCpu::EPR));
+                ay[j] = CurrentCpu::load(b_row.add(i + j * CurrentCpu::EPR));
 
-            sum[j] = CurrentCpu::vec_fma(sum[j], ax[j], ay[j]);
+                sum[j] = CurrentCpu::vec_fma(sum[j], ax[j], ay[j]);
+            }
+        }
+
+        CurrentCpu::vec_reduce(sum, c);
+
+        // leftovers (still within outer unsafe fn scope, no nested unsafe needed)
+        for i in np..k {
+            *c += *a_row.add(i) * (*b_row.add(i));
         }
     }
-
-    CurrentCpu::vec_reduce(sum, c);
-
-    // leftovers (still within outer unsafe fn scope, no nested unsafe needed)
-    for i in np..k {
-        *c += *a_row.add(i) * (*b_row.add(i));
-    }
-}}
+}
 
 #[cfg(not(any(
     target_feature = "neon",
@@ -121,8 +122,8 @@ pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f
 pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f32, k: usize) {
     // leftovers
     for i in 0..k {
-    // SAFETY: pointer validity guaranteed by caller.
-    *c += *a_row.add(i) * (*b_row.add(i));
+        // SAFETY: pointer validity guaranteed by caller.
+        *c += *a_row.add(i) * (*b_row.add(i));
     }
 }
 
@@ -135,25 +136,26 @@ pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f
 pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
     // SAFETY: Caller upholds that row and b are valid for the specified length.
     unsafe {
-    let np = k & !(CurrentCpu::STEP - 1);
+        let np = k & !(CurrentCpu::STEP - 1);
 
-    let mut sum = CurrentCpu::zero_array();
-    let mut x = CurrentCpu::zero_array();
+        let mut sum = CurrentCpu::zero_array();
+        let mut x = CurrentCpu::zero_array();
 
-    for i in (0..np).step_by(CurrentCpu::STEP) {
-        for j in 0..CurrentCpu::n() {
-            x[j] = CurrentCpu::load(row.add(i + j * CurrentCpu::EPR));
-            sum[j] = CurrentCpu::vec_add(sum[j], x[j]);
+        for i in (0..np).step_by(CurrentCpu::STEP) {
+            for j in 0..CurrentCpu::n() {
+                x[j] = CurrentCpu::load(row.add(i + j * CurrentCpu::EPR));
+                sum[j] = CurrentCpu::vec_add(sum[j], x[j]);
+            }
+        }
+
+        CurrentCpu::vec_reduce(sum, b);
+
+        // leftovers
+        for i in np..k {
+            *b += *row.add(i)
         }
     }
-
-    CurrentCpu::vec_reduce(sum, b);
-
-    // leftovers
-    for i in np..k {
-        *b += *row.add(i)
-    }
-}}
+}
 
 #[cfg(not(any(
     target_feature = "neon",
@@ -174,62 +176,64 @@ pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
 pub(crate) unsafe fn vec_dot_f16(a_row: *const f16, b_row: *const f16, c: *mut f32, k: usize) {
     // SAFETY: Caller upholds pointer validity and alignment for a_row, b_row, c over k elements.
     unsafe {
-    let mut sumf = 0.0f32;
-    let np = k & !(CurrentCpuF16::STEP - 1);
+        let mut sumf = 0.0f32;
+        let np = k & !(CurrentCpuF16::STEP - 1);
 
-    let mut sum = CurrentCpuF16::zero_array();
-    let mut ax = CurrentCpuF16::zero_array();
-    let mut ay = CurrentCpuF16::zero_array();
+        let mut sum = CurrentCpuF16::zero_array();
+        let mut ax = CurrentCpuF16::zero_array();
+        let mut ay = CurrentCpuF16::zero_array();
 
-    for i in (0..np).step_by(CurrentCpuF16::STEP) {
-        for j in 0..CurrentCpuF16::n() {
-            ax[j] = CurrentCpuF16::load(a_row.add(i + j * CurrentCpuF16::EPR));
-            ay[j] = CurrentCpuF16::load(b_row.add(i + j * CurrentCpuF16::EPR));
+        for i in (0..np).step_by(CurrentCpuF16::STEP) {
+            for j in 0..CurrentCpuF16::n() {
+                ax[j] = CurrentCpuF16::load(a_row.add(i + j * CurrentCpuF16::EPR));
+                ay[j] = CurrentCpuF16::load(b_row.add(i + j * CurrentCpuF16::EPR));
 
-            sum[j] = CurrentCpuF16::vec_fma(sum[j], ax[j], ay[j]);
+                sum[j] = CurrentCpuF16::vec_fma(sum[j], ax[j], ay[j]);
+            }
         }
-    }
 
-    CurrentCpuF16::vec_reduce(sum, &mut sumf);
+        CurrentCpuF16::vec_reduce(sum, &mut sumf);
 
-    // leftovers
-    for i in np..k {
-        // SAFETY: bounds checked, pointers valid.
-        sumf += (*a_row.add(i)).to_f32() * (*b_row.add(i)).to_f32();
+        // leftovers
+        for i in np..k {
+            // SAFETY: bounds checked, pointers valid.
+            sumf += (*a_row.add(i)).to_f32() * (*b_row.add(i)).to_f32();
+        }
+        *c = sumf;
     }
-    *c = sumf;
-}}
+}
 
 #[cfg(target_feature = "avx2")]
 #[inline(always)]
 pub(crate) unsafe fn vec_dot_bf16(a_row: *const bf16, b_row: *const bf16, c: *mut f32, k: usize) {
     // SAFETY: Caller upholds pointer validity and alignment for a_row, b_row, c over k elements.
     unsafe {
-    let mut sumf = 0.0f32;
-    let np = k & !(CurrentCpuBF16::STEP - 1);
+        let mut sumf = 0.0f32;
+        let np = k & !(CurrentCpuBF16::STEP - 1);
 
-    let mut sum = CurrentCpuBF16::zero_array();
-    let mut ax = CurrentCpuBF16::zero_array();
-    let mut ay = CurrentCpuBF16::zero_array();
+        let mut sum = CurrentCpuBF16::zero_array();
+        let mut ax = CurrentCpuBF16::zero_array();
+        let mut ay = CurrentCpuBF16::zero_array();
 
-    for i in (0..np).step_by(CurrentCpuBF16::STEP) {
-        for j in 0..CurrentCpuBF16::n() {
-            ax[j] = CurrentCpuBF16::load(a_row.add(i + j * CurrentCpuBF16::EPR));
-            ay[j] = CurrentCpuBF16::load(b_row.add(i + j * CurrentCpuBF16::EPR));
+        for i in (0..np).step_by(CurrentCpuBF16::STEP) {
+            for j in 0..CurrentCpuBF16::n() {
+                ax[j] = CurrentCpuBF16::load(a_row.add(i + j * CurrentCpuBF16::EPR));
+                ay[j] = CurrentCpuBF16::load(b_row.add(i + j * CurrentCpuBF16::EPR));
 
-            sum[j] = CurrentCpuBF16::vec_fma(sum[j], ax[j], ay[j]);
+                sum[j] = CurrentCpuBF16::vec_fma(sum[j], ax[j], ay[j]);
+            }
         }
-    }
 
-    CurrentCpuBF16::vec_reduce(sum, &mut sumf);
+        CurrentCpuBF16::vec_reduce(sum, &mut sumf);
 
-    // leftovers
-    for i in np..k {
-        // SAFETY: bounds checked, pointers valid.
-        sumf += (*a_row.add(i)).to_f32() * (*b_row.add(i)).to_f32();
+        // leftovers
+        for i in np..k {
+            // SAFETY: bounds checked, pointers valid.
+            sumf += (*a_row.add(i)).to_f32() * (*b_row.add(i)).to_f32();
+        }
+        *c = sumf;
     }
-    *c = sumf;
-}}
+}
 
 #[cfg(not(target_feature = "avx2"))]
 #[inline(always)]

@@ -1,0 +1,108 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"glslang-main/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 364,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 370,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/glslang",
+			"exportName" : "glslang-targets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "OSDependent::@4a6822237884c456db9d",
+					"index" : 32
+				},
+				{
+					"id" : "glslang::@01d6788ed8e5b37294d3",
+					"index" : 36
+				},
+				{
+					"id" : "MachineIndependent::@01d6788ed8e5b37294d3",
+					"index" : 20
+				},
+				{
+					"id" : "GenericCodeGen::@01d6788ed8e5b37294d3",
+					"index" : 18
+				},
+				{
+					"id" : "glslang-default-resource-limits::@01d6788ed8e5b37294d3",
+					"index" : 37
+				},
+				{
+					"id" : "OGLCompiler::@a5060725a0cc64f49ffa",
+					"index" : 31
+				},
+				{
+					"id" : "glslang-standalone::@9d7c8143ad1708160b15",
+					"index" : 38
+				},
+				{
+					"id" : "spirv-remap::@9d7c8143ad1708160b15",
+					"index" : 39
+				},
+				{
+					"id" : "SPVRemapper::@f781d7eb73ac1b4e1331",
+					"index" : 34
+				},
+				{
+					"id" : "SPIRV::@f781d7eb73ac1b4e1331",
+					"index" : 33
+				},
+				{
+					"id" : "HLSL::@e7975090a69e6e144aa5",
+					"index" : 19
+				}
+			],
+			"paths" : 
+			[
+				"glslang-main/CMakeFiles/Export/43b0efddc38c54c95da93ebc2a9ba55e/glslang-targets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/glslang",
+			"paths" : 
+			[
+				"/home/rustuser/projects/rust/from_github/candle/build/glslang-main/glslang-config.cmake",
+				"/home/rustuser/projects/rust/from_github/candle/build/glslang-main/glslang-config-version.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "glslang-main",
+		"source" : "glslang-main"
+	}
+}

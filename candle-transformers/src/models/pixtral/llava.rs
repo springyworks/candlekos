@@ -1,5 +1,5 @@
 use candle::{Module, Result, Tensor};
-use candle_nn::{linear, Linear, VarBuilder};
+use candle_nn::{Linear, VarBuilder, linear};
 
 use super::vision_model;
 use crate::models::mistral;

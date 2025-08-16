@@ -329,14 +329,13 @@ where
                     break;
                 }
             }
-            if let Some(v1) = S::from(1000.) {
-                if let Some(v2) = S::from(1e8) {
-                    if let Some(v3) = S::from(1e-4) {
-                        sci_mode = nonzero_finite_max / nonzero_finite_min > v1
-                            || nonzero_finite_max > v2
-                            || nonzero_finite_min < v3
-                    }
-                }
+            if let Some(v1) = S::from(1000.)
+                && let Some(v2) = S::from(1e8)
+                && let Some(v3) = S::from(1e-4)
+            {
+                sci_mode = nonzero_finite_max / nonzero_finite_min > v1
+                    || nonzero_finite_max > v2
+                    || nonzero_finite_min < v3
             }
         }
 

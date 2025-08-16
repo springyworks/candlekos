@@ -36,8 +36,8 @@
 //! ```
 
 use crate::models::mixformer::{Config as PhiConfig, MixFormerSequentialForCausalLM as PhiModel};
-use crate::models::with_tracing::{layer_norm, linear_b, LayerNorm, Linear};
-use candle::{IndexOp, Module, Result, Tensor, D};
+use crate::models::with_tracing::{LayerNorm, Linear, layer_norm, linear_b};
+use candle::{D, IndexOp, Module, Result, Tensor};
 use candle_nn::VarBuilder;
 
 #[derive(Debug, Clone, serde::Deserialize)]

@@ -8,7 +8,7 @@ use rayon::prelude::*;
 
 mod utils;
 pub use utils::{
-    binary_map, binary_map_vec, unary_map, unary_map_vec, Map1, Map1Any, Map2, Map2InPlace, Map2U8,
+    Map1, Map1Any, Map2, Map2InPlace, Map2U8, binary_map, binary_map_vec, unary_map, unary_map_vec,
 };
 
 pub mod cpu_fft;
@@ -1319,7 +1319,7 @@ impl Map2 for MatMul {
         rhs: &[T],
         rhs_l: &Layout,
     ) -> Result<Vec<T>> {
-        use gemm::{gemm, Parallelism};
+        use gemm::{Parallelism, gemm};
 
         match T::DTYPE {
             DType::F16 | DType::F32 | DType::F64 => {}
@@ -2815,56 +2815,58 @@ impl BackendDevice for CpuDevice {
     }
 
     #[allow(clippy::uninit_vec)]
-    unsafe fn alloc_uninit(&self, shape: &Shape, dtype: DType) -> Result<CpuStorage> { unsafe {
-        let elem_count = shape.elem_count();
-        // The code below is highly unsafe but hopefully not directly unsound as we only consider
-        // types that are Copy, not Drop, and for which all bit patterns are proper values.
-        // It's still pretty risky, see the following for more details:
-        // https://github.com/rust-lang/rust-clippy/issues/4483
-        let storage = match dtype {
-            DType::U8 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::U8(v)
-            }
-            DType::U32 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::U32(v)
-            }
-            DType::I64 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::I64(v)
-            }
-            DType::BF16 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::BF16(v)
-            }
-            DType::F16 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::F16(v)
-            }
-            DType::F32 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::F32(v)
-            }
-            DType::F64 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::F64(v)
-            }
-            DType::F8E4M3 => {
-                let mut v = Vec::with_capacity(elem_count);
-                v.set_len(elem_count);
-                CpuStorage::F8E4M3(v)
-            }
-        };
-        Ok(storage)
-    }}
+    unsafe fn alloc_uninit(&self, shape: &Shape, dtype: DType) -> Result<CpuStorage> {
+        unsafe {
+            let elem_count = shape.elem_count();
+            // The code below is highly unsafe but hopefully not directly unsound as we only consider
+            // types that are Copy, not Drop, and for which all bit patterns are proper values.
+            // It's still pretty risky, see the following for more details:
+            // https://github.com/rust-lang/rust-clippy/issues/4483
+            let storage = match dtype {
+                DType::U8 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::U8(v)
+                }
+                DType::U32 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::U32(v)
+                }
+                DType::I64 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::I64(v)
+                }
+                DType::BF16 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::BF16(v)
+                }
+                DType::F16 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::F16(v)
+                }
+                DType::F32 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::F32(v)
+                }
+                DType::F64 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::F64(v)
+                }
+                DType::F8E4M3 => {
+                    let mut v = Vec::with_capacity(elem_count);
+                    v.set_len(elem_count);
+                    CpuStorage::F8E4M3(v)
+                }
+            };
+            Ok(storage)
+        }
+    }
 
     fn zeros_impl(&self, shape: &Shape, dtype: DType) -> Result<CpuStorage> {
         let elem_count = shape.elem_count();

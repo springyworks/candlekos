@@ -18,7 +18,7 @@ use anyhow::{Error as E, Result};
 use candle::{DType, Tensor};
 use candle_nn::VarBuilder;
 use clap::Parser;
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 
 const DTYPE: DType = DType::F32;
 

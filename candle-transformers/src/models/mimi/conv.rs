@@ -2,7 +2,7 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-use candle::{Module, Result, StreamTensor, StreamingModule, Tensor, D};
+use candle::{D, Module, Result, StreamTensor, StreamingModule, Tensor};
 use candle_nn::{Conv1d, VarBuilder};
 
 #[allow(clippy::enum_variant_names)]

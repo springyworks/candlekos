@@ -53,15 +53,12 @@ impl Conversation {
     pub fn conv_llava_v1() -> Self {
         Conversation::new(
             "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions.",
-            &[
-                "USER".to_string(),
-                "ASSISTANT".to_string(),
-            ],
+            &["USER".to_string(), "ASSISTANT".to_string()],
             0,
             SeparatorStyle::Two,
             " ",
             Some("</s>"),
-            "v1"
+            "v1",
         )
     }
 

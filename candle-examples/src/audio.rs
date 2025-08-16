@@ -31,7 +31,7 @@ pub fn normalize_loudness(
 #[cfg(feature = "symphonia")]
 pub fn pcm_decode<P: AsRef<std::path::Path>>(path: P) -> Result<(Vec<f32>, u32)> {
     use symphonia::core::audio::{AudioBufferRef, Signal};
-    use symphonia::core::codecs::{DecoderOptions, CODEC_TYPE_NULL};
+    use symphonia::core::codecs::{CODEC_TYPE_NULL, DecoderOptions};
     use symphonia::core::conv::FromSample;
 
     fn conv<T>(

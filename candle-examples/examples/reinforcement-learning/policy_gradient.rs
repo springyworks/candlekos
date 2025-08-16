@@ -1,10 +1,10 @@
 use super::gym_env::{GymEnv, Step};
 use candle::{DType, Device, Error, Module, Result, Tensor};
 use candle_nn::{
-    linear, ops::log_softmax, ops::softmax, sequential::seq, Activation, AdamW, Optimizer,
-    ParamsAdamW, VarBuilder, VarMap,
+    Activation, AdamW, Optimizer, ParamsAdamW, VarBuilder, VarMap, linear, ops::log_softmax,
+    ops::softmax, sequential::seq,
 };
-use rand::{distr::Distribution, rngs::ThreadRng, Rng};
+use rand::{Rng, distr::Distribution, rngs::ThreadRng};
 
 fn new_model(
     input_shape: &[usize],

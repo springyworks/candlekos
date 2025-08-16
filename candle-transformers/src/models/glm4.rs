@@ -4,11 +4,11 @@
 //!
 //! Based on implementation from [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B)
 
-use crate::models::with_tracing::{linear_b as linear, Linear};
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, linear_b as linear};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::VarBuilder;
-use serde::de::{self, Deserializer, Visitor};
 use serde::Deserialize;
+use serde::de::{self, Deserializer, Visitor};
 use std::fmt;
 
 #[derive(Debug, Clone)]

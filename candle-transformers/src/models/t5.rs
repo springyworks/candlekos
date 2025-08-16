@@ -60,7 +60,7 @@
 //! ```
 
 use crate::models::with_tracing::Embedding;
-use candle::{DType, Device, Module, Result, Tensor, D};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use serde::Deserialize;
 use std::sync::Arc;

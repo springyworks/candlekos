@@ -8,8 +8,8 @@ use clap::{Parser, ValueEnum};
 use std::io::Write;
 use tokenizers::Tokenizer;
 
-use candle::quantized::{ggml_file, gguf_file};
 use candle::Tensor;
+use candle::quantized::{ggml_file, gguf_file};
 use candle_transformers::generation::{LogitsProcessor, Sampling};
 
 use candle_examples::token_output_stream::TokenOutputStream;

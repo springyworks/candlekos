@@ -2,7 +2,7 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-use candle::{streaming, Module, Result, StreamTensor, StreamingModule, Tensor};
+use candle::{Module, Result, StreamTensor, StreamingModule, Tensor, streaming};
 use candle_nn::VarBuilder;
 
 use super::conv::{StreamableConv1d, StreamableConvTranspose1d};

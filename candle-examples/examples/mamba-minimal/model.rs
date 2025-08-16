@@ -1,10 +1,10 @@
 /// This follows the lines of:
 /// https://github.com/johnma2006/mamba-minimal/blob/master/model.py
 /// Simple, minimal implementation of Mamba in one file of PyTorch.
-use candle::{IndexOp, Module, Result, Tensor, D};
+use candle::{D, IndexOp, Module, Result, Tensor};
 use candle_nn::{RmsNorm, VarBuilder};
 
-use candle_transformers::models::with_tracing::{linear, linear_no_bias, Linear};
+use candle_transformers::models::with_tracing::{Linear, linear, linear_no_bias};
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Config {

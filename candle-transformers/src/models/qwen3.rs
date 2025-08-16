@@ -1,9 +1,9 @@
 use crate::{
-    models::with_tracing::{linear_b, linear_no_bias, Linear, RmsNorm},
+    models::with_tracing::{Linear, RmsNorm, linear_b, linear_no_bias},
     utils::repeat_kv,
 };
 use candle::{DType, Device, Module, Result, Tensor};
-use candle_nn::{kv_cache::KvCache, Activation, VarBuilder};
+use candle_nn::{Activation, VarBuilder, kv_cache::KvCache};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, serde::Deserialize)]
@@ -330,11 +330,7 @@ impl Model {
                         Some(w) => (i + offset) as i64 - j as i64 <= w as i64,
                         None => true,
                     };
-                    if past_ok && sw_ok {
-                        0.
-                    } else {
-                        minf
-                    }
+                    if past_ok && sw_ok { 0. } else { minf }
                 })
             })
             .collect();

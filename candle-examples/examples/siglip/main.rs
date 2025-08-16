@@ -8,7 +8,7 @@ use anyhow::Error as E;
 use clap::Parser;
 
 use candle::{DType, Device, Tensor};
-use candle_nn::{ops::softmax, VarBuilder};
+use candle_nn::{VarBuilder, ops::softmax};
 use candle_transformers::models::siglip;
 
 use tokenizers::Tokenizer;
@@ -139,8 +139,9 @@ pub fn main() -> anyhow::Result<()> {
         args.image_size.unwrap_or(config.vision_config.image_size),
     )?
     .to_device(&device)?;
-    let vb =
-        unsafe { VarBuilder::from_mmaped_safetensors(std::slice::from_ref(&model_file), DType::F32, &device)? };
+    let vb = unsafe {
+        VarBuilder::from_mmaped_safetensors(std::slice::from_ref(&model_file), DType::F32, &device)?
+    };
     let model = siglip::Model::new(&config, vb)?;
     let (input_ids, vec_seq) = tokenize_sequences(&config, args.sequences, &tokenizer, &device)?;
     let (_logits_per_text, logits_per_image) = model.forward(&images, &input_ids)?;

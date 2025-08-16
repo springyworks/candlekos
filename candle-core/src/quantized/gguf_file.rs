@@ -64,8 +64,8 @@ impl TensorInfo {
         let block_size = self.ggml_dtype.block_size();
         if !tensor_elems.is_multiple_of(block_size) {
             crate::bail!(
-            "the number of elements {tensor_elems} is not divisible by the block size {block_size}"
-        )
+                "the number of elements {tensor_elems} is not divisible by the block size {block_size}"
+            )
         }
         let size_in_bytes = tensor_elems / block_size * self.ggml_dtype.type_size();
         let mut raw_data = vec![0u8; size_in_bytes];

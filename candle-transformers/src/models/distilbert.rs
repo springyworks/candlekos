@@ -3,7 +3,7 @@
 //! See:
 //! - ["DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter"](https://arxiv.org/abs/1910.01108)
 //!
-use super::with_tracing::{layer_norm, linear, LayerNorm, Linear};
+use super::with_tracing::{LayerNorm, Linear, layer_norm, linear};
 use candle::{DType, Device, Result, Tensor};
 use candle_nn::{Embedding, Module, VarBuilder};
 use serde::Deserialize;

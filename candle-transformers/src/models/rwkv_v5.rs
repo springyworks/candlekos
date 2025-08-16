@@ -31,9 +31,9 @@
 //! > The smallest perfect cube is ϕ(6) = 6.
 //! ```
 
-use super::with_tracing::{layer_norm, linear_no_bias as linear, LayerNorm, Linear};
+use super::with_tracing::{LayerNorm, Linear, layer_norm, linear_no_bias as linear};
 use candle::{DType, Device, IndexOp, Result, Tensor};
-use candle_nn::{embedding, Embedding, Module, VarBuilder};
+use candle_nn::{Embedding, Module, VarBuilder, embedding};
 use std::collections::{HashMap, HashSet};
 
 fn default_num_attention_heads() -> usize {

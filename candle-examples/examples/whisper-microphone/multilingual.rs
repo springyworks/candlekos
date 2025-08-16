@@ -1,5 +1,5 @@
-use crate::{token_id, Model};
-use candle::{IndexOp, Result, Tensor, D};
+use crate::{Model, token_id};
+use candle::{D, IndexOp, Result, Tensor};
 use candle_transformers::models::whisper::{self as m};
 use tokenizers::Tokenizer;
 
@@ -132,6 +132,6 @@ pub fn detect_language(model: &mut Model, tokenizer: &Tokenizer, mel: &Tensor) -
     for ((_, language), p) in probs.iter().take(5) {
         println!("{language}: {p}")
     }
-    let language = token_id(tokenizer, &format!("<|{}|>", probs[0].0 .0))?;
+    let language = token_id(tokenizer, &format!("<|{}|>", probs[0].0.0))?;
     Ok(language)
 }

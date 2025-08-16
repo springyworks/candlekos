@@ -1,5 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Upstream issues (huggingface/candle)
-    url: https://github.com/huggingface/candle/issues
-    about: Consider opening issues upstream when appropriate.

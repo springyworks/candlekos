@@ -3,7 +3,7 @@
 
 use candle_core::{Device, Result, Tensor};
 mod fft_test_utils; // reuse helpers
-use fft_test_utils::{assert_approx_scaled, FFT_EPS_REAL, expected_range};
+use fft_test_utils::{FFT_EPS_REAL, assert_approx_scaled, expected_range};
 
 #[test]
 fn fft_normalized_roundtrip_matches() -> Result<()> {

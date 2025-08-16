@@ -86,7 +86,9 @@ fn main() -> Result<()> {
             } else {
                 let (pcm, sample_rate) = audio_io::pcm_decode(args.in_file)?;
                 if sample_rate != 24_000 {
-                    println!("WARNING: mimi uses a 24khz sample rate, input uses {sample_rate}, resampling...");
+                    println!(
+                        "WARNING: mimi uses a 24khz sample rate, input uses {sample_rate}, resampling..."
+                    );
                     audio_io::resample(&pcm, sample_rate as usize, 24_000)?
                 } else {
                     pcm

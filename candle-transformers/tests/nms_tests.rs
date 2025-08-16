@@ -1,6 +1,6 @@
 use candle::Result;
 use candle_transformers::object_detection::{
-    non_maximum_suppression, soft_non_maximum_suppression, Bbox,
+    Bbox, non_maximum_suppression, soft_non_maximum_suppression,
 };
 
 #[test]

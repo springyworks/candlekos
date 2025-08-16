@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use candle::{test_device, test_utils::to_vec3_round, Device, IndexOp, Result, Tensor};
+use candle::{Device, IndexOp, Result, Tensor, test_device, test_utils::to_vec3_round};
 
 fn softmax(device: &Device) -> Result<()> {
     let data = &[[[3f32, 1., 4.], [1., 5., 9.]], [[2., 1., 7.], [8., 2., 8.]]];
@@ -78,7 +78,7 @@ fn rms_norm(device: &Device) -> Result<()> {
 }
 
 fn rms_norml(device: &Device) -> Result<()> {
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
 
     let (b_size, seq_len, head_dim) = (24, 70, 64);
     let el_count = b_size * seq_len * head_dim;
@@ -125,7 +125,7 @@ fn layer_norm(device: &Device) -> Result<()> {
 }
 
 fn layer_norml(device: &Device) -> Result<()> {
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
 
     let (b_size, seq_len, head_dim) = (24, 70, 64);
     let el_count = b_size * seq_len * head_dim;
@@ -156,7 +156,7 @@ fn softmax_numerical_stability() -> Result<()> {
 }
 
 fn ropei(device: &Device) -> Result<()> {
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
 
     let (b_size, num_head, seq_len, head_dim) = (2, 5, 10, 16);
     let el_count = b_size * num_head * seq_len * head_dim;
@@ -205,7 +205,7 @@ fn ropei(device: &Device) -> Result<()> {
 }
 
 fn rope(device: &Device) -> Result<()> {
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
 
     let (b_size, num_head, seq_len, head_dim) = (2, 5, 10, 16);
     let el_count = b_size * num_head * seq_len * head_dim;
@@ -254,7 +254,7 @@ fn rope(device: &Device) -> Result<()> {
 }
 
 fn rope_thd(device: &Device) -> Result<()> {
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
 
     let (b_size, num_head, seq_len, head_dim) = (2, 5, 10, 16);
     let el_count = b_size * num_head * seq_len * head_dim;

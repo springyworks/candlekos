@@ -1,16 +1,18 @@
 //! VkFFT provider (portable across CUDA/HIP/Vulkan/OpenCL/Metal).
 //! Minimal scaffold: returns an explicit error until wired to FFI.
 
-use crate::cuda_backend::{CudaStorage, CudaStorageSlice, CudaDevice};
-use crate::cuda_backend::error::WrapErr; // for .w() error wrapping
-use crate::{Result, Layout, bail};
 use crate::backend::BackendDevice; // for .location()
+use crate::cuda_backend::error::WrapErr; // for .w() error wrapping
+use crate::cuda_backend::{CudaDevice, CudaStorage, CudaStorageSlice};
+use crate::{Layout, Result, bail};
 use cudarc::driver::{DevicePtr, DevicePtrMut}; // for device_ptr/device_ptr_mut
 
 #[cfg(feature = "gpu-fft-vkfft-ffi")]
 extern "C" {
     fn candle_vkfft_header_sanity() -> ::std::os::raw::c_int;
-    fn candle_vkfft_cuda_init_teardown(device_ordinal: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    fn candle_vkfft_cuda_init_teardown(
+        device_ordinal: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
     fn candle_vkfft_exec_r2c_f32(
         device_ordinal: ::std::os::raw::c_int,
         in_ptr: u64,
@@ -69,7 +71,11 @@ pub struct FftConfig {
 
 impl Default for FftConfig {
     fn default() -> Self {
-        Self { forward: true, normalized: true, real_input: false }
+        Self {
+            forward: true,
+            normalized: true,
+            real_input: false,
+        }
     }
 }
 
@@ -80,7 +86,9 @@ pub struct CudaFft {
 }
 
 impl CudaFft {
-    pub fn new(config: FftConfig, dim: usize) -> Self { Self { config, dim } }
+    pub fn new(config: FftConfig, dim: usize) -> Self {
+        Self { config, dim }
+    }
 
     pub fn fft_f32(
         &self,
@@ -96,7 +104,11 @@ impl CudaFft {
             let dims = shape.dims();
             let rank = dims.len();
             let mut n = dims[rank - 1];
-            let batch: usize = if rank > 1 { dims[..rank - 1].iter().product() } else { 1 };
+            let batch: usize = if rank > 1 {
+                dims[..rank - 1].iter().product()
+            } else {
+                1
+            };
 
             // Input pointer and offset
             let (in_ptr_u64, guard) = match _input {
@@ -150,8 +162,13 @@ impl CudaFft {
                 );
                 drop(guard);
                 drop(og);
-                if res != 0 { bail!("VkFFT exec r2c failed with code {res}"); }
-                Ok(CudaStorage { slice: CudaStorageSlice::F32(out_slice), device: _dev.clone() })
+                if res != 0 {
+                    bail!("VkFFT exec r2c failed with code {res}");
+                }
+                Ok(CudaStorage {
+                    slice: CudaStorageSlice::F32(out_slice),
+                    device: _dev.clone(),
+                })
             } else if !self.config.forward && self.config.real_input {
                 // Inverse complex-to-real: input is complex interleaved, last dim len = (n/2+1)*2
                 // Compute original real n from complex dim size
@@ -180,8 +197,13 @@ impl CudaFft {
                 );
                 drop(guard);
                 drop(og);
-                if res != 0 { bail!("VkFFT exec c2r failed with code {res}"); }
-                Ok(CudaStorage { slice: CudaStorageSlice::F32(out_slice), device: _dev.clone() })
+                if res != 0 {
+                    bail!("VkFFT exec c2r failed with code {res}");
+                }
+                Ok(CudaStorage {
+                    slice: CudaStorageSlice::F32(out_slice),
+                    device: _dev.clone(),
+                })
             } else {
                 // Complex-to-complex forward or inverse
                 // Input last dimension encodes interleaved complex: real,imag pairs -> n_complex = n/2
@@ -207,8 +229,13 @@ impl CudaFft {
                 );
                 drop(guard);
                 drop(og);
-                if res != 0 { bail!("VkFFT exec c2c failed with code {res}"); }
-                Ok(CudaStorage { slice: CudaStorageSlice::F32(out_slice), device: _dev.clone() })
+                if res != 0 {
+                    bail!("VkFFT exec c2c failed with code {res}");
+                }
+                Ok(CudaStorage {
+                    slice: CudaStorageSlice::F32(out_slice),
+                    device: _dev.clone(),
+                })
             }
         }
         #[cfg(not(feature = "gpu-fft-vkfft-ffi"))]
@@ -228,10 +255,16 @@ impl CudaFft {
             // Expect layout's last two dims as (H, W). Batch is product of leading dims (or 1).
             let dims = _layout.shape().dims();
             let rank = dims.len();
-            if rank < 2 { bail!("fft2 expects at least 2 dims") }
+            if rank < 2 {
+                bail!("fft2 expects at least 2 dims")
+            }
             let h = dims[rank - 2];
             let w = dims[rank - 1];
-            let batch: usize = if rank > 2 { dims[..rank - 2].iter().product() } else { 1 };
+            let batch: usize = if rank > 2 {
+                dims[..rank - 2].iter().product()
+            } else {
+                1
+            };
 
             // Only support forward R2C for now (matches user's ask). Input must be f32 real.
             if !(self.config.forward && self.config.real_input) {
@@ -275,8 +308,13 @@ impl CudaFft {
             );
             drop(guard);
             drop(og);
-            if res != 0 { bail!("VkFFT exec r2c2d failed with code {res}"); }
-            Ok(CudaStorage { slice: CudaStorageSlice::F32(out_slice), device: _dev.clone() })
+            if res != 0 {
+                bail!("VkFFT exec r2c2d failed with code {res}");
+            }
+            Ok(CudaStorage {
+                slice: CudaStorageSlice::F32(out_slice),
+                device: _dev.clone(),
+            })
         }
         #[cfg(not(feature = "gpu-fft-vkfft-ffi"))]
         {
@@ -296,7 +334,9 @@ impl CudaFft {
             CudaStorageSlice::F32(s) => s.stream().memcpy_dtov(s).w()?,
             _ => bail!("magnitude expects f32 complex storage"),
         };
-        if input_host.len() % 2 != 0 { bail!("complex input length must be even (interleaved)") }
+        if input_host.len() % 2 != 0 {
+            bail!("complex input length must be even (interleaved)")
+        }
         let mut out = Vec::with_capacity(input_host.len() / 2);
         for chunk in input_host.chunks_exact(2) {
             let re = chunk[0];
@@ -321,7 +361,9 @@ impl CudaFft {
             CudaStorageSlice::F32(s) => s.stream().memcpy_dtov(s).w()?,
             _ => bail!("phase expects f32 complex storage"),
         };
-        if input_host.len() % 2 != 0 { bail!("complex input length must be even (interleaved)") }
+        if input_host.len() % 2 != 0 {
+            bail!("complex input length must be even (interleaved)")
+        }
         let mut out = Vec::with_capacity(input_host.len() / 2);
         for chunk in input_host.chunks_exact(2) {
             let re = chunk[0];

@@ -5,8 +5,8 @@
 //! Denoising Diffusion Implicit Models, K. He and al, 2015.
 //! - [Paper](https://arxiv.org/abs/1512.03385)
 //!
-use crate::models::with_tracing::{conv2d, Conv2d};
-use candle::{Result, Tensor, D};
+use crate::models::with_tracing::{Conv2d, conv2d};
+use candle::{D, Result, Tensor};
 use candle_nn as nn;
 use candle_nn::Module;
 

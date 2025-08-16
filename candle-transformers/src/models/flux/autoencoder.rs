@@ -1,5 +1,5 @@
-use candle::{Result, Tensor, D};
-use candle_nn::{conv2d, group_norm, Conv2d, GroupNorm, VarBuilder};
+use candle::{D, Result, Tensor};
+use candle_nn::{Conv2d, GroupNorm, VarBuilder, conv2d, group_norm};
 
 // https://github.com/black-forest-labs/flux/blob/727e3a71faf37390f318cf9434f0939653302b60/src/flux/modules/autoencoder.py#L9
 #[derive(Debug, Clone)]

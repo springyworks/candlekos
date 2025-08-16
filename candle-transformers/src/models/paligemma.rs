@@ -16,7 +16,7 @@
 
 use crate::models::{gemma, siglip};
 use candle::{Module, Result, Tensor};
-use candle_nn::{linear, Linear, VarBuilder};
+use candle_nn::{Linear, VarBuilder, linear};
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct Config {

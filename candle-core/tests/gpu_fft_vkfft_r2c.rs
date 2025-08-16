@@ -1,11 +1,20 @@
-#![cfg(all(feature = "cuda", feature = "gpu-fft", feature = "gpu-fft-vkfft", feature = "gpu-fft-vkfft-ffi"))]
+#![cfg(all(
+    feature = "cuda",
+    feature = "gpu-fft",
+    feature = "gpu-fft-vkfft",
+    feature = "gpu-fft-vkfft-ffi"
+))]
 
-use candle_core::{Device, Result, Tensor, DType};
+use candle_core::{DType, Device, Result, Tensor};
 
 fn approx_eq(a: &[f32], b: &[f32], tol: f32) -> bool {
-    if a.len() != b.len() { return false; }
+    if a.len() != b.len() {
+        return false;
+    }
     for (x, y) in a.iter().zip(b.iter()) {
-        if (x - y).abs() > tol { return false; }
+        if (x - y).abs() > tol {
+            return false;
+        }
     }
     true
 }
@@ -19,7 +28,9 @@ fn vkfft_r2c_f32_matches_cpu_small_last_axis() -> Result<()> {
     let cuda = Device::new_cuda(0)?;
 
     // Deterministic input
-    let data: Vec<f32> = (0..batch*n).map(|i| (i as f32).sin() * 0.1 + (i as f32)*1e-3).collect();
+    let data: Vec<f32> = (0..batch * n)
+        .map(|i| (i as f32).sin() * 0.1 + (i as f32) * 1e-3)
+        .collect();
     let t_cpu = Tensor::from_vec(data.clone(), (batch, n), &cpu)?;
     let t_gpu = Tensor::from_vec(data, (batch, n), &cuda)?;
 
@@ -33,7 +44,12 @@ fn vkfft_r2c_f32_matches_cpu_small_last_axis() -> Result<()> {
     let v_gpu = gpu_fft_cpu.flatten_all()?.to_vec1::<f32>()?;
 
     // Loose-ish tolerance (VkFFT vs rustfft minor diffs)
-    assert!(approx_eq(&v_cpu, &v_gpu, 1e-3), "mismatch\nCPU: {:?}\nGPU: {:?}", &v_cpu[..8.min(v_cpu.len())], &v_gpu[..8.min(v_gpu.len())]);
+    assert!(
+        approx_eq(&v_cpu, &v_gpu, 1e-3),
+        "mismatch\nCPU: {:?}\nGPU: {:?}",
+        &v_cpu[..8.min(v_cpu.len())],
+        &v_gpu[..8.min(v_gpu.len())]
+    );
     assert_eq!(cpu_fft.dtype(), DType::F32);
     assert_eq!(gpu_fft.dtype(), DType::F32);
     assert_eq!(cpu_fft.dims(), gpu_fft.dims());

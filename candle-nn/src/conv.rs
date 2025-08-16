@@ -1,6 +1,6 @@
 //! Convolution Layers.
 use crate::BatchNorm;
-use candle::{conv::CudnnFwdAlgo, Result, Tensor};
+use candle::{Result, Tensor, conv::CudnnFwdAlgo};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Conv1dConfig {

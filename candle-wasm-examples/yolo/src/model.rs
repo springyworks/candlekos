@@ -1,6 +1,6 @@
-use candle::{DType, IndexOp, Result, Tensor, D};
+use candle::{D, DType, IndexOp, Result, Tensor};
 use candle_nn::{
-    batch_norm, conv2d, conv2d_no_bias, BatchNorm, Conv2d, Conv2dConfig, Module, VarBuilder,
+    BatchNorm, Conv2d, Conv2dConfig, Module, VarBuilder, batch_norm, conv2d, conv2d_no_bias,
 };
 use image::DynamicImage;
 
@@ -134,11 +134,7 @@ impl Bottleneck {
 impl Module for Bottleneck {
     fn forward(&self, xs: &Tensor) -> Result<Tensor> {
         let ys = self.cv2.forward(&self.cv1.forward(xs)?)?;
-        if self.residual {
-            xs + ys
-        } else {
-            Ok(ys)
-        }
+        if self.residual { xs + ys } else { Ok(ys) }
     }
 }
 

@@ -1,10 +1,10 @@
 //! Text encoder as used in most OpenCLIP pretrained models
 //! https://github.com/mlfoundations/open_clip
 
-use candle::{DType, IndexOp, Result, Tensor, D};
+use candle::{D, DType, IndexOp, Result, Tensor};
 use candle_nn::{
-    embedding, layer_norm, linear, ops::softmax_last_dim, Embedding, LayerNorm, Linear, Module,
-    VarBuilder,
+    Embedding, LayerNorm, Linear, Module, VarBuilder, embedding, layer_norm, linear,
+    ops::softmax_last_dim,
 };
 
 #[derive(Debug, Clone)]

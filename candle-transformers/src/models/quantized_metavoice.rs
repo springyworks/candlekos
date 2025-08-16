@@ -14,11 +14,11 @@
 //! - [MetaVoice Code](https://github.com/metavoiceio/metavoice)
 //!
 
-use crate::quantized_nn::{linear_b, Embedding, Linear, RmsNorm};
+use crate::quantized_nn::{Embedding, Linear, RmsNorm, linear_b};
 pub use crate::quantized_var_builder::VarBuilder;
 
 use crate::models::metavoice::repeat_interleave;
-use candle::{Module, Result, Tensor, D};
+use candle::{D, Module, Result, Tensor};
 
 pub mod transformer {
     use super::*;

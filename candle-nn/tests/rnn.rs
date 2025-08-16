@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use candle::{test_utils::to_vec2_round, DType, Device, Result, Tensor};
+use candle::{DType, Device, Result, Tensor, test_utils::to_vec2_round};
 use candle_nn::RNN;
 
 /* The following test can be verified against PyTorch using the following snippet.

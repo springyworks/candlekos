@@ -1,4 +1,4 @@
-use candle::{Result, Tensor, D};
+use candle::{D, Result, Tensor};
 use candle_nn as nn;
 use candle_nn::Module;
 

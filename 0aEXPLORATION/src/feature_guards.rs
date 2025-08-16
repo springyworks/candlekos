@@ -12,7 +12,9 @@
 //! Add new invariants here as features grow.
 
 #[cfg(all(feature = "cudnn", not(feature = "cuda")))]
-compile_error!("Feature 'cudnn' requires feature 'cuda'. Enable with --features=cuda,cudnn (or remove cudnn).");
+compile_error!(
+    "Feature 'cudnn' requires feature 'cuda'. Enable with --features=cuda,cudnn (or remove cudnn)."
+);
 
 // Example (currently permissive) placeholder for a future invariant:
 // #[cfg(all(feature = "gpu-only-future", not(feature = "cuda")))]

@@ -16,7 +16,7 @@
 
 use super::fastvit;
 use super::openclip::text_model;
-use candle::{Result, Tensor, D};
+use candle::{D, Result, Tensor};
 use candle_nn::{Func, VarBuilder};
 
 #[derive(Clone, Debug)]

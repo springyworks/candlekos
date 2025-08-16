@@ -15,9 +15,9 @@
 //! - [Model Card](https://huggingface.co/dunzhang/stella_en_1.5B_v5)
 //!
 
-use crate::models::with_tracing::{linear, linear_no_bias, Linear, RmsNorm};
-use candle::{DType, Device, Error, IndexOp, Module, Result, Tensor, D};
-use candle_nn::{layer_norm, Activation, LayerNorm, VarBuilder};
+use crate::models::with_tracing::{Linear, RmsNorm, linear, linear_no_bias};
+use candle::{D, DType, Device, Error, IndexOp, Module, Result, Tensor};
+use candle_nn::{Activation, LayerNorm, VarBuilder, layer_norm};
 use std::sync::Arc;
 
 // internal representation for identifying which model is being used

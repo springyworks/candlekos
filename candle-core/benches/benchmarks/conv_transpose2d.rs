@@ -1,6 +1,6 @@
 use crate::benchmarks::{BenchDevice, BenchDeviceHandler};
 use candle_core::{DType, Device, Tensor};
-use criterion::{black_box, criterion_group, Criterion, Throughput};
+use criterion::{Criterion, Throughput, black_box, criterion_group};
 use std::time::Instant;
 
 fn run(

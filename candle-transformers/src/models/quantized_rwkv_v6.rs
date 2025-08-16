@@ -17,7 +17,7 @@
 //!
 
 use crate::{
-    quantized_nn::{layer_norm, linear_no_bias as linear, Embedding, Linear},
+    quantized_nn::{Embedding, Linear, layer_norm, linear_no_bias as linear},
     quantized_var_builder::VarBuilder,
 };
 use candle::{IndexOp, Result, Tensor};

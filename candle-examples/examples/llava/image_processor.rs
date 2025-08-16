@@ -1,12 +1,12 @@
 use std::cmp::min;
 
-use candle::{bail, DType, Device, Result, Tensor};
+use candle::{DType, Device, Result, Tensor, bail};
 use candle_transformers::models::llava::{
     config::{HFPreProcessorConfig, LLaVAConfig},
     utils::select_best_resolution,
 };
 use hf_hub::api::sync::Api;
-use image::{imageops::overlay, DynamicImage, GenericImageView, Rgb, RgbImage};
+use image::{DynamicImage, GenericImageView, Rgb, RgbImage, imageops::overlay};
 use serde::{Deserialize, Serialize};
 
 //This struct is mainly for LLaVA aplications, hence it's not completely compatible with python transformer CLIPImageProcessor  few several preprocess that LLaVA used, including "openai/clip-vit-large-patch14-336" and "openai/clip-vit-large-patch14".

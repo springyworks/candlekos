@@ -1,4 +1,4 @@
-use candle::{bail, DType, Module, Result, Tensor};
+use candle::{DType, Module, Result, Tensor, bail};
 use candle_nn as nn;
 
 pub struct PatchEmbedder {

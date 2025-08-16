@@ -15,8 +15,8 @@
 //! - 🤗 [Model Card](https://huggingface.co/bigcode/starcoder)
 //!
 
-use candle::{DType, Device, Module, Result, Tensor, D};
-use candle_nn::{layer_norm, linear_b, LayerNorm, Linear, VarBuilder};
+use candle::{D, DType, Device, Module, Result, Tensor};
+use candle_nn::{LayerNorm, Linear, VarBuilder, layer_norm, linear_b};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, serde::Deserialize)]

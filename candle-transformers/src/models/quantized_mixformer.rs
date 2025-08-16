@@ -11,9 +11,9 @@
 //! - Support for 8-bit quantization
 //!
 
-use crate::quantized_nn::{layer_norm, linear, Linear};
+use crate::quantized_nn::{Linear, layer_norm, linear};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::Activation;
 
 pub use crate::models::mixformer::Config;

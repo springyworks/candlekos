@@ -36,25 +36,25 @@ pub mod sequential;
 pub mod var_builder;
 pub mod var_map;
 
-pub use activation::{prelu, Activation, PReLU};
-pub use batch_norm::{batch_norm, BatchNorm, BatchNormConfig};
+pub use activation::{Activation, PReLU, prelu};
+pub use batch_norm::{BatchNorm, BatchNormConfig, batch_norm};
 pub use conv::{
-    conv1d, conv1d_no_bias, conv2d, conv2d_no_bias, conv_transpose1d, conv_transpose1d_no_bias,
-    conv_transpose2d, conv_transpose2d_no_bias, Conv1d, Conv1dConfig, Conv2d, Conv2dConfig,
-    ConvTranspose1d, ConvTranspose1dConfig, ConvTranspose2d, ConvTranspose2dConfig,
+    Conv1d, Conv1dConfig, Conv2d, Conv2dConfig, ConvTranspose1d, ConvTranspose1dConfig,
+    ConvTranspose2d, ConvTranspose2dConfig, conv_transpose1d, conv_transpose1d_no_bias,
+    conv_transpose2d, conv_transpose2d_no_bias, conv1d, conv1d_no_bias, conv2d, conv2d_no_bias,
 };
-pub use embedding::{embedding, Embedding};
-pub use func::{func, func_t, Func, FuncT};
-pub use group_norm::{group_norm, GroupNorm};
+pub use embedding::{Embedding, embedding};
+pub use func::{Func, FuncT, func, func_t};
+pub use group_norm::{GroupNorm, group_norm};
 pub use init::Init;
 pub use layer_norm::{
-    layer_norm, layer_norm_no_bias, rms_norm, LayerNorm, LayerNormConfig, RmsNorm,
+    LayerNorm, LayerNormConfig, RmsNorm, layer_norm, layer_norm_no_bias, rms_norm,
 };
-pub use linear::{linear, linear_b, linear_no_bias, Linear};
+pub use linear::{Linear, linear, linear_b, linear_no_bias};
 pub use ops::Dropout;
 pub use optim::{AdamW, Optimizer, ParamsAdamW, SGD};
-pub use rnn::{gru, lstm, GRUConfig, LSTMConfig, GRU, LSTM, RNN};
-pub use sequential::{seq, Sequential};
+pub use rnn::{GRU, GRUConfig, LSTM, LSTMConfig, RNN, gru, lstm};
+pub use sequential::{Sequential, seq};
 pub use var_builder::VarBuilder;
 pub use var_map::VarMap;
 

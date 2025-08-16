@@ -5,9 +5,9 @@
 //! - [Github](https://github.com/mistralai/mistral-src)
 //!
 
-use crate::models::with_tracing::{linear_no_bias, Linear, RmsNorm};
+use crate::models::with_tracing::{Linear, RmsNorm, linear_no_bias};
 /// Mistral LLM, https://github.com/mistralai/mistral-src
-use candle::{DType, Device, Module, Result, Tensor, D};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use std::sync::Arc;
 

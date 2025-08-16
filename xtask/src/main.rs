@@ -35,21 +35,27 @@ use std::process::Command;
 // NOTE: We intentionally do not list an invalid combination like `cudnn` without
 // `cuda`. If new feature dependencies are added, update `is_valid_combo` below.
 const CANONICAL: &[&[&str]] = &[
-    &[],                // baseline CPU
+    &[], // baseline CPU
     &["cuda"],
-    &["cuda","fft"],
+    &["cuda", "fft"],
     // `cudnn` implies `cuda`; explicit combo keeps visibility.
-    &["cuda","cudnn"],
-    &["fft"],           // CPU FFT only
+    &["cuda", "cudnn"],
+    &["fft"], // CPU FFT only
 ];
 
 // Optional core (candle-core) advanced FFT GPU feature combos. Activated when the
 // environment variable XTASK_CORE_FFT=1 is set. We do not enumerate powersets here
 // to keep runtime bounded; just representative tiers.
 const CORE_GPU_FFT_COMBOS: &[&[&str]] = &[
-    &["cuda","fft","gpu-fft"],
-    &["cuda","fft","gpu-fft","gpu-fft-vkfft"],
-    &["cuda","fft","gpu-fft","gpu-fft-vkfft","gpu-fft-vkfft-ffi"],
+    &["cuda", "fft", "gpu-fft"],
+    &["cuda", "fft", "gpu-fft", "gpu-fft-vkfft"],
+    &[
+        "cuda",
+        "fft",
+        "gpu-fft",
+        "gpu-fft-vkfft",
+        "gpu-fft-vkfft-ffi",
+    ],
 ];
 
 /// Entry point dispatching to the various subcommands.
@@ -62,12 +68,29 @@ fn main() -> Result<()> {
         Some("test") => test(false)?,
         Some("test-all") => test(true)?,
         Some("lint") => lint()?,
+        Some("lint-workspace") => lint_workspace()?,
+        Some("comprehensive") => comprehensive_test()?,
         Some("run-file") => {
-            if let Some(path) = args.next() { run_file(&path, args.collect())?; } else { anyhow::bail!("usage: xtask run-file <path/to/file.rs|file.ipynb> [-- <extra cargo args>]"); }
+            if let Some(path) = args.next() {
+                run_file(&path, args.collect())?;
+            } else {
+                anyhow::bail!(
+                    "usage: xtask run-file <path/to/file.rs|file.ipynb> [-- <extra cargo args>]"
+                );
+            }
         }
         Some(cmd) => anyhow::bail!("unknown subcommand: {cmd}"),
         None => {
-            eprintln!("xtask commands: list | check | check-all | test | test-all | lint | run-file <file.rs|file.ipynb>");
+            eprintln!("xtask commands:");
+            eprintln!("  list                    - Show canonical feature combinations");
+            eprintln!("  check                   - Check canonical feature combinations");
+            eprintln!("  check-all               - Check extended feature combinations");
+            eprintln!("  test                    - Build tests for canonical features");
+            eprintln!("  test-all                - Build tests for extended features");
+            eprintln!("  lint                    - Run clippy on xtask + exploration crates");
+            eprintln!("  lint-workspace          - Run clippy on entire workspace");
+            eprintln!("  comprehensive           - Run comprehensive workspace testing");
+            eprintln!("  run-file <file>         - Run a Rust file or open notebook");
         }
     }
     Ok(())
@@ -76,7 +99,9 @@ fn main() -> Result<()> {
 /// Print the fast canonical feature sets we validate in CI.
 fn list() -> Result<()> {
     println!("Fast canonical feature sets:");
-    for combo in CANONICAL { println!("  {combo:?}"); }
+    for combo in CANONICAL {
+        println!("  {combo:?}");
+    }
     Ok(())
 }
 
@@ -86,25 +111,39 @@ fn list() -> Result<()> {
 /// catch unexpected interactions.
 fn check(power: bool) -> Result<()> {
     let meta = MetadataCommand::new().no_deps().exec()?;
-    let exploration = meta.packages.iter().find(|p| p.name == "candle-exploration")
+    let exploration = meta
+        .packages
+        .iter()
+        .find(|p| p.name == "candle-exploration")
         .context("candle-exploration crate not found in workspace")?;
 
     let feature_space: BTreeSet<String> = exploration.features.keys().cloned().collect();
     let combos: Vec<Vec<String>> = if power {
         // Limited powerset (exclude default empty set is still included, up to size 3 to limit explosion)
-        let feats: Vec<String> = feature_space.into_iter().filter(|f| f != "default").collect();
+        let feats: Vec<String> = feature_space
+            .into_iter()
+            .filter(|f| f != "default")
+            .collect();
         let mut acc = Vec::new();
-        for mask in 0..(1u32 << feats.len()).min(1 << 6) { // guard: limit to first 6 features if it grows
+        for mask in 0..(1u32 << feats.len()).min(1 << 6) {
+            // guard: limit to first 6 features if it grows
             let mut v = Vec::new();
             for (i, f) in feats.iter().enumerate() {
-                if (mask & (1 << i)) != 0 { v.push(f.clone()); }
+                if (mask & (1 << i)) != 0 {
+                    v.push(f.clone());
+                }
             }
             // prune large sets ( >3 ) to keep runtime sane
-            if v.len() <= 3 && is_valid_combo(&v) { acc.push(v); }
+            if v.len() <= 3 && is_valid_combo(&v) {
+                acc.push(v);
+            }
         }
         acc
     } else {
-        CANONICAL.iter().map(|c| c.iter().map(|s| (*s).to_string()).collect()).collect()
+        CANONICAL
+            .iter()
+            .map(|c| c.iter().map(|s| (*s).to_string()).collect())
+            .collect()
     };
 
     for combo in combos {
@@ -116,23 +155,44 @@ fn check(power: bool) -> Result<()> {
 /// Internal helper to perform a single `cargo check` invocation for the given
 /// feature list, also optionally validating advanced core FFT feature combos.
 fn run_check(features: &[String]) -> Result<()> {
-    let feat_arg = if features.is_empty() { "(none)".to_string() } else { features.join(",") };
+    let feat_arg = if features.is_empty() {
+        "(none)".to_string()
+    } else {
+        features.join(",")
+    };
     println!("==> cargo check --features {feat_arg}");
     let status = if features.is_empty() {
         Command::new("cargo").arg("check").status()?
     } else {
-        Command::new("cargo").arg("check").arg("--features").arg(&feat_arg).status()?
+        Command::new("cargo")
+            .arg("check")
+            .arg("--features")
+            .arg(&feat_arg)
+            .status()?
     };
-    if !status.success() { anyhow::bail!("check failed for features: {feat_arg}"); }
+    if !status.success() {
+        anyhow::bail!("check failed for features: {feat_arg}");
+    }
     // Optionally also check candle-core with advanced GPU FFT combos (env gated)
     if std::env::var("XTASK_CORE_FFT").ok().as_deref() == Some("1") && !features.is_empty() {
         for combo in CORE_GPU_FFT_COMBOS {
             // Skip if combo not superset-compatible with current exploration features (requires cuda+fft at minimum)
-            if combo.iter().all(|f| features.contains(&f.to_string()) || !["cuda","fft"].contains(f)) {
+            if combo
+                .iter()
+                .all(|f| features.contains(&f.to_string()) || !["cuda", "fft"].contains(f))
+            {
                 let core_feat_arg = combo.join(",");
                 println!("   -> candle-core check (core FFT) --features {core_feat_arg}");
-                let status = Command::new("cargo").arg("check").arg("-p").arg("candle-core").arg("--features").arg(&core_feat_arg).status()?;
-                if !status.success() { anyhow::bail!("candle-core check failed for features: {core_feat_arg}"); }
+                let status = Command::new("cargo")
+                    .arg("check")
+                    .arg("-p")
+                    .arg("candle-core")
+                    .arg("--features")
+                    .arg(&core_feat_arg)
+                    .status()?;
+                if !status.success() {
+                    anyhow::bail!("candle-core check failed for features: {core_feat_arg}");
+                }
             }
         }
     }
@@ -143,22 +203,39 @@ fn run_check(features: &[String]) -> Result<()> {
 /// of feature combinations. Mirrors `check` logic but uses `cargo test --no-run`.
 fn test(power: bool) -> Result<()> {
     let meta = MetadataCommand::new().no_deps().exec()?;
-    let exploration = meta.packages.iter().find(|p| p.name == "candle-exploration")
+    let exploration = meta
+        .packages
+        .iter()
+        .find(|p| p.name == "candle-exploration")
         .context("candle-exploration crate not found in workspace")?;
     let feature_space: BTreeSet<String> = exploration.features.keys().cloned().collect();
     let combos: Vec<Vec<String>> = if power {
-        let feats: Vec<String> = feature_space.into_iter().filter(|f| f != "default").collect();
+        let feats: Vec<String> = feature_space
+            .into_iter()
+            .filter(|f| f != "default")
+            .collect();
         let mut acc = Vec::new();
         for mask in 0..(1u32 << feats.len()).min(1 << 6) {
             let mut v = Vec::new();
-            for (i, f) in feats.iter().enumerate() { if (mask & (1 << i)) != 0 { v.push(f.clone()); } }
-            if v.len() <= 3 && is_valid_combo(&v) { acc.push(v); }
+            for (i, f) in feats.iter().enumerate() {
+                if (mask & (1 << i)) != 0 {
+                    v.push(f.clone());
+                }
+            }
+            if v.len() <= 3 && is_valid_combo(&v) {
+                acc.push(v);
+            }
         }
         acc
     } else {
-        CANONICAL.iter().map(|c| c.iter().map(|s| (*s).to_string()).collect()).collect()
+        CANONICAL
+            .iter()
+            .map(|c| c.iter().map(|s| (*s).to_string()).collect())
+            .collect()
     };
-    for combo in combos { run_tests(&combo)?; }
+    for combo in combos {
+        run_tests(&combo)?;
+    }
     Ok(())
 }
 
@@ -176,21 +253,51 @@ fn is_valid_combo(features: &[String]) -> bool {
 /// Internal helper to perform a single `cargo test --no-run` invocation for a
 /// given feature list (plus optional core FFT combos).
 fn run_tests(features: &[String]) -> Result<()> {
-    let feat_arg = if features.is_empty() { "(none)".to_string() } else { features.join(",") };
+    let feat_arg = if features.is_empty() {
+        "(none)".to_string()
+    } else {
+        features.join(",")
+    };
     println!("==> cargo test --no-run --features {feat_arg}");
     let status = if features.is_empty() {
-        Command::new("cargo").arg("test").arg("--no-run").arg("-p").arg("candle-exploration").status()?
+        Command::new("cargo")
+            .arg("test")
+            .arg("--no-run")
+            .arg("-p")
+            .arg("candle-exploration")
+            .status()?
     } else {
-        Command::new("cargo").arg("test").arg("--no-run").arg("-p").arg("candle-exploration").arg("--features").arg(&feat_arg).status()?
+        Command::new("cargo")
+            .arg("test")
+            .arg("--no-run")
+            .arg("-p")
+            .arg("candle-exploration")
+            .arg("--features")
+            .arg(&feat_arg)
+            .status()?
     };
-    if !status.success() { anyhow::bail!("test build failed for features: {feat_arg}"); }
+    if !status.success() {
+        anyhow::bail!("test build failed for features: {feat_arg}");
+    }
     if std::env::var("XTASK_CORE_FFT").ok().as_deref() == Some("1") && !features.is_empty() {
         for combo in CORE_GPU_FFT_COMBOS {
-            if combo.iter().all(|f| features.contains(&f.to_string()) || !["cuda","fft"].contains(f)) {
+            if combo
+                .iter()
+                .all(|f| features.contains(&f.to_string()) || !["cuda", "fft"].contains(f))
+            {
                 let core_feat_arg = combo.join(",");
                 println!("   -> candle-core test build (core FFT) --features {core_feat_arg}");
-                let status = Command::new("cargo").arg("test").arg("--no-run").arg("-p").arg("candle-core").arg("--features").arg(&core_feat_arg).status()?;
-                if !status.success() { anyhow::bail!("candle-core test build failed for features: {core_feat_arg}"); }
+                let status = Command::new("cargo")
+                    .arg("test")
+                    .arg("--no-run")
+                    .arg("-p")
+                    .arg("candle-core")
+                    .arg("--features")
+                    .arg(&core_feat_arg)
+                    .status()?;
+                if !status.success() {
+                    anyhow::bail!("candle-core test build failed for features: {core_feat_arg}");
+                }
             }
         }
     }
@@ -202,14 +309,32 @@ fn run_tests(features: &[String]) -> Result<()> {
 /// crate. Set `XTASK_LINT_CORE=1` to also lint `candle-core` (can be slower).
 fn lint() -> Result<()> {
     let mut cmd = Command::new("cargo");
-    cmd.arg("clippy").arg("-p").arg("xtask").arg("-p").arg("candle-exploration").arg("--all-targets").arg("--").arg("-D").arg("warnings");
+    cmd.arg("clippy")
+        .arg("-p")
+        .arg("xtask")
+        .arg("-p")
+        .arg("candle-exploration")
+        .arg("--all-targets")
+        .arg("--")
+        .arg("-D")
+        .arg("warnings");
     let status = cmd.status()?;
-    if !status.success() { anyhow::bail!("clippy failed (xtask + exploration)"); }
+    if !status.success() {
+        anyhow::bail!("clippy failed (xtask + exploration)");
+    }
     if std::env::var("XTASK_LINT_CORE").ok().as_deref() == Some("1") {
         let mut core = Command::new("cargo");
-        core.arg("clippy").arg("-p").arg("candle-core").arg("--all-targets").arg("--").arg("-D").arg("warnings");
+        core.arg("clippy")
+            .arg("-p")
+            .arg("candle-core")
+            .arg("--all-targets")
+            .arg("--")
+            .arg("-D")
+            .arg("warnings");
         let status = core.status()?;
-        if !status.success() { anyhow::bail!("clippy failed (candle-core)"); }
+        if !status.success() {
+            anyhow::bail!("clippy failed (candle-core)");
+        }
     }
     Ok(())
 }
@@ -234,26 +359,32 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
     use std::path::{Path, PathBuf};
     // NOTE: we previously cloned `extra` for debugging; removed to avoid
     // unused variable warnings.
-    let path = Path::new(path_arg).canonicalize().with_context(|| format!("cannot canonicalize {path_arg}"))?;
-    
+    let path = Path::new(path_arg)
+        .canonicalize()
+        .with_context(|| format!("cannot canonicalize {path_arg}"))?;
+
     // Handle Jupyter notebook files by opening in VS Code
     if let Some(ext) = path.extension() {
         if ext == "ipynb" {
-            eprintln!("[xtask] opening notebook {} in current VS Code workspace", path.display());
-            
+            eprintln!(
+                "[xtask] opening notebook {} in current VS Code workspace",
+                path.display()
+            );
+
             // Try multiple approaches to open in current VS Code instance
             let mut cmd = Command::new("code");
-            
+
             // If we're running inside VS Code (detected by environment variables),
             // use --add to add to current workspace. Otherwise use --reuse-window.
-            if std::env::var("VSCODE_INJECTION").is_ok() || 
-               std::env::var("VSCODE_PID").is_ok() ||
-               std::env::var("TERM_PROGRAM").as_deref() == Ok("vscode") {
+            if std::env::var("VSCODE_INJECTION").is_ok()
+                || std::env::var("VSCODE_PID").is_ok()
+                || std::env::var("TERM_PROGRAM").as_deref() == Ok("vscode")
+            {
                 cmd.arg("--add");
             } else {
                 cmd.arg("--reuse-window");
             }
-            
+
             let status = cmd.arg(&path).status()?;
             if !status.success() {
                 anyhow::bail!("failed to open notebook in VS Code");
@@ -266,13 +397,24 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
     let mut program_args: Vec<String> = Vec::new();
     let mut iter = extra.into_iter();
     while let Some(tok) = iter.next() {
-        if tok == "--" { // explicit separator forces rest as program args
+        if tok == "--" {
+            // explicit separator forces rest as program args
             program_args.extend(iter);
             break;
-        } else if tok == "--release" { cargo_flags.push(tok); }
-        else if tok == "--features" { if let Some(val) = iter.next() { cargo_flags.push(tok); cargo_flags.push(val); } else { anyhow::bail!("--features requires a value"); } }
-        else if tok.starts_with("--features=") { cargo_flags.push(tok); }
-        else { program_args.push(tok); }
+        } else if tok == "--release" {
+            cargo_flags.push(tok);
+        } else if tok == "--features" {
+            if let Some(val) = iter.next() {
+                cargo_flags.push(tok);
+                cargo_flags.push(val);
+            } else {
+                anyhow::bail!("--features requires a value");
+            }
+        } else if tok.starts_with("--features=") {
+            cargo_flags.push(tok);
+        } else {
+            program_args.push(tok);
+        }
     }
 
     // Load workspace metadata to locate owning package.
@@ -280,10 +422,16 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
     // Find the package whose directory is an ancestor of the file path (choose deepest ancestor).
     let mut best: Option<(&cargo_metadata::Package, usize)> = None;
     for pkg in &meta.packages {
-        let manifest_dir = PathBuf::from(&pkg.manifest_path).parent().unwrap().canonicalize()?;
+        let manifest_dir = PathBuf::from(&pkg.manifest_path)
+            .parent()
+            .unwrap()
+            .canonicalize()?;
         if path.starts_with(&manifest_dir) {
             let depth = manifest_dir.components().count();
-            match &best { Some((_, best_depth)) if *best_depth >= depth => {} _ => best = Some((pkg, depth)), }
+            match &best {
+                Some((_, best_depth)) if *best_depth >= depth => {}
+                _ => best = Some((pkg, depth)),
+            }
         }
     }
     let (pkg, _depth) = best.context("could not find a workspace crate containing the file")?;
@@ -294,7 +442,10 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
     for tgt in &pkg.targets {
         if tgt.kind.iter().any(|k| k == "bin") {
             let tgt_path = std::path::PathBuf::from(&tgt.src_path).canonicalize().ok();
-            if Some(&path) == tgt_path.as_ref() { matched_bin = Some(tgt.name.clone()); break; }
+            if Some(&path) == tgt_path.as_ref() {
+                matched_bin = Some(tgt.name.clone());
+                break;
+            }
         }
     }
 
@@ -304,9 +455,14 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
         if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
             // Check for auto bin discovery condition.
             // Condition: path == <crate>/src/bin/<stem>.rs
-            let crate_dir = PathBuf::from(&pkg.manifest_path).parent().unwrap().canonicalize()?;
+            let crate_dir = PathBuf::from(&pkg.manifest_path)
+                .parent()
+                .unwrap()
+                .canonicalize()?;
             let auto_bin = crate_dir.join("src").join("bin").join(format!("{stem}.rs"));
-            if auto_bin == path { matched_bin = Some(stem.to_string()); }
+            if auto_bin == path {
+                matched_bin = Some(stem.to_string());
+            }
         }
     }
 
@@ -315,8 +471,12 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
         if let Some(tgt) = pkg.targets.iter().find(|t| t.name == *bin_name) {
             if !tgt.required_features.is_empty() {
                 // Only auto-apply if user has not explicitly provided --features
-                let user_specified = cargo_flags.iter().any(|e| e == "--features" || e.starts_with("--features="));
-                if !user_specified { auto_features = tgt.required_features.clone(); }
+                let user_specified = cargo_flags
+                    .iter()
+                    .any(|e| e == "--features" || e.starts_with("--features="));
+                if !user_specified {
+                    auto_features = tgt.required_features.clone();
+                }
             }
         }
     }
@@ -327,10 +487,21 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
 
     let mut cmd = Command::new("cargo");
     if let Some(bin) = matched_bin {
-        eprintln!("[xtask] running existing bin '{}' in crate '{}'", bin, pkg.name);
-        cmd.arg("run").arg("-p").arg(&pkg.name).arg("--bin").arg(&bin);
-        if !auto_features.is_empty() && !cargo_flags.iter().any(|f| f.starts_with("--features")) { cmd.arg("--features").arg(auto_features.join(",")); }
-        for f in &cargo_flags { cmd.arg(f); }
+        eprintln!(
+            "[xtask] running existing bin '{}' in crate '{}'",
+            bin, pkg.name
+        );
+        cmd.arg("run")
+            .arg("-p")
+            .arg(&pkg.name)
+            .arg("--bin")
+            .arg(&bin);
+        if !auto_features.is_empty() && !cargo_flags.iter().any(|f| f.starts_with("--features")) {
+            cmd.arg("--features").arg(auto_features.join(","));
+        }
+        for f in &cargo_flags {
+            cmd.arg(f);
+        }
     } else {
         let main_rs = crate_dir.join("src").join("main.rs");
         if path == main_rs.canonicalize().unwrap_or(main_rs.clone()) {
@@ -339,32 +510,215 @@ fn run_file(path_arg: &str, extra: Vec<String>) -> Result<()> {
         } else {
             // As a last resort, create a temporary copy under src/bin and run it.
             use std::fs;
-            let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("runfile");
+            let stem = path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("runfile");
             let bin_dir = crate_dir.join("src").join("bin");
             fs::create_dir_all(&bin_dir)?;
             let temp_stem = format!("__xtask_temp_{stem}");
             let temp_path = bin_dir.join(format!("{temp_stem}.rs"));
-            if temp_path.exists() { std::fs::remove_file(&temp_path)?; }
+            if temp_path.exists() {
+                std::fs::remove_file(&temp_path)?;
+            }
             let contents = fs::read_to_string(&path)?;
             fs::write(&temp_path, contents)?;
-            eprintln!("[xtask] created temporary bin {} to run file {}", temp_path.display(), path.display());
-            cmd.arg("run").arg("-p").arg(&pkg.name).arg("--bin").arg(&temp_stem);
-            if !auto_features.is_empty() && !cargo_flags.iter().any(|f| f.starts_with("--features")) { cmd.arg("--features").arg(auto_features.join(",")); }
-            for f in &cargo_flags { cmd.arg(f); }
-            if !program_args.is_empty() { cmd.arg("--"); for a in &program_args { cmd.arg(a); } }
+            eprintln!(
+                "[xtask] created temporary bin {} to run file {}",
+                temp_path.display(),
+                path.display()
+            );
+            cmd.arg("run")
+                .arg("-p")
+                .arg(&pkg.name)
+                .arg("--bin")
+                .arg(&temp_stem);
+            if !auto_features.is_empty() && !cargo_flags.iter().any(|f| f.starts_with("--features"))
+            {
+                cmd.arg("--features").arg(auto_features.join(","));
+            }
+            for f in &cargo_flags {
+                cmd.arg(f);
+            }
+            if !program_args.is_empty() {
+                cmd.arg("--");
+                for a in &program_args {
+                    cmd.arg(a);
+                }
+            }
             let status = cmd.status()?;
             std::fs::remove_file(&temp_path)?;
-            if !status.success() { anyhow::bail!("cargo run failed"); }
+            if !status.success() {
+                anyhow::bail!("cargo run failed");
+            }
             return Ok(());
         }
     }
 
     if !program_args.is_empty() {
         cmd.arg("--");
-        for a in &program_args { cmd.arg(a); }
+        for a in &program_args {
+            cmd.arg(a);
+        }
     }
 
     let status = cmd.status()?;
-    if !status.success() { anyhow::bail!("cargo run failed"); }
+    if !status.success() {
+        anyhow::bail!("cargo run failed");
+    }
     Ok(())
+}
+
+/// Run clippy across the entire workspace with warnings treated as warnings only.
+/// This provides a comprehensive view of code quality across all crates.
+fn lint_workspace() -> Result<()> {
+    println!("Running clippy across entire workspace...");
+    let mut cmd = Command::new("cargo");
+    cmd.arg("clippy").arg("--workspace").arg("--all-targets");
+
+    let status = cmd.status()?;
+    if !status.success() {
+        println!("Note: clippy found issues but this is informational only");
+    } else {
+        println!("✓ Workspace clippy completed successfully");
+    }
+    Ok(())
+}
+
+/// Run comprehensive testing across the workspace including:
+/// - Basic compilation check
+/// - Feature combination testing  
+/// - Test builds
+/// - Workspace clippy (informational)
+/// - Documentation build
+/// - Format check
+fn comprehensive_test() -> Result<()> {
+    println!("🚀 Starting comprehensive Candle workspace testing");
+    println!("==================================================");
+
+    let mut test_count = 0;
+    let mut passed_count = 0;
+
+    // Helper function for running tests with status tracking
+    let mut run_test = |name: &str, test_fn: fn() -> Result<()>| {
+        test_count += 1;
+        print!("📋 Testing: {name} ... ");
+        std::io::Write::flush(&mut std::io::stdout()).ok();
+        match test_fn() {
+            Ok(_) => {
+                println!("✅ PASS");
+                passed_count += 1;
+            }
+            Err(e) => {
+                println!("❌ FAIL: {e}");
+            }
+        }
+    };
+
+    // 1. Basic workspace check
+    run_test("Workspace compilation", || -> Result<()> {
+        let status = Command::new("cargo")
+            .arg("check")
+            .arg("--workspace")
+            .status()?;
+        if status.success() {
+            Ok(())
+        } else {
+            anyhow::bail!("compilation failed")
+        }
+    });
+
+    // 2. Canonical feature combinations
+    run_test("Canonical feature combinations", || check(false));
+
+    // 3. Extended feature combinations (if environment variable set)
+    if std::env::var("XTASK_COMPREHENSIVE").ok().as_deref() == Some("1") {
+        run_test("Extended feature combinations", || check(true));
+    }
+
+    // 4. Test builds
+    run_test("Test builds (canonical)", || test(false));
+
+    // 5. Extended test builds (if environment variable set)
+    if std::env::var("XTASK_COMPREHENSIVE").ok().as_deref() == Some("1") {
+        run_test("Extended test builds", || test(true));
+    }
+
+    // 6. Workspace clippy (informational)
+    run_test("Workspace clippy (informational)", || -> Result<()> {
+        let _status = Command::new("cargo")
+            .arg("clippy")
+            .arg("--workspace")
+            .arg("--all-targets")
+            .status()?;
+        // Always succeed for clippy in comprehensive mode
+        println!("  (clippy warnings are informational only)");
+        Ok(())
+    });
+
+    // 7. Documentation build
+    run_test("Documentation build", || -> Result<()> {
+        let status = Command::new("cargo")
+            .arg("doc")
+            .arg("--workspace")
+            .arg("--no-deps")
+            .status()?;
+        if status.success() {
+            Ok(())
+        } else {
+            anyhow::bail!("doc build failed")
+        }
+    });
+
+    // 8. Format check
+    run_test("Format check", || -> Result<()> {
+        let status = Command::new("cargo")
+            .arg("fmt")
+            .arg("--all")
+            .arg("--")
+            .arg("--check")
+            .status()?;
+        if status.success() {
+            Ok(())
+        } else {
+            anyhow::bail!("formatting issues found")
+        }
+    });
+
+    // 9. Core FFT features (if environment variable set)
+    if std::env::var("XTASK_CORE_FFT").ok().as_deref() == Some("1") {
+        run_test("Core FFT feature testing", || {
+            std::env::set_var("XTASK_CORE_FFT", "1");
+            check(false)
+        });
+    }
+
+    // Summary
+    println!();
+    println!("📊 COMPREHENSIVE TEST SUMMARY");
+    println!("=============================");
+    println!("Total tests: {test_count}");
+    println!("Passed: {passed_count} ✅");
+    println!("Failed: {} ❌", test_count - passed_count);
+
+    let success_rate = (passed_count * 100) / test_count;
+    println!("Success rate: {success_rate}%");
+
+    if passed_count == test_count {
+        println!();
+        println!("🎉 All tests passed! Workspace is healthy.");
+        Ok(())
+    } else {
+        println!();
+        println!("⚠️  Some tests failed. See output above for details.");
+        println!();
+        println!("Environment variables for extended testing:");
+        println!("  XTASK_COMPREHENSIVE=1    Enable extended feature/test combinations");
+        println!("  XTASK_CORE_FFT=1        Enable core FFT feature testing");
+        anyhow::bail!(
+            "{} out of {} tests failed",
+            test_count - passed_count,
+            test_count
+        )
+    }
 }

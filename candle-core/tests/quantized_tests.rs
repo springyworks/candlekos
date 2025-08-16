@@ -1,11 +1,10 @@
 use candle_core::{
-    bail,
+    DType, Device, IndexOp, Module, Result, Tensor, bail,
     quantized::{self, GgmlDType},
     test_device,
     test_utils::to_vec2_round,
-    DType, Device, IndexOp, Module, Result, Tensor,
 };
-use quantized::{k_quants, GgmlType};
+use quantized::{GgmlType, k_quants};
 use rand::prelude::*;
 
 const GGML_TEST_SIZE: usize = 32 * 128;
@@ -388,7 +387,7 @@ fn quantize_q5_1(device: &Device) -> Result<()> {
 
 fn get_test_vector2(bound: f32, size: usize, device: &Device) -> Result<Tensor> {
     assert!(
-    size.is_multiple_of(crate::quantized::k_quants::QK_K),
+        size.is_multiple_of(crate::quantized::k_quants::QK_K),
         "size must be a multiple of {}",
         crate::quantized::k_quants::QK_K
     );

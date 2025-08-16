@@ -15,9 +15,9 @@
 //! - [Model Card](https://huggingface.co/mistralai/Mistral-7B-v0.1)
 //!
 
-use crate::quantized_nn::{linear_no_bias, Embedding, Linear, RmsNorm};
+use crate::quantized_nn::{Embedding, Linear, RmsNorm, linear_no_bias};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{DType, Device, Module, Result, Tensor, D};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::Activation;
 use std::sync::Arc;
 

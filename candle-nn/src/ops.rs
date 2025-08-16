@@ -1,7 +1,7 @@
 //! Tensor ops.
 //!
 
-use candle::{CpuStorage, DType, Layout, Module, Result, Shape, Tensor, D};
+use candle::{CpuStorage, D, DType, Layout, Module, Result, Shape, Tensor};
 use rayon::prelude::*;
 
 /// Applies the softmax function to the input tensor, rescaling the element so that elements on
@@ -89,11 +89,11 @@ impl candle::CustomOp1 for Sigmoid {
         layout: &Layout,
     ) -> Result<(candle::CudaStorage, Shape)> {
         use candle::backend::BackendStorage;
+        use candle::cuda_backend::SlicePtrOrNull;
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg, ValidAsZeroBits,
         };
-        use candle::cuda_backend::SlicePtrOrNull;
-        use candle::cuda_backend::{kernel_name, kernels, Map1, WrapErr};
+        use candle::cuda_backend::{Map1, WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         struct S;
@@ -140,8 +140,8 @@ impl candle::CustomOp1 for Sigmoid {
         storage: &candle::MetalStorage,
         layout: &Layout,
     ) -> Result<(candle::MetalStorage, Shape)> {
-        use candle::backend::BackendStorage;
         use candle::MetalError;
+        use candle::backend::BackendStorage;
         let device = storage.device();
         let dtype = storage.dtype();
         let shape = layout.shape();
@@ -355,7 +355,7 @@ impl candle::CustomOp1 for SoftmaxLastDim {
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg,
         };
-        use candle::cuda_backend::{kernel_name, kernels, Map1, WrapErr};
+        use candle::cuda_backend::{Map1, WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         struct S;
@@ -534,7 +534,7 @@ impl candle::CustomOp2 for RmsNorm {
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg,
         };
-        use candle::cuda_backend::{kernel_name, kernels, Map2, WrapErr};
+        use candle::cuda_backend::{Map2, WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         struct S {
@@ -766,7 +766,7 @@ impl candle::CustomOp3 for LayerNorm {
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg,
         };
-        use candle::cuda_backend::{kernel_name, kernels, Map3, WrapErr};
+        use candle::cuda_backend::{Map3, WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         struct S {

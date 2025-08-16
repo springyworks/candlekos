@@ -7,9 +7,9 @@
 //! - Upstream [Github repo](https://github.com/google-research/bert).
 //! - See bert in [candle-examples](https://github.com/huggingface/candle/tree/main/candle-examples/) for runnable code
 //!
-use super::with_tracing::{layer_norm, linear, LayerNorm, Linear};
+use super::with_tracing::{LayerNorm, Linear, layer_norm, linear};
 use candle::{DType, Device, Result, Tensor};
-use candle_nn::{embedding, Embedding, Module, VarBuilder};
+use candle_nn::{Embedding, Module, VarBuilder, embedding};
 use serde::Deserialize;
 
 pub const DTYPE: DType = DType::F32;

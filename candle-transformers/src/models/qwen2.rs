@@ -14,8 +14,8 @@
 //! - 🤗 [Qwen2 Model](https://huggingface.co/Qwen/Qwen2-7B)
 //!
 
-use crate::models::with_tracing::{linear, linear_no_bias, Linear, RmsNorm};
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, RmsNorm, linear, linear_no_bias};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use std::sync::Arc;
 

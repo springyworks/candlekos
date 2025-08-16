@@ -1,4 +1,4 @@
-use candle::{test_device, Device, IndexOp, Result, Tensor};
+use candle::{Device, IndexOp, Result, Tensor, test_device};
 use candle_core as candle;
 
 fn contiguous(device: &Device) -> Result<()> {
@@ -27,7 +27,9 @@ fn contiguous(device: &Device) -> Result<()> {
     );
     assert_eq!(
         tensor.transpose(0, 1)?.flatten_all()?.to_vec1::<u32>()?,
-        &[0, 1, 2, 3, 12, 13, 14, 15, 4, 5, 6, 7, 16, 17, 18, 19, 8, 9, 10, 11, 20, 21, 22, 23]
+        &[
+            0, 1, 2, 3, 12, 13, 14, 15, 4, 5, 6, 7, 16, 17, 18, 19, 8, 9, 10, 11, 20, 21, 22, 23
+        ]
     );
     assert_eq!(
         tensor

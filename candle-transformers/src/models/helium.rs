@@ -2,8 +2,8 @@
 //!
 //! See the model card on Hugging Face's [hub](https://huggingface.co/kmhf/helium-2b).
 
-use super::with_tracing::{linear_b as linear, Linear, RmsNorm};
-use candle::{DType, Device, Result, Tensor, D};
+use super::with_tracing::{Linear, RmsNorm, linear_b as linear};
+use candle::{D, DType, Device, Result, Tensor};
 use candle_nn::{Module, VarBuilder};
 use std::sync::Arc;
 

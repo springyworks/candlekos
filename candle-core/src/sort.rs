@@ -58,7 +58,7 @@ mod cuda {
     use crate::cuda_backend::cudarc::driver::{
         CudaSlice, DeviceRepr, LaunchConfig, ValidAsZeroBits,
     };
-    use crate::cuda_backend::{kernel_name, kernels, CudaStorageSlice as S, WrapErr};
+    use crate::cuda_backend::{CudaStorageSlice as S, WrapErr, kernel_name, kernels};
     use crate::{CudaDevice, WithDType};
 
     fn next_power_of_2(x: usize) -> usize {
@@ -156,8 +156,8 @@ impl crate::CustomOp1 for ArgSort {
         storage: &crate::MetalStorage,
         layout: &crate::Layout,
     ) -> Result<(crate::MetalStorage, crate::Shape)> {
-        use crate::backend::BackendStorage;
         use crate::DType;
+        use crate::backend::BackendStorage;
 
         let name = {
             if self.asc {

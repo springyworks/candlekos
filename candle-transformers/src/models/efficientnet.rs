@@ -3,7 +3,7 @@
 //! See:
 //! - ["EfficientBERT: Progressively Searching Multilayer Perceptron Architectures for BERT"](https://arxiv.org/abs/2201.00462)
 //!
-use candle::{Context, Result, Tensor, D};
+use candle::{Context, D, Result, Tensor};
 use candle_nn as nn;
 use nn::{Module, VarBuilder};
 
@@ -175,11 +175,7 @@ impl ConvNormActivation {
 impl Module for ConvNormActivation {
     fn forward(&self, xs: &Tensor) -> Result<Tensor> {
         let xs = self.conv2d.forward(xs)?.apply_t(&self.bn2d, false)?;
-        if self.activation {
-            swish(&xs)
-        } else {
-            Ok(xs)
-        }
+        if self.activation { swish(&xs) } else { Ok(xs) }
     }
 }
 
@@ -265,11 +261,7 @@ impl Module for MBConv {
         let ys = self.depthwise_cna.forward(&ys)?;
         let ys = self.squeeze_excitation.forward(&ys)?;
         let ys = self.project_cna.forward(&ys)?;
-        if use_res_connect {
-            ys + xs
-        } else {
-            Ok(ys)
-        }
+        if use_res_connect { ys + xs } else { Ok(ys) }
     }
 }
 

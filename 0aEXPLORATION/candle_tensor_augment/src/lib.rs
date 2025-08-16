@@ -18,12 +18,23 @@ impl TensorAugment for Tensor {
 pub trait TensorMathFill {
     /// Fill a tensor of shape (h, w) with values from a math expression string.
     /// The expression can use variables x and y (normalized to [0,1]).
-    fn fill_with_expr(h: usize, w: usize, expr: &str, device: &Device) -> candle_core::Result<Tensor>;
+    fn fill_with_expr(
+        h: usize,
+        w: usize,
+        expr: &str,
+        device: &Device,
+    ) -> candle_core::Result<Tensor>;
 }
 
 impl TensorMathFill for Tensor {
-    fn fill_with_expr(h: usize, w: usize, expr: &str, device: &Device) -> candle_core::Result<Tensor> {
-        let parsed = Expr::from_str(expr).map_err(|e| candle_core::Error::Msg(format!("Parse error: {}", e)))?;
+    fn fill_with_expr(
+        h: usize,
+        w: usize,
+        expr: &str,
+        device: &Device,
+    ) -> candle_core::Result<Tensor> {
+        let parsed = Expr::from_str(expr)
+            .map_err(|e| candle_core::Error::Msg(format!("Parse error: {e}")))?;
         let mut data = Vec::with_capacity(h * w);
         for y in 0..h {
             for x in 0..w {
@@ -41,7 +52,7 @@ impl TensorMathFill for Tensor {
                 ctx.func("abs", |v: f64| v.abs());
                 let val = parsed
                     .eval_with_context(ctx)
-                    .map_err(|e| candle_core::Error::Msg(format!("Eval error: {}", e)))?;
+                    .map_err(|e| candle_core::Error::Msg(format!("Eval error: {e}")))?;
                 data.push(val as f32);
             }
         }

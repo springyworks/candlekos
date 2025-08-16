@@ -1665,7 +1665,7 @@ impl BackendStorage for MetalStorage {
             dtype => {
                 return Err(
                     MetalError::Message(format!("mlx matmul doesn't support {dtype:?}")).into(),
-                )
+                );
             }
         };
         candle_metal_kernels::call_mlx_gemm(

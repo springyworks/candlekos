@@ -59,8 +59,18 @@ fn gpu_dft_via_gemm_matches_cpu_small_n() -> Result<()> {
     // Compare with a modest tolerance (O(N^2) dft vs f32 trig)
     let tol = 1e-2f32;
     for i in 0..n {
-        assert!((re_gpu[i] - re_cpu[i]).abs() <= tol * (1.0 + re_cpu[i].abs()), "re[{i}] mismatch: gpu={} cpu={}", re_gpu[i], re_cpu[i]);
-        assert!((im_gpu[i] - im_cpu[i]).abs() <= tol * (1.0 + im_cpu[i].abs()), "im[{i}] mismatch: gpu={} cpu={}", im_gpu[i], im_cpu[i]);
+        assert!(
+            (re_gpu[i] - re_cpu[i]).abs() <= tol * (1.0 + re_cpu[i].abs()),
+            "re[{i}] mismatch: gpu={} cpu={}",
+            re_gpu[i],
+            re_cpu[i]
+        );
+        assert!(
+            (im_gpu[i] - im_cpu[i]).abs() <= tol * (1.0 + im_cpu[i].abs()),
+            "im[{i}] mismatch: gpu={} cpu={}",
+            im_gpu[i],
+            im_cpu[i]
+        );
     }
 
     Ok(())

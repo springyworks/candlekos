@@ -1,7 +1,7 @@
 /// Mistral LLM, https://github.com/mistralai/mistral-src
 use crate::models::{
     mistral::Config,
-    with_tracing::{linear_no_bias, Linear, RmsNorm},
+    with_tracing::{Linear, RmsNorm, linear_no_bias},
 };
 use crate::utils::repeat_kv;
 use candle::{DType, Device, Module, Result, Tensor};

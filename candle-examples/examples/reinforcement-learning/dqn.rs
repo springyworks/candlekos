@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use rand::{distr::Uniform, rng, Rng};
+use rand::{Rng, distr::Uniform, rng};
 
 use candle::{DType, Device, Error, Module, Result, Tensor};
 use candle_nn::loss::mse;
-use candle_nn::{linear, seq, Activation, AdamW, Optimizer, VarBuilder, VarMap};
+use candle_nn::{Activation, AdamW, Optimizer, VarBuilder, VarMap, linear, seq};
 
 use crate::gym_env::GymEnv;
 

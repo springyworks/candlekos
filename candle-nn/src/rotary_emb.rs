@@ -1,6 +1,6 @@
 //! Rotary Embeddings
 //!
-use candle::{CpuStorage, Layout, Result, Shape, Tensor, D};
+use candle::{CpuStorage, D, Layout, Result, Shape, Tensor};
 use rayon::prelude::*;
 
 /// Interleaved variant of rotary embeddings.
@@ -69,8 +69,8 @@ impl candle::CustomOp3 for RotaryEmbI {
             Ok((storage, (b, h, t, d).into()))
         }
 
-        use candle::backend::BackendStorage;
         use CpuStorage::{BF16, F16, F32, F64};
+        use candle::backend::BackendStorage;
         match (s1, s2, s3) {
             (BF16(s1), BF16(s2), BF16(s3)) => inner(s1, l1, s2, l2, s3, l3),
             (F16(s1), F16(s2), F16(s3)) => inner(s1, l1, s2, l2, s3, l3),
@@ -98,7 +98,7 @@ impl candle::CustomOp3 for RotaryEmbI {
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg,
         };
-        use candle::cuda_backend::{kernel_name, kernels, WrapErr};
+        use candle::cuda_backend::{WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         fn inner<T: DeviceRepr + WithDType>(
@@ -351,8 +351,8 @@ impl candle::CustomOp3 for RotaryEmb {
             Ok((storage, (b, h, t, d).into()))
         }
 
-        use candle::backend::BackendStorage;
         use CpuStorage::{BF16, F16, F32, F64};
+        use candle::backend::BackendStorage;
         match (s1, s2, s3) {
             (BF16(s1), BF16(s2), BF16(s3)) => inner(s1, l1, s2, l2, s3, l3),
             (F16(s1), F16(s2), F16(s3)) => inner(s1, l1, s2, l2, s3, l3),
@@ -380,7 +380,7 @@ impl candle::CustomOp3 for RotaryEmb {
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg,
         };
-        use candle::cuda_backend::{kernel_name, kernels, WrapErr};
+        use candle::cuda_backend::{WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         fn inner<T: DeviceRepr + WithDType>(
@@ -620,8 +620,8 @@ impl candle::CustomOp3 for RotaryEmbThd {
             Ok((storage, (b, t, h, d).into()))
         }
 
-        use candle::backend::BackendStorage;
         use CpuStorage::{BF16, F16, F32, F64};
+        use candle::backend::BackendStorage;
         match (s1, s2, s3) {
             (BF16(s1), BF16(s2), BF16(s3)) => inner(s1, l1, s2, l2, s3, l3),
             (F16(s1), F16(s2), F16(s3)) => inner(s1, l1, s2, l2, s3, l3),
@@ -649,7 +649,7 @@ impl candle::CustomOp3 for RotaryEmbThd {
         use candle::cuda_backend::cudarc::driver::{
             CudaSlice, DeviceRepr, LaunchConfig, PushKernelArg,
         };
-        use candle::cuda_backend::{kernel_name, kernels, WrapErr};
+        use candle::cuda_backend::{WrapErr, kernel_name, kernels};
         use candle::{CudaDevice, WithDType};
 
         fn inner<T: DeviceRepr + WithDType>(

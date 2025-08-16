@@ -6,7 +6,7 @@
 //! - 💻 [GH Link](https://github.com/OFA-Sys/Chinese-CLIP)
 //! - 💻 Transformers Python [reference implementation](https://github.com/huggingface/transformers/blob/5af7d41e49bbfc8319f462eb45253dcb3863dfb7/src/transformers/models/chinese_clip/modeling_chinese_clip.py)
 //!
-use candle::{Module, Result, Tensor, D};
+use candle::{D, Module, Result, Tensor};
 use candle_nn as nn;
 
 use text_model::ChineseClipTextTransformer;

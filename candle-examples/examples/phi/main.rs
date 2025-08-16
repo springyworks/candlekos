@@ -16,7 +16,7 @@ use candle_transformers::models::quantized_mixformer::MixFormerSequentialForCaus
 use candle::{DType, Device, IndexOp, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::generation::LogitsProcessor;
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use tokenizers::Tokenizer;
 
 enum Model {
@@ -471,9 +471,9 @@ fn mmlu<P: AsRef<std::path::Path>>(
             let answer_d = row.get(4).unwrap();
             let answer = row.get(5).unwrap();
             let prompt = format!(
-                    "{} {theme}.\n{question}\nA. {answer_a}\nB. {answer_b}\nC. {answer_c}\nD. {answer_d}\nAnswer:\n",
-                    "The following are multiple choice questions (with answers) about"
-                );
+                "{} {theme}.\n{question}\nA. {answer_a}\nB. {answer_b}\nC. {answer_c}\nD. {answer_d}\nAnswer:\n",
+                "The following are multiple choice questions (with answers) about"
+            );
             let tokens = tokenizer.encode(prompt.as_str(), true).map_err(E::msg)?;
             let tokens = tokens.get_ids().to_vec();
             let input = Tensor::new(tokens, device)?.unsqueeze(0)?;

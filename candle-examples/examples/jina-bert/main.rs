@@ -46,7 +46,7 @@ struct Args {
 
 impl Args {
     fn build_model_and_tokenizer(&self) -> anyhow::Result<(BertModel, tokenizers::Tokenizer)> {
-        use hf_hub::{api::sync::Api, Repo, RepoType};
+        use hf_hub::{Repo, RepoType, api::sync::Api};
         let model_name = match self.model.as_ref() {
             Some(model) => model.to_string(),
             None => "jinaai/jina-embeddings-v2-base-en".to_string(),

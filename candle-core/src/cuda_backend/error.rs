@@ -24,7 +24,9 @@ pub enum CudaError {
     #[error("internal error '{0}'")]
     InternalError(&'static str),
 
-    #[error("matmul is only supported for contiguous tensors lstride: {lhs_stride:?} rstride: {rhs_stride:?} mnk: {mnk:?}")]
+    #[error(
+        "matmul is only supported for contiguous tensors lstride: {lhs_stride:?} rstride: {rhs_stride:?} mnk: {mnk:?}"
+    )]
     MatMulNonContiguous {
         lhs_stride: Layout,
         rhs_stride: Layout,

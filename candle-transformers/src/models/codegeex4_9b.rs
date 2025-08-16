@@ -6,8 +6,8 @@
 //! - 💻 [Github](https://github.com/THUDM/CodeGeeX)
 //!
 
-use crate::models::with_tracing::{linear_b as linear, Linear};
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, linear_b as linear};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::VarBuilder;
 
 fn default_one() -> usize {

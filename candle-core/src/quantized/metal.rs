@@ -1,6 +1,6 @@
 use super::{GgmlDType, QStorage};
 use crate::backend::BackendStorage;
-use crate::{DType, MetalDevice, MetalStorage, Result, Shape, D};
+use crate::{D, DType, MetalDevice, MetalStorage, Result, Shape};
 use metal::Buffer;
 use std::sync::Arc;
 

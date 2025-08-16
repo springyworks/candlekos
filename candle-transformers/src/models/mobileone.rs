@@ -4,10 +4,10 @@
 //!
 //! See ["MobileOne: An Improved One millisecond Mobile Backbone"](https://arxiv.org/abs/2206.04040)
 
-use candle::{DType, Result, Tensor, D};
+use candle::{D, DType, Result, Tensor};
 use candle_nn::{
-    batch_norm, conv2d, conv2d_no_bias, linear, ops::sigmoid, BatchNorm, Conv2d, Conv2dConfig,
-    Func, VarBuilder,
+    BatchNorm, Conv2d, Conv2dConfig, Func, VarBuilder, batch_norm, conv2d, conv2d_no_bias, linear,
+    ops::sigmoid,
 };
 
 struct StageConfig {

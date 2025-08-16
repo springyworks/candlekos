@@ -2,7 +2,7 @@ use crate::benchmarks::{BenchDevice, BenchDeviceHandler};
 use candle::{DType, Device, Tensor};
 use candle_nn::ops::softmax_last_dim;
 use criterion::Throughput;
-use criterion::{black_box, criterion_group, Criterion};
+use criterion::{Criterion, black_box, criterion_group};
 use std::time::Instant;
 
 fn run(input: &Tensor) {

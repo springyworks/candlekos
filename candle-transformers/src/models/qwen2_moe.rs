@@ -16,8 +16,8 @@
 //! - [Model Card](https://huggingface.co/Qwen/Qwen2-7B-beta)
 //!
 
-use crate::models::with_tracing::{linear, linear_no_bias, Linear, RmsNorm};
-use candle::{DType, Device, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, RmsNorm, linear, linear_no_bias};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use std::sync::Arc;
 
@@ -353,7 +353,8 @@ impl DecoderLayer {
         vb: VarBuilder,
     ) -> Result<Self> {
         let self_attn = Attention::new(rotary_emb, cfg, vb.pp("self_attn"))?;
-        let mlp = if cfg.num_experts > 0 && (layer_idx + 1).is_multiple_of(cfg.decoder_sparse_step) {
+        let mlp = if cfg.num_experts > 0 && (layer_idx + 1).is_multiple_of(cfg.decoder_sparse_step)
+        {
             MlpOrMoeBlock::MoeBlock(SparseMoeBlock::new(cfg, vb.pp("mlp"))?)
         } else {
             MlpOrMoeBlock::Mlp(MLP::new(cfg.intermediate_size, cfg, vb.pp("mlp"))?)

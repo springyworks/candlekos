@@ -1,5 +1,5 @@
 use candle::{Result, Tensor};
-use candle_nn::{layer_norm, LayerNorm, Linear, Module, VarBuilder};
+use candle_nn::{LayerNorm, Linear, Module, VarBuilder, layer_norm};
 
 #[derive(Debug)]
 struct Attention {

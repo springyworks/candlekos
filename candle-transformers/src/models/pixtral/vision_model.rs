@@ -1,5 +1,5 @@
-use candle::{DType, Device, Module, Result, Tensor, D};
-use candle_nn::{linear_b, rms_norm, Linear, RmsNorm, VarBuilder};
+use candle::{D, DType, Device, Module, Result, Tensor};
+use candle_nn::{Linear, RmsNorm, VarBuilder, linear_b, rms_norm};
 
 fn default_act() -> candle_nn::Activation {
     candle_nn::Activation::Silu

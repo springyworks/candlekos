@@ -1,10 +1,10 @@
 use super::embedding::Model as EmbeddingModel;
 use crate::models::{
     mistral::Config,
-    with_tracing::{layer_norm, linear, linear_no_bias, LayerNorm, Linear},
+    with_tracing::{LayerNorm, Linear, layer_norm, linear, linear_no_bias},
 };
-use candle::{DType, Device, Result, Tensor, D};
-use candle_nn::{ops::softmax_last_dim, LayerNormConfig, Module, VarBuilder};
+use candle::{D, DType, Device, Result, Tensor};
+use candle_nn::{LayerNormConfig, Module, VarBuilder, ops::softmax_last_dim};
 
 // Geglu and feedforward from candle-transformers/src/models/stable_diffusion/attention.rs
 #[derive(Debug)]

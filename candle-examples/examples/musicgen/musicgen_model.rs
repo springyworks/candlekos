@@ -1,7 +1,7 @@
-use candle::{DType, Device, Result, Tensor, D};
+use candle::{D, DType, Device, Result, Tensor};
 use candle_nn::{
-    embedding, layer_norm, linear_no_bias, Activation, Embedding, LayerNorm, Linear, Module,
-    VarBuilder,
+    Activation, Embedding, LayerNorm, Linear, Module, VarBuilder, embedding, layer_norm,
+    linear_no_bias,
 };
 use candle_transformers::models::{encodec, t5};
 

@@ -2,13 +2,13 @@ use std::path::PathBuf;
 
 use anyhow::{Error as E, Result};
 use candle::{Device, Tensor};
-use candle_nn::ops::softmax;
 use candle_nn::VarBuilder;
+use candle_nn::ops::softmax;
 use candle_transformers::models::xlm_roberta::{
     Config, XLMRobertaForMaskedLM, XLMRobertaForSequenceClassification,
 };
 use clap::{Parser, ValueEnum};
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use tokenizers::{PaddingParams, Tokenizer};
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -117,7 +117,9 @@ fn main() -> Result<()> {
             Err(_) => match repo.get("pytorch_model.bin") {
                 Ok(pytorch_model) => pytorch_model,
                 Err(e) => {
-                    return Err(anyhow::Error::msg(format!("Model weights not found. The weights should either be a `model.safetensors` or `pytorch_model.bin` file.  Error: {e}")));
+                    return Err(anyhow::Error::msg(format!(
+                        "Model weights not found. The weights should either be a `model.safetensors` or `pytorch_model.bin` file.  Error: {e}"
+                    )));
                 }
             },
         },

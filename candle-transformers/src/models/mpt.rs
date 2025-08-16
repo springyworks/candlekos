@@ -6,11 +6,11 @@
 //!
 //! The model uses grouped query attention and alibi positional embeddings.
 
-use crate::models::with_tracing::{linear_no_bias, Embedding, Linear};
+use crate::models::with_tracing::{Embedding, Linear, linear_no_bias};
 /// MPT model used by replit-code-v1_5-3b
 /// https://huggingface.co/replit/replit-code-v1_5-3b/blob/main/modeling_mpt.py
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, VarBuilder};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
+use candle_nn::{LayerNorm, VarBuilder, layer_norm};
 
 // https://huggingface.co/replit/replit-code-v1_5-3b/blob/main/configuration_mpt.py
 #[derive(Debug, Clone, PartialEq)]

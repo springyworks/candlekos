@@ -15,10 +15,10 @@
 
 use std::collections::HashMap;
 
-use candle::quantized::gguf_file;
 use candle::quantized::QTensor;
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
-use candle_nn::{kv_cache::KvCache, Embedding, RmsNorm};
+use candle::quantized::gguf_file;
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
+use candle_nn::{Embedding, RmsNorm, kv_cache::KvCache};
 
 #[derive(Debug, Clone)]
 struct QLinear {

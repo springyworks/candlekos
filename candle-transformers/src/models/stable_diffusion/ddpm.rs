@@ -1,4 +1,4 @@
-use super::schedulers::{betas_for_alpha_bar, BetaSchedule, PredictionType};
+use super::schedulers::{BetaSchedule, PredictionType, betas_for_alpha_bar};
 use candle::{Result, Tensor};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

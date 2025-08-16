@@ -1,6 +1,6 @@
-use candle::{DType, Device, IndexOp, Result, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Result, Tensor};
 use candle_nn::{
-    embedding, linear_no_bias as linear, rms_norm, Embedding, Linear, Module, RmsNorm, VarBuilder,
+    Embedding, Linear, Module, RmsNorm, VarBuilder, embedding, linear_no_bias as linear, rms_norm,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

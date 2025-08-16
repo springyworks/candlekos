@@ -1,5 +1,5 @@
-use enterpolation::linear::ConstEquidistantLinear;
 use enterpolation::Generator;
+use enterpolation::linear::ConstEquidistantLinear;
 use palette::LinSrgb;
 
 use candle::Tensor;
@@ -27,7 +27,7 @@ impl SpectralRColormap {
     }
 
     fn get_color(&self, value: f32) -> LinSrgb {
-        self.gradient.gen(value)
+        self.gradient.r#gen(value)
     }
 
     pub fn gray2color(&self, gray: &Tensor) -> candle::Result<Tensor> {

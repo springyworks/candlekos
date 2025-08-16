@@ -1,18 +1,18 @@
 pub(crate) mod affine;
 pub(crate) mod conv_transpose2d;
 pub(crate) mod copy;
-pub(crate) mod matmul;
-pub(crate) mod qmatmul;
-pub(crate) mod random;
-pub(crate) mod reduce;
-pub(crate) mod unary;
-pub(crate) mod where_cond;
 #[cfg(feature = "fft")]
 pub(crate) mod fft;
 #[cfg(feature = "fft")]
 pub(crate) mod fft_large;
 #[cfg(feature = "fft")]
 pub(crate) mod fft_ratio;
+pub(crate) mod matmul;
+pub(crate) mod qmatmul;
+pub(crate) mod random;
+pub(crate) mod reduce;
+pub(crate) mod unary;
+pub(crate) mod where_cond;
 
 use candle_core::{Device, Result};
 

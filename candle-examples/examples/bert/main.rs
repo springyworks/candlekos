@@ -3,13 +3,13 @@ extern crate intel_mkl_src;
 
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
-use candle_transformers::models::bert::{BertModel, Config, HiddenAct, DTYPE};
+use candle_transformers::models::bert::{BertModel, Config, DTYPE, HiddenAct};
 
 use anyhow::{Error as E, Result};
 use candle::Tensor;
 use candle_nn::VarBuilder;
 use clap::Parser;
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use hf_hub::{Repo, RepoType, api::sync::Api};
 use tokenizers::{PaddingParams, Tokenizer};
 
 #[derive(Parser, Debug)]

@@ -14,8 +14,8 @@ use crate::models::clip::vision_model::{ClipVisionConfig, ClipVisionTransformer}
 use crate::models::llama::{Cache, Llama};
 use crate::models::with_tracing::linear;
 
-use candle::{bail, Context, Device, IndexOp, Result, Tensor};
-use candle_nn::{seq, Activation, Module, Sequential, VarBuilder};
+use candle::{Context, Device, IndexOp, Result, Tensor, bail};
+use candle_nn::{Activation, Module, Sequential, VarBuilder, seq};
 use fancy_regex::Regex;
 use utils::get_anyres_image_grid_shape;
 

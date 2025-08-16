@@ -345,7 +345,9 @@ impl Tensor {
                         stride,
                     } => {
                         if kernel_size != stride {
-                            crate::bail!("backward not supported for avgpool2d if ksize {kernel_size:?} != stride {stride:?}")
+                            crate::bail!(
+                                "backward not supported for avgpool2d if ksize {kernel_size:?} != stride {stride:?}"
+                            )
                         }
                         let (_n, _c, h, w) = arg.dims4()?;
                         let grad_arg = grad.upsample_nearest2d(h, w)?;
@@ -360,7 +362,9 @@ impl Tensor {
                         stride,
                     } => {
                         if kernel_size != stride {
-                            crate::bail!("backward not supported for maxpool2d if ksize {kernel_size:?} != stride {stride:?}")
+                            crate::bail!(
+                                "backward not supported for maxpool2d if ksize {kernel_size:?} != stride {stride:?}"
+                            )
                         }
                         let (_n, _c, h, w) = arg.dims4()?;
                         // For computing the max-pool gradient, we compute a mask where a 1 means

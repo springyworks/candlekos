@@ -1,6 +1,6 @@
 // Adapted from:
 // https://github.com/ChaoningZhang/MobileSAM/blob/master/mobile_sam/modeling/tiny_vit_sam.py
-use candle::{IndexOp, Result, Tensor, D};
+use candle::{D, IndexOp, Result, Tensor};
 use candle_nn::{Conv2dConfig, Module, VarBuilder};
 
 const MBCONV_EXPAND_RATIO: usize = 4;

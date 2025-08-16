@@ -15,11 +15,11 @@
 //! - [Mixtral Blog Post](https://mistral.ai/news/mixtral-of-experts/)
 //!
 
-use crate::models::with_tracing::{linear_no_bias, Linear, RmsNorm};
+use crate::models::with_tracing::{Linear, RmsNorm, linear_no_bias};
 /// Mixtral Model
 /// https://github.com/huggingface/transformers/blob/main/src/transformers/models/mixtral/modeling_mixtral.py
 /// https://mistral.ai/news/mixtral-of-experts/
-use candle::{DType, Device, Module, Result, Tensor, D};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use serde::Deserialize;
 use std::sync::Arc;

@@ -6,11 +6,11 @@
 #![allow(unsafe_op_in_unsafe_fn)]
 use float8::F8E4M3;
 use half::{bf16, f16};
+use pyo3::ToPyObject;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{IntoPyDict, PyDict, PyTuple};
-use pyo3::ToPyObject;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
@@ -21,7 +21,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use ::candle::{quantized::QTensor, DType, Device, Module, Tensor, WithDType};
+use ::candle::{DType, Device, Module, Tensor, WithDType, quantized::QTensor};
 
 mod utils;
 use utils::wrap_err;
@@ -1100,7 +1100,7 @@ impl PyTensor {
             dt => {
                 return Err(PyErr::new::<PyValueError, _>(format!(
                     "unknown quantized-dtype {dt}"
-                )))
+                )));
             }
         };
         Ok(PyQTensor(Arc::new(res.map_err(wrap_err)?)))

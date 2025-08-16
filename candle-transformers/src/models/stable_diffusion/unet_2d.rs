@@ -4,7 +4,7 @@
 //! timestep and return a denoised version of the input.
 use super::embeddings::{TimestepEmbedding, Timesteps};
 use super::unet_2d_blocks::*;
-use crate::models::with_tracing::{conv2d, Conv2d};
+use crate::models::with_tracing::{Conv2d, conv2d};
 use candle::{Result, Tensor};
 use candle_nn as nn;
 use candle_nn::Module;
@@ -319,8 +319,8 @@ impl UNet2DConditionModel {
         let n_blocks = self.config.blocks.len();
         let num_upsamplers = n_blocks - 1;
         let default_overall_up_factor = 2usize.pow(num_upsamplers as u32);
-        let forward_upsample_size =
-            !height.is_multiple_of(default_overall_up_factor) || !width.is_multiple_of(default_overall_up_factor);
+        let forward_upsample_size = !height.is_multiple_of(default_overall_up_factor)
+            || !width.is_multiple_of(default_overall_up_factor);
         // 0. center input if necessary
         let xs = if self.config.center_input_sample {
             ((xs * 2.0)? - 1.0)?

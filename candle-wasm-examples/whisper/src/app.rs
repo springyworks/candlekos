@@ -1,9 +1,9 @@
 use crate::console_log;
-use crate::worker::{ModelData, Segment, Worker, WorkerInput, WorkerOutput};
+use crate::whisper_worker::{ModelData, Segment, Worker, WorkerInput, WorkerOutput};
 use js_sys::Date;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use yew::{html, Component, Context, Html};
+use yew::{Component, Context, Html, html};
 use yew_agent::{Bridge, Bridged};
 
 const SAMPLE_NAMES: [&str; 6] = [

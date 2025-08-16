@@ -6,15 +6,15 @@ extern crate intel_mkl_src;
 
 use anyhow::{Error as E, Result};
 use candle::{Device, IndexOp, Tensor};
-use candle_nn::{ops::softmax, VarBuilder};
+use candle_nn::{VarBuilder, ops::softmax};
 use clap::{Parser, ValueEnum};
-use hf_hub::{api::sync::Api, Repo, RepoType};
-use rand::{distr::Distribution, SeedableRng};
+use hf_hub::{Repo, RepoType, api::sync::Api};
+use rand::{SeedableRng, distr::Distribution};
 use tokenizers::Tokenizer;
 
 mod multilingual;
 
-use candle_transformers::models::whisper::{self as m, audio, Config};
+use candle_transformers::models::whisper::{self as m, Config, audio};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
@@ -641,7 +641,9 @@ pub fn main() -> Result<()> {
         } else {
             // efficiently copy the remainder to the beginning of the `buffered_pcm` buffer and
             // truncate it.  That's more efficient then allocating a new vector and copying into it
-            println!("audio device produced partial chunk with {remainder} samples; processing the remainder on the next iteration of the loop");
+            println!(
+                "audio device produced partial chunk with {remainder} samples; processing the remainder on the next iteration of the loop"
+            );
             buffered_pcm.copy_within(full_chunks * 1024.., 0);
             buffered_pcm.truncate(remainder);
         }

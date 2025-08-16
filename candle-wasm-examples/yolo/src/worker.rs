@@ -1,4 +1,4 @@
-use crate::model::{report_detect, report_pose, Bbox, Multiples, YoloV8, YoloV8Pose};
+use crate::model::{Bbox, Multiples, YoloV8, YoloV8Pose, report_detect, report_pose};
 use candle::{DType, Device, Result, Tensor};
 use candle_nn::{Module, VarBuilder};
 use serde::{Deserialize, Serialize};

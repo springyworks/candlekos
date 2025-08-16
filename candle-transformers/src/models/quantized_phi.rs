@@ -17,9 +17,9 @@
 
 use std::collections::HashMap;
 
-use candle::quantized::gguf_file;
 use candle::quantized::QTensor;
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use candle::quantized::gguf_file;
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::{Embedding, LayerNorm};
 
 pub const MAX_SEQ_LEN: usize = 4096;

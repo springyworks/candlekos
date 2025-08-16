@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Error, Result};
 use byteorder::{LittleEndian, ReadBytesExt};
-use candle::{utils, DType, Device, Tensor};
+use candle::{DType, Device, Tensor, utils};
 use candle_nn::VarBuilder;
 use candle_transformers::models::voxtral;
 use candle_transformers::models::voxtral::{

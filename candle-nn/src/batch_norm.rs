@@ -77,7 +77,7 @@ impl BatchNorm {
                 self.running_var.shape(),
             )
         }
-    if let Some((weight, bias)) = self.weight_and_bias.as_ref() {
+        if let Some((weight, bias)) = self.weight_and_bias.as_ref() {
             if weight.dims() != [num_features] {
                 candle::bail!(
                     "batch-norm weight has unexpected shape {:?} should have shape [{num_features}]",

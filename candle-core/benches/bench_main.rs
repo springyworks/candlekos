@@ -1,5 +1,5 @@
 mod benchmarks;
-use criterion::{criterion_main, criterion_group, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn all_benches(_c: &mut Criterion) {
     benchmarks::affine::benches();

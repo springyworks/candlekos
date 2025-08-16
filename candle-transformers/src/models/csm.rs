@@ -7,8 +7,8 @@
 /// smaller audio decoder that produces Mimi audio codes.
 ///
 use crate::generation::LogitsProcessor;
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
-use candle_nn::{embedding, linear_b, Embedding, Linear, RmsNorm, VarBuilder};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
+use candle_nn::{Embedding, Linear, RmsNorm, VarBuilder, embedding, linear_b};
 use std::sync::Arc;
 
 #[derive(serde::Deserialize, Debug, Clone, Copy, PartialEq, Eq)]

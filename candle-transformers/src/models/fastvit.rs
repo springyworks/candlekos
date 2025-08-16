@@ -5,10 +5,10 @@
 //!
 //! Implementation based on [timm model](https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/fastvit.py)
 
-use candle::{Context, DType, Result, Tensor, D};
+use candle::{Context, D, DType, Result, Tensor};
 use candle_nn::{
-    batch_norm, conv2d, conv2d_no_bias, linear, linear_no_bias, ops::sigmoid, ops::softmax,
-    BatchNorm, Conv2d, Conv2dConfig, Func, VarBuilder,
+    BatchNorm, Conv2d, Conv2dConfig, Func, VarBuilder, batch_norm, conv2d, conv2d_no_bias, linear,
+    linear_no_bias, ops::sigmoid, ops::softmax,
 };
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]

@@ -1,6 +1,6 @@
 use candle::{DType, Device, Error, Tensor};
 
-use crate::models::whisper::audio::{log_mel_spectrogram_, Float};
+use crate::models::whisper::audio::{Float, log_mel_spectrogram_};
 
 pub fn pcm_to_mel<T: Float>(samples: &[T], filters: &[T]) -> Vec<T> {
     log_mel_spectrogram_(

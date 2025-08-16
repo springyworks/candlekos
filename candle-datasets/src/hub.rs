@@ -1,6 +1,6 @@
 use hf_hub::{
-    api::sync::{Api, ApiRepo},
     Repo, RepoType,
+    api::sync::{Api, ApiRepo},
 };
 use parquet::file::reader::SerializedFileReader;
 use std::fs::File;

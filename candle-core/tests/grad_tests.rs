@@ -1,6 +1,6 @@
 #![allow(clippy::approx_constant)]
 use anyhow::{Context, Result};
-use candle_core::{test_device, test_utils, DType, Device, Shape, Tensor, Var};
+use candle_core::{DType, Device, Shape, Tensor, Var, test_device, test_utils};
 
 fn simple_grad(device: &Device) -> Result<()> {
     let x = Var::new(&[3f32, 1., 4.], device)?;

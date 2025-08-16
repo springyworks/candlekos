@@ -1,7 +1,7 @@
 use super::voxtral_llama::{VoxtralLlama, VoxtralLlamaCache, VoxtralLlamaConfig};
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::{
-    layer_norm, linear, linear_no_bias, Conv1d, Dropout, LayerNorm, Linear, VarBuilder,
+    Conv1d, Dropout, LayerNorm, Linear, VarBuilder, layer_norm, linear, linear_no_bias,
 };
 use rand::Rng;
 
@@ -844,24 +844,24 @@ impl VoxtralForConditionalGeneration {
         let mut inputs_embeds = self.language_model.embed(input_ids)?;
 
         // If audio features are provided and not yet processed
-        if let Some(features) = input_features {
-            if !cache.audio_processed {
-                let audio_embeds = self.get_audio_embeds(features)?;
+        if let Some(features) = input_features
+            && !cache.audio_processed
+        {
+            let audio_embeds = self.get_audio_embeds(features)?;
 
-                let audio_positions = find_audio_token_positions(input_ids, self.audio_token_id)?;
+            let audio_positions = find_audio_token_positions(input_ids, self.audio_token_id)?;
 
-                // Cache for future use
-                cache.cached_audio_embeds = Some(audio_embeds.clone());
-                cache.cached_audio_positions = Some(audio_positions.clone());
-                cache.audio_processed = true;
+            // Cache for future use
+            cache.cached_audio_embeds = Some(audio_embeds.clone());
+            cache.cached_audio_positions = Some(audio_positions.clone());
+            cache.audio_processed = true;
 
-                inputs_embeds = replace_audio_tokens(
-                    &inputs_embeds,
-                    &audio_embeds,
-                    &audio_positions,
-                    input_ids.device(),
-                )?;
-            }
+            inputs_embeds = replace_audio_tokens(
+                &inputs_embeds,
+                &audio_embeds,
+                &audio_positions,
+                input_ids.device(),
+            )?;
         }
 
         // Forward through language model using forward_input_embed
@@ -888,10 +888,10 @@ impl VoxtralForConditionalGeneration {
             );
         }
 
-        if let Some(p) = config.top_p {
-            if !(0.0..=1.0).contains(&p) {
-                candle::bail!("top_p must be between 0 and 1, got {}", p);
-            }
+        if let Some(p) = config.top_p
+            && !(0.0..=1.0).contains(&p)
+        {
+            candle::bail!("top_p must be between 0 and 1, got {}", p);
         }
 
         let mut final_cache = if let Some(cache) = config.cache {

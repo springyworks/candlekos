@@ -16,9 +16,9 @@
 //!
 
 use crate::models::with_tracing::QMatMul;
-use crate::quantized_nn::{layer_norm, linear, Embedding, Linear};
+use crate::quantized_nn::{Embedding, Linear, layer_norm, linear};
 pub use crate::quantized_var_builder::VarBuilder;
-use candle::{Module, Result, Tensor, D};
+use candle::{D, Module, Result, Tensor};
 use candle_nn::LayerNorm;
 
 pub type Config = super::blip_text::Config;

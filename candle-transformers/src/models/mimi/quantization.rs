@@ -2,8 +2,8 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-use candle::{IndexOp, Layout, Result, Shape, Tensor, D};
-use candle_nn::{linear, Linear, VarBuilder};
+use candle::{D, IndexOp, Layout, Result, Shape, Tensor};
+use candle_nn::{Linear, VarBuilder, linear};
 
 struct CodebookEncode;
 

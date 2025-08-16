@@ -8,7 +8,7 @@ use anyhow::Error as E;
 use clap::{Parser, ValueEnum};
 
 use candle::{DType, Device, Tensor};
-use candle_nn::{ops::softmax, VarBuilder};
+use candle_nn::{VarBuilder, ops::softmax};
 use candle_transformers::models::mobileclip;
 
 use tokenizers::Tokenizer;
@@ -99,7 +99,13 @@ pub fn main() -> anyhow::Result<()> {
     let vb = if args.use_pth {
         VarBuilder::from_pth(&model_file, DType::F32, &device)?
     } else {
-        unsafe { VarBuilder::from_mmaped_safetensors(std::slice::from_ref(&model_file), DType::F32, &device)? }
+        unsafe {
+            VarBuilder::from_mmaped_safetensors(
+                std::slice::from_ref(&model_file),
+                DType::F32,
+                &device,
+            )?
+        }
     };
 
     let model = mobileclip::MobileClipModel::new(vb, config)?;

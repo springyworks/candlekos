@@ -15,9 +15,9 @@
 //!
 
 use crate::quantized_nn::RmsNorm;
-use candle::quantized::gguf_file;
-use candle::quantized::QTensor;
 use candle::D;
+use candle::quantized::QTensor;
+use candle::quantized::gguf_file;
 use candle::{DType, Device, IndexOp, Result, Tensor};
 use candle_nn::{Embedding, Module};
 

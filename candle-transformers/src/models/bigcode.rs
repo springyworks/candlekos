@@ -21,8 +21,8 @@
 //! ```
 //!
 
-use candle::{DType, Device, IndexOp, Result, Tensor, D};
-use candle_nn::{embedding, linear_b as linear, Embedding, LayerNorm, Linear, Module, VarBuilder};
+use candle::{D, DType, Device, IndexOp, Result, Tensor};
+use candle_nn::{Embedding, LayerNorm, Linear, Module, VarBuilder, embedding, linear_b as linear};
 
 fn layer_norm(size: usize, eps: f64, vb: VarBuilder) -> Result<LayerNorm> {
     let weight = vb.get(size, "weight")?;

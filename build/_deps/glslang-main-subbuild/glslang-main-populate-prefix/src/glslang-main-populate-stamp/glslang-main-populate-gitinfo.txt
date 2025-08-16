@@ -1,0 +1,15 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=git
+command=/usr/bin/cmake;-P;/home/rustuser/projects/rust/from_github/candle/build/_deps/glslang-main-subbuild/glslang-main-populate-prefix/tmp/glslang-main-populate-gitclone.cmake
+source_dir=/home/rustuser/projects/rust/from_github/candle/third_party/VkFFT/glslang-main
+work_dir=/home/rustuser/projects/rust/from_github/candle/third_party/VkFFT
+repository=https://github.com/KhronosGroup/glslang
+remote=origin
+init_submodules=TRUE
+recurse_submodules=--recursive
+submodules=
+CMP0097=NEW
+

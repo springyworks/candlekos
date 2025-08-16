@@ -8,9 +8,9 @@
 //!
 use super::with_tracing::QMatMul;
 use crate::{quantized_nn::RmsNorm, utils::repeat_kv};
-use candle::quantized::{gguf_file, QTensor};
+use candle::quantized::{QTensor, gguf_file};
 use candle::{DType, Device, Result, Tensor};
-use candle_nn::{kv_cache::KvCache, Activation, Embedding, Module};
+use candle_nn::{Activation, Embedding, Module, kv_cache::KvCache};
 use std::io::{Read, Seek};
 use std::sync::Arc;
 
@@ -398,11 +398,7 @@ impl ModelWeights {
                         Some(w) => (i + offset) as i64 - j as i64 <= w as i64,
                         None => true,
                     };
-                    if past_ok && sw_ok {
-                        0.
-                    } else {
-                        minf
-                    }
+                    if past_ok && sw_ok { 0. } else { minf }
                 })
             })
             .collect();

@@ -28,20 +28,38 @@ fn run_temp_file_executes_and_cleans() -> Result<(), Box<dyn std::error::Error>>
     // error. So instead we copy into the exploration crate directory to ensure ownership.
     // Choose candle-exploration crate root (assumed present).
     let exploration_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent().unwrap() // move out of xtask/
+        .parent()
+        .unwrap() // move out of xtask/
         .join("candle-exploration");
     assert!(exploration_root.exists());
     let target_file = exploration_root.join("standalone_temp_run.rs");
-    fs::write(&target_file, r#"fn main(){ println!("XTASK_ARG_FORWARD:{}", std::env::args().skip(1).next().unwrap_or_default()); }"#)?;
+    fs::write(
+        &target_file,
+        r#"fn main(){ println!("XTASK_ARG_FORWARD:{}", std::env::args().skip(1).next().unwrap_or_default()); }"#,
+    )?;
 
     let mut cmd = assert_cmd::Command::new(cargo_bin());
-    cmd.arg("run-file").arg(target_file.to_string_lossy().to_string()).arg("--").arg("ARG42");
-    cmd.assert().success().stdout(predicates::str::contains("XTASK_ARG_FORWARD:ARG42"));
+    cmd.arg("run-file")
+        .arg(target_file.to_string_lossy().to_string())
+        .arg("--")
+        .arg("ARG42");
+    cmd.assert()
+        .success()
+        .stdout(predicates::str::contains("XTASK_ARG_FORWARD:ARG42"));
 
     // Ensure temp file cleaned (pattern __xtask_temp_*)
     let bin_dir = exploration_root.join("src").join("bin");
     if bin_dir.exists() {
-        for entry in fs::read_dir(&bin_dir)? { let p = entry?.path(); if p.file_name().and_then(|s| s.to_str()).map(|n| n.starts_with("__xtask_temp_")).unwrap_or(false) { panic!("temporary bin not cleaned: {}", p.display()); } }
+        for entry in fs::read_dir(&bin_dir)? {
+            let p = entry?.path();
+            if p.file_name()
+                .and_then(|s| s.to_str())
+                .map(|n| n.starts_with("__xtask_temp_"))
+                .unwrap_or(false)
+            {
+                panic!("temporary bin not cleaned: {}", p.display());
+            }
+        }
     }
 
     fs::remove_file(target_file)?;

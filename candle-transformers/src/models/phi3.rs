@@ -19,8 +19,8 @@
 
 // This implementation is based on:
 // https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/modeling_phi3.py
-use crate::models::with_tracing::{linear_no_bias as linear, Linear, RmsNorm};
-use candle::{DType, Device, IndexOp, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, RmsNorm, linear_no_bias as linear};
+use candle::{D, DType, Device, IndexOp, Module, Result, Tensor};
 use candle_nn::VarBuilder;
 use std::sync::Arc;
 

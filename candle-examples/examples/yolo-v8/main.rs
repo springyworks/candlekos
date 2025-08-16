@@ -9,7 +9,7 @@ use model::{Multiples, YoloV8, YoloV8Pose};
 
 use candle::{DType, Device, IndexOp, Result, Tensor};
 use candle_nn::{Module, VarBuilder};
-use candle_transformers::object_detection::{non_maximum_suppression, Bbox, KeyPoint};
+use candle_transformers::object_detection::{Bbox, KeyPoint, non_maximum_suppression};
 use clap::{Parser, ValueEnum};
 use image::DynamicImage;
 

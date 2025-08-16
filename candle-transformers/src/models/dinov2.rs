@@ -37,8 +37,8 @@
 //! ```
 //!
 
-use candle::{IndexOp, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, Linear, Module, VarBuilder};
+use candle::{D, IndexOp, Result, Tensor};
+use candle_nn::{LayerNorm, Linear, Module, VarBuilder, layer_norm};
 
 const IMG_SIZE: usize = 518;
 const PATCH_SIZE: usize = 14;

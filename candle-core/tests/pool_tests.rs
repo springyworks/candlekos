@@ -1,4 +1,4 @@
-use candle_core::{test_device, test_utils, Device, IndexOp, Result, Tensor};
+use candle_core::{Device, IndexOp, Result, Tensor, test_device, test_utils};
 
 // https://github.com/huggingface/candle/issues/364
 fn avg_pool2d(dev: &Device) -> Result<()> {

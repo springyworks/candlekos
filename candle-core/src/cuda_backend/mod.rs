@@ -2,7 +2,7 @@
 //!
 use crate::backend::{BackendDevice, BackendStorage};
 use crate::op::{BinaryOpT, CmpOp, ReduceOp, UnaryOpT};
-use crate::{builder_arg as barg, CpuStorage, DType, Layout, Result, WithDType};
+use crate::{CpuStorage, DType, Layout, Result, WithDType, builder_arg as barg};
 pub use candle_kernels as kernels;
 pub use cudarc;
 use cudarc::cublas::{Gemm, GemmConfig, StridedBatchedConfig};
@@ -12,18 +12,18 @@ use cudarc::driver::{
 use float8::F8E4M3;
 use half::{bf16, f16};
 
+#[cfg(feature = "cuda")]
+pub mod cuda_fft;
 #[cfg(feature = "cudnn")]
 pub mod cudnn;
 mod device;
 mod error;
 mod utils;
 #[cfg(feature = "cuda")]
-pub mod cuda_fft;
+pub use cuda_fft::*;
 pub use device::{CudaDevice, DeviceId};
 pub use error::{CudaError, WrapErr};
 pub use utils::{Map1, Map1Any, Map2, Map2Any, Map2InPlace, Map3, S};
-#[cfg(feature = "cuda")]
-pub use cuda_fft::*;
 
 pub enum SlicePtrOrNull<T> {
     Ptr(CudaSlice<T>),
@@ -107,16 +107,16 @@ impl Map1 for Affine {
         let dims = shape.dims();
         let el = shape.elem_count();
         let cfg = LaunchConfig::for_num_elems(el as u32);
-    let host_ds: Vec<usize> = [dims, layout.stride()].concat();
-    let ds = dev.memcpy_stod(&host_ds)?;
-    let src = &src.slice(layout.start_offset()..);
+        let host_ds: Vec<usize> = [dims, layout.stride()].concat();
+        let ds = dev.memcpy_stod(&host_ds)?;
+        let src = &src.slice(layout.start_offset()..);
         let func = dev.get_or_load_func(&kernel_name::<T>("affine"), &kernels::AFFINE)?;
         // SAFETY: Set later by running the kernel.
         let out = unsafe { dev.alloc::<T>(el)? };
         let mut builder = func.builder();
         barg!(builder, el);
-    barg!(builder, dims.len());
-    builder.arg(&ds);
+        barg!(builder, dims.len());
+        builder.arg(&ds);
         builder.arg(src);
         builder.arg(&out);
         barg!(builder, T::from_f64(self.0));
@@ -139,17 +139,17 @@ impl Map1 for Elu {
         let dims = shape.dims();
         let el = shape.elem_count();
         let cfg = LaunchConfig::for_num_elems(el as u32);
-    // Always materialize dims + strides buffer
-    let host_ds: Vec<usize> = [dims, layout.stride()].concat();
-    let ds = dev.memcpy_stod(&host_ds)?;
-    let src = &src.slice(layout.start_offset()..);
+        // Always materialize dims + strides buffer
+        let host_ds: Vec<usize> = [dims, layout.stride()].concat();
+        let ds = dev.memcpy_stod(&host_ds)?;
+        let src = &src.slice(layout.start_offset()..);
         let func = dev.get_or_load_func(&kernel_name::<T>("uelu"), &kernels::UNARY)?;
         // SAFETY: Set later by running the kernel.
         let out = unsafe { dev.alloc::<T>(el)? };
         let mut builder = func.builder();
         barg!(builder, el);
         barg!(builder, dims.len());
-    builder.arg(&ds);
+        builder.arg(&ds);
         barg!(builder, T::from_f64(self.0));
         builder.arg(src);
         builder.arg(&out);
@@ -417,44 +417,69 @@ impl ScanDim {
     ) -> Result<CudaSlice<T>> {
         let shape = layout.shape();
         let dims = shape.dims();
-        if dims.is_empty() { return src.try_clone().w(); }
-        if self.dim >= dims.len() { Err(crate::Error::DimOutOfRange { shape: shape.clone(), dim: self.dim as i32, op: "scan" }.bt())? }
+        if dims.is_empty() {
+            return src.try_clone().w();
+        }
+        if self.dim >= dims.len() {
+            Err(crate::Error::DimOutOfRange {
+                shape: shape.clone(),
+                dim: self.dim as i32,
+                op: "scan",
+            }
+            .bt())?
+        }
         let scan_len = dims[self.dim];
-        if scan_len == 0 { return src.try_clone().w(); }
-        if scan_len > 1024 { Err(crate::Error::Msg(format!("scan length {} > 1024 not yet supported (multi-block todo)", scan_len)).bt())? }
+        if scan_len == 0 {
+            return src.try_clone().w();
+        }
+        if scan_len > 1024 {
+            Err(crate::Error::Msg(format!(
+                "scan length {} > 1024 not yet supported (multi-block todo)",
+                scan_len
+            ))
+            .bt())?
+        }
         let total_el = shape.elem_count();
         let lines = total_el / scan_len;
         let block_dim = scan_len.next_power_of_two();
-    let num_warps = (block_dim + 31) / 32;
-    let _shared_elems = num_warps + 1; // extra slot for segment total (currently unused)
-    let cfg = LaunchConfig { grid_dim: (lines as u32, 1, 1), block_dim: (block_dim as u32, 1, 1), shared_mem_bytes: 0 };
+        let num_warps = (block_dim + 31) / 32;
+        let _shared_elems = num_warps + 1; // extra slot for segment total (currently unused)
+        let cfg = LaunchConfig {
+            grid_dim: (lines as u32, 1, 1),
+            block_dim: (block_dim as u32, 1, 1),
+            shared_mem_bytes: 0,
+        };
         // Always materialize dims + strides buffer
         let host_ds: Vec<usize> = [dims, layout.stride()].concat();
         let ds_slice = dev.memcpy_stod(&host_ds)?;
         let src = &src.slice(layout.start_offset()..);
         let out = unsafe { dev.alloc::<T>(total_el)? };
-        let kbase = if self.inclusive { "scan_inclusive" } else { "scan_exclusive" };
+        let kbase = if self.inclusive {
+            "scan_inclusive"
+        } else {
+            "scan_exclusive"
+        };
         let func = dev.get_or_load_func(&kernel_name::<T>(kbase), &kernels::SCAN)?;
-    let mut builder = func.builder();
-    barg!(builder, total_el);
-    // storage length (elements) after slicing start_offset
-    let storage_len = src.len();
-    barg!(builder, storage_len);
-    barg!(builder, dims.len());
+        let mut builder = func.builder();
+        barg!(builder, total_el);
+        // storage length (elements) after slicing start_offset
+        let storage_len = src.len();
+        barg!(builder, storage_len);
+        barg!(builder, dims.len());
         builder.arg(&ds_slice);
         builder.arg(src);
         builder.arg(&out);
         barg!(builder, self.dim);
         // debug pointer: allocate one u64 initialized to 0
-    let mut debug_dev = unsafe { dev.alloc::<u64>(1)? };
-    let zero: [u64; 1] = [0];
-    let stream = dev.cuda_stream();
-    stream.memcpy_htod(&zero, &mut debug_dev).w()?;
+        let mut debug_dev = unsafe { dev.alloc::<u64>(1)? };
+        let zero: [u64; 1] = [0];
+        let stream = dev.cuda_stream();
+        stream.memcpy_htod(&zero, &mut debug_dev).w()?;
         builder.arg(&debug_dev);
         unsafe { builder.launch(cfg) }.w()?;
         // copy back debug flag
         let mut debug_host = [0u64; 1];
-    stream.memcpy_dtoh(&debug_dev, &mut debug_host).w()?;
+        stream.memcpy_dtoh(&debug_dev, &mut debug_host).w()?;
         if debug_host[0] != 0 {
             let tag = debug_host[0] & 0xFFFF_0000_0000_0000u64;
             let val = debug_host[0] & 0x0000_FFFF_FFFF_FFFFu64;

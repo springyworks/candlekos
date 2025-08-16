@@ -1,4 +1,4 @@
-use candle::{DType, Module, Result, Tensor, D};
+use candle::{D, DType, Module, Result, Tensor};
 use candle_nn::VarBuilder;
 
 // https://github.com/huggingface/diffusers/blob/19edca82f1ff194c07317369a92b470dbae97f34/src/diffusers/pipelines/wuerstchen/modeling_wuerstchen_common.py#L22

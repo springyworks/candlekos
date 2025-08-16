@@ -1,5 +1,5 @@
 use candle::{DType, IndexOp, Result, Tensor};
-use candle_nn::{layer_norm, LayerNorm, Module, VarBuilder};
+use candle_nn::{LayerNorm, Module, VarBuilder, layer_norm};
 
 #[derive(Debug)]
 struct PatchEmbed {

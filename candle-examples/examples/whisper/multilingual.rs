@@ -1,4 +1,4 @@
-use candle::{IndexOp, Result, Tensor, D};
+use candle::{D, IndexOp, Result, Tensor};
 use tokenizers::Tokenizer;
 
 const LANGUAGES: [(&str, &str); 99] = [
@@ -134,6 +134,6 @@ pub fn detect_language(
     for ((_, language), p) in probs.iter().take(5) {
         println!("{language}: {p}")
     }
-    let language = crate::token_id(tokenizer, &format!("<|{}|>", probs[0].0 .0))?;
+    let language = crate::token_id(tokenizer, &format!("<|{}|>", probs[0].0.0))?;
     Ok(language)
 }

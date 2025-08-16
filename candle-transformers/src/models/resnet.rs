@@ -10,8 +10,8 @@
 //! This paper introduced ResNet, a deep neural network architecture that utilizes
 //! skip connections ("residual connections") to enable training of very deep networks.
 
-use candle::{Result, D};
-use candle_nn::{batch_norm, Conv2d, Func, VarBuilder};
+use candle::{D, Result};
+use candle_nn::{Conv2d, Func, VarBuilder, batch_norm};
 
 fn conv2d(
     c_in: usize,

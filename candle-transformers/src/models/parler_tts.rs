@@ -18,7 +18,7 @@
 use crate::generation::LogitsProcessor;
 use crate::models::t5;
 use candle::{IndexOp, Result, Tensor};
-use candle_nn::{layer_norm, linear_b as linear, Activation, LayerNorm, Linear, VarBuilder};
+use candle_nn::{Activation, LayerNorm, Linear, VarBuilder, layer_norm, linear_b as linear};
 
 #[derive(serde::Deserialize, Debug, Clone)]
 pub struct DecoderConfig {

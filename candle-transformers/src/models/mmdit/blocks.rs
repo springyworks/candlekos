@@ -1,4 +1,4 @@
-use candle::{Module, Result, Tensor, D};
+use candle::{D, Module, Result, Tensor};
 use candle_nn as nn;
 
 use super::projections::{AttnProjections, Mlp, Qkv, QkvOnlyAttnProjections};

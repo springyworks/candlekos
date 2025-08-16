@@ -35,10 +35,10 @@
 //!   <img src="https://github.com/huggingface/candle/raw/main/candle-examples/examples/yolo-v8/assets/bike.jpg" alt="" width=640>
 //! </div>
 //!
-use candle::{Result, Tensor, D};
+use candle::{D, Result, Tensor};
 use candle_nn::{
-    batch_norm, conv2d, conv2d_no_bias, linear, ops::sigmoid, ops::softmax, Conv2dConfig, Func,
-    VarBuilder,
+    Conv2dConfig, Func, VarBuilder, batch_norm, conv2d, conv2d_no_bias, linear, ops::sigmoid,
+    ops::softmax,
 };
 
 #[derive(Clone)]

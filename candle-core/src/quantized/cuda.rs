@@ -1,7 +1,7 @@
 use super::{GgmlDType, QStorage};
 use crate::quantized::k_quants::GgmlType;
+use crate::{CudaDevice, CudaStorage, Result, builder_arg as barg};
 use crate::{backend::BackendDevice, cuda_backend::WrapErr};
-use crate::{builder_arg as barg, CudaDevice, CudaStorage, Result};
 use half::f16;
 
 use cudarc::driver::{CudaSlice, CudaView, PushKernelArg};

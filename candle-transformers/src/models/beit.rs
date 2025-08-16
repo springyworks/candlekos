@@ -5,8 +5,8 @@
 //! - [Github](https://github.com/microsoft/unilm/tree/master/beit)
 //!
 
-use candle::{DType, Device, IndexOp, Result, Tensor, D};
-use candle_nn::{layer_norm, LayerNorm, Linear, Module, VarBuilder};
+use candle::{D, DType, Device, IndexOp, Result, Tensor};
+use candle_nn::{LayerNorm, Linear, Module, VarBuilder, layer_norm};
 
 const IMG_SIZE: usize = 384;
 const PATCH_SIZE: usize = 16;

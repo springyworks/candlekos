@@ -1,4 +1,4 @@
-use candle::{DType, IndexOp, Result, Tensor, D};
+use candle::{D, DType, IndexOp, Result, Tensor};
 use candle_nn::{LayerNorm, Linear, RmsNorm, VarBuilder};
 
 // https://github.com/black-forest-labs/flux/blob/727e3a71faf37390f318cf9434f0939653302b60/src/flux/model.py#L12

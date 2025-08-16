@@ -1,5 +1,5 @@
 use crate::cuda_backend::{CudaStorage, CudaStorageSlice};
-use crate::{CudaDevice, Result, Layout, bail};
+use crate::{CudaDevice, Layout, Result, bail};
 
 /// FFT operation configuration
 #[derive(Debug, Clone, Copy)]
@@ -11,7 +11,11 @@ pub struct FftConfig {
 
 impl Default for FftConfig {
     fn default() -> Self {
-        Self { forward: true, normalized: true, real_input: false }
+        Self {
+            forward: true,
+            normalized: true,
+            real_input: false,
+        }
     }
 }
 
@@ -22,7 +26,9 @@ pub struct CudaFft {
 }
 
 impl CudaFft {
-    pub fn new(config: FftConfig, dim: usize) -> Self { Self { config, dim } }
+    pub fn new(config: FftConfig, dim: usize) -> Self {
+        Self { config, dim }
+    }
 
     pub fn fft_f32(
         &self,
@@ -31,7 +37,9 @@ impl CudaFft {
         _layout: &Layout,
     ) -> Result<CudaStorage> {
         // TODO: Implement using cuFFT once APIs are available in the cudarc version pinned by the workspace.
-        bail!("CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup.")
+        bail!(
+            "CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup."
+        )
     }
 
     pub fn fft2_f32(
@@ -40,7 +48,9 @@ impl CudaFft {
         _dev: &CudaDevice,
         _layout: &Layout,
     ) -> Result<CudaStorage> {
-        bail!("CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup.")
+        bail!(
+            "CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup."
+        )
     }
 
     pub fn magnitude(
@@ -49,7 +59,9 @@ impl CudaFft {
         _output: &mut CudaStorage,
         _dev: &CudaDevice,
     ) -> Result<()> {
-        bail!("CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup.")
+        bail!(
+            "CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup."
+        )
     }
 
     pub fn phase(
@@ -58,6 +70,8 @@ impl CudaFft {
         _output: &mut CudaStorage,
         _dev: &CudaDevice,
     ) -> Result<()> {
-        bail!("CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup.")
+        bail!(
+            "CUDA FFT implementation requires cuFFT APIs in cudarc. Use CPU FFT (feature `fft`) or enable a compatible setup."
+        )
     }
 }

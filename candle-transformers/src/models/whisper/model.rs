@@ -1,7 +1,7 @@
 use super::Config;
-use crate::models::with_tracing::{linear, linear_no_bias, Linear};
-use candle::{Device, IndexOp, Result, Tensor, D};
-use candle_nn::{embedding, Conv1d, Conv1dConfig, Embedding, LayerNorm, Module, VarBuilder};
+use crate::models::with_tracing::{Linear, linear, linear_no_bias};
+use candle::{D, Device, IndexOp, Result, Tensor};
+use candle_nn::{Conv1d, Conv1dConfig, Embedding, LayerNorm, Module, VarBuilder, embedding};
 
 fn conv1d(
     in_channels: usize,

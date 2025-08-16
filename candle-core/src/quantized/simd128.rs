@@ -1,4 +1,4 @@
-use super::k_quants::{BlockQ2K, BlockQ4K, BlockQ4_0, BlockQ6K, BlockQ8K, BlockQ8_0, QK8_0, QK_K};
+use super::k_quants::{BlockQ2K, BlockQ4_0, BlockQ4K, BlockQ6K, BlockQ8_0, BlockQ8K, QK_K, QK8_0};
 use crate::Result;
 use byteorder::{ByteOrder, LittleEndian};
 use half::f16;

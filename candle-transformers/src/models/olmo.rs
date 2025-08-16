@@ -14,8 +14,8 @@
 //! - [OLMo Paper](https://allenai.org/olmo)
 //!
 
-use candle::{DType, Device, Module, Result, Tensor, D};
-use candle_nn::{linear_b, linear_no_bias, Activation, LayerNorm, Linear, VarBuilder};
+use candle::{D, DType, Device, Module, Result, Tensor};
+use candle_nn::{Activation, LayerNorm, Linear, VarBuilder, linear_b, linear_no_bias};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, serde::Deserialize)]

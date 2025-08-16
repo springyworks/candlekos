@@ -15,8 +15,8 @@
 //! - Grouped-query attention for efficient inference
 //!
 
-use crate::models::with_tracing::{linear_no_bias, Linear, RmsNorm};
-use candle::{DType, Device, Module, Result, Tensor, D};
+use crate::models::with_tracing::{Linear, RmsNorm, linear_no_bias};
+use candle::{D, DType, Device, Module, Result, Tensor};
 use candle_nn::{Activation, VarBuilder};
 use std::sync::Arc;
 

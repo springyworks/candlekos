@@ -1,5 +1,5 @@
 //! Attention Based Building Blocks
-use candle::{DType, IndexOp, Result, Tensor, D};
+use candle::{D, DType, IndexOp, Result, Tensor};
 use candle_nn as nn;
 use candle_nn::Module;
 

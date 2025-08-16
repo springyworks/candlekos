@@ -1,6 +1,6 @@
 //! 1D and 2D Convolutions
 //!
-use crate::{op::BackpropOp, op::Op, Error, Result, Tensor};
+use crate::{Error, Result, Tensor, op::BackpropOp, op::Op};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParamsConv1D {

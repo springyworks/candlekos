@@ -5,7 +5,7 @@
 /// An efficient neural codec for compressing/decompressing audio
 ///
 use crate::models::encodec;
-use candle::{IndexOp, Result, Tensor, D};
+use candle::{D, IndexOp, Result, Tensor};
 use candle_nn::{Conv1d, Conv1dConfig, ConvTranspose1d, ConvTranspose1dConfig, VarBuilder};
 
 #[derive(serde::Deserialize, Debug, Clone)]

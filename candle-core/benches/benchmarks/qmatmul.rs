@@ -1,9 +1,9 @@
 use crate::benchmarks::{BenchDevice, BenchDeviceHandler};
 use candle_core::{
-    quantized::{self, GgmlDType, QMatMul},
     Device, Module, Tensor,
+    quantized::{self, GgmlDType, QMatMul},
 };
-use criterion::{black_box, criterion_group, Criterion, Throughput};
+use criterion::{Criterion, Throughput, black_box, criterion_group};
 use std::time::Instant;
 
 fn run(matmul: &QMatMul, x: &Tensor) {

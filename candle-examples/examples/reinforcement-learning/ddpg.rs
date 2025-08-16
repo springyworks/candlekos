@@ -2,10 +2,10 @@ use std::collections::VecDeque;
 
 use candle::{DType, Device, Error, Module, Result, Tensor, Var};
 use candle_nn::{
-    func, linear, sequential::seq, Activation, AdamW, Optimizer, ParamsAdamW, Sequential,
-    VarBuilder, VarMap,
+    Activation, AdamW, Optimizer, ParamsAdamW, Sequential, VarBuilder, VarMap, func, linear,
+    sequential::seq,
 };
-use rand::{distr::Uniform, rng, Rng};
+use rand::{Rng, distr::Uniform, rng};
 
 use super::gym_env::GymEnv;
 

@@ -32,6 +32,41 @@ pub fn set_notebook_cwd() -> Result<()> {
     Ok(())
 }
 
+/// Generate smart dependency paths for evcxr notebooks that work from any location
+pub fn notebook_deps() -> Result<String> {
+    let here = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let nb_path = std::env::var("NOTEBOOK_PATH").ok().map(PathBuf::from);
+    let start = nb_path.unwrap_or_else(|| here.clone());
+    
+    if let Some(root) = find_repo_root(start.clone()) {
+        let rel_to_root = start.strip_prefix(&root).unwrap_or(&start);
+        let depth = rel_to_root.components().count();
+        let back_to_root = "../".repeat(depth);
+        
+        let candle_core_path = format!("{}candle-core", back_to_root);
+        let notebooks_path = format!("{}0aEXPLORATION/research/notebooks/candle_notebooks", back_to_root);
+        
+        Ok(format!(
+            r#":dep candle-core = {{ path = "{}", default-features = false }}
+:dep anyhow = "1"
+:dep candle-notebooks = {{ path = "{}" }}"#,
+            candle_core_path, notebooks_path
+        ))
+    } else {
+        // Fallback to absolute paths
+        let default_root = PathBuf::from("/home/rustuser/projects/rust/from_github/candle");
+        let candle_core = default_root.join("candle-core");
+        let notebooks = default_root.join("0aEXPLORATION/research/notebooks/candle_notebooks");
+            
+        Ok(format!(
+            r#":dep candle-core = {{ path = "{}", default-features = false }}
+:dep anyhow = "1"
+:dep candle-notebooks = {{ path = "{}" }}"#,
+            candle_core.display(), notebooks.display()
+        ))
+    }
+}
+
 /// Converts a string into Morse code.
 /// Each letter is separated by a space, and words are separated by a slash ('/').
 pub fn to_morse_code(input: &str) -> String {

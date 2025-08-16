@@ -105,7 +105,10 @@ impl CpuF16<ARR> for CurrentCpuF16 {
     unsafe fn load(mem_addr: *const f16) -> Self::Unit {
         let mut tmp = [0.0f32; 8];
         for i in 0..8 {
-            tmp[i] = (*mem_addr.add(i)).to_f32();
+            // SAFETY: caller guarantees `mem_addr` points to at least 8 valid f16 elements.
+            unsafe {
+                tmp[i] = (*mem_addr.add(i)).to_f32();
+            }
         }
         _mm256_loadu_ps(tmp.as_ptr())
     }
@@ -128,7 +131,10 @@ impl CpuF16<ARR> for CurrentCpuF16 {
         let mut tmp = [0.0f32; 8];
         _mm256_storeu_ps(tmp.as_mut_ptr(), a);
         for i in 0..8 {
-            *mem_addr.add(i) = f16::from_f32(tmp[i]);
+            // SAFETY: caller guarantees `mem_addr` points to at least 8 valid f16 elements.
+            unsafe {
+                *mem_addr.add(i) = f16::from_f32(tmp[i]);
+            }
         }
     }
 
@@ -186,7 +192,10 @@ impl CpuBF16<ARR> for CurrentCpuBF16 {
     unsafe fn load(mem_addr: *const bf16) -> Self::Unit {
         let mut tmp = [0.0f32; 8];
         for i in 0..8 {
-            tmp[i] = (*mem_addr.add(i)).to_f32();
+            // SAFETY: caller guarantees `mem_addr` points to at least 8 valid bf16 elements.
+            unsafe {
+                tmp[i] = (*mem_addr.add(i)).to_f32();
+            }
         }
         _mm256_loadu_ps(tmp.as_ptr())
     }
@@ -209,7 +218,10 @@ impl CpuBF16<ARR> for CurrentCpuBF16 {
         let mut tmp = [0.0f32; 8];
         _mm256_storeu_ps(tmp.as_mut_ptr(), a);
         for i in 0..8 {
-            *mem_addr.add(i) = bf16::from_f32(tmp[i]);
+            // SAFETY: caller guarantees `mem_addr` points to at least 8 valid bf16 elements.
+            unsafe {
+                *mem_addr.add(i) = bf16::from_f32(tmp[i]);
+            }
         }
     }
 

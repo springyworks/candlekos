@@ -42,6 +42,17 @@ The dependency paths should be adjusted based on notebook location:
 */
 
 pub use candle_core as candle;
+// Re-export key candle-core types directly for convenience
+pub use candle_core::{Tensor, Device, DType, D, Result as CandleResult};
+// Re-export anyhow helpers and provide a central Result alias for notebooks
+pub use anyhow::{bail, anyhow};
+pub use anyhow::Result as AnyResult;
+// Full module re-export under a short alias so notebooks can use `candle_notebooks::ah::Result`
+// without declaring a separate :dep anyhow.
+pub mod ah {
+    pub use anyhow::*;
+}
+
 // Re-export the egui_window module (currently a lightweight HTML mock) so notebooks can call it.
 pub mod egui_window;
 pub use base64;
@@ -54,11 +65,10 @@ pub use expr::{ExprEnv, eval_expr};
 pub mod helper;
 pub use helper::set_notebook_cwd;
 
-use ::anyhow::Result;
+use anyhow::Result;
 use ::base64::Engine as _;
 use ::base64::engine::general_purpose::STANDARD as BASE64;
 use ::image::ImageEncoder;
-use candle_core::{Device, Tensor};
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::fs;

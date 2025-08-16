@@ -123,7 +123,9 @@ pub(crate) unsafe fn vec_dot_f32(a_row: *const f32, b_row: *const f32, c: *mut f
     // leftovers
     for i in 0..k {
         // SAFETY: pointer validity guaranteed by caller.
-        *c += *a_row.add(i) * (*b_row.add(i));
+        unsafe {
+            *c += *a_row.add(i) * (*b_row.add(i));
+        }
     }
 }
 
@@ -167,7 +169,9 @@ pub(crate) unsafe fn vec_sum(row: *const f32, b: *mut f32, k: usize) {
     *b = 0f32;
     for i in 0..k {
         // SAFETY: i < k ensures row.add(i) valid, b valid for write.
-        *b += *row.add(i)
+        unsafe {
+            *b += *row.add(i)
+        }
     }
 }
 

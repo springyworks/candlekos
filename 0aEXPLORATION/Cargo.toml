@@ -8,6 +8,7 @@ default-run = "tensor_feedback_viz"
 candle-core = { path = "../candle-core" }
 candle-nn = { path = "../candle-nn" }
 candle-transformers = { path = "../candle-transformers" }
+candle-notebooks = { path = "research/notebooks/candle_notebooks" }
 fastrand = "2.0"
 imageproc = "0.25"
 minifb = "0.27"

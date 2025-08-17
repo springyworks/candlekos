@@ -1,0 +1,15 @@
+[package]
+name = "candle_tensor_programs"
+version = "0.1.0"
+edition = "2021"
+description = "Exploration crate: apply small expression programs (Lisp) element-wise to Candle tensors."
+
+[dependencies]
+candle-core = { path = "../../candle-core" }
+anyhow = "1"
+thiserror = "1"
+
+[features]
+default = ["lisp"]
+lisp = []
+rust-eval = [] # reserved for future evcxr-based evaluation

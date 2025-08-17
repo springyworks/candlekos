@@ -72,7 +72,32 @@ fn main() -> Result<()> {
     evcxr::runtime_hook();
 
     let mut args = std::env::args().skip(1);
-    match args.next().as_deref() {
+    let mut quiet = false;
+    let mut first_owned = args.next();
+    if first_owned.as_deref() == Some("--quiet") {
+        quiet = true;
+        first_owned = args.next();
+    }
+    let first = first_owned.as_deref();
+    if std::env::var("XTASK_QUIET").ok().as_deref() == Some("1") {
+        quiet = true;
+    }
+
+    if quiet {
+        // Make Rust warnings quiet and enable C suppression in build scripts where supported.
+        let rf = std::env::var("RUSTFLAGS").unwrap_or_default();
+        let add = if rf.is_empty() {
+            "-Awarnings".to_string()
+        } else {
+            format!("{rf} -Awarnings")
+        };
+        std::env::set_var("RUSTFLAGS", add);
+        std::env::set_var("CANDLE_QUIET", "1");
+        // Also tone down cargo's own output a bit where applicable.
+        std::env::set_var("CARGO_TERM_COLOR", "never");
+    }
+
+    match first {
         Some("list") => list()?,
         Some("check") => check(false)?,
         Some("check-all") => check(true)?,
@@ -94,6 +119,7 @@ fn main() -> Result<()> {
         Some(cmd) => anyhow::bail!("unknown subcommand: {cmd}"),
         None => {
             eprintln!("xtask commands:");
+            eprintln!("  --quiet                 - Suppress warnings and reduce noise");
             eprintln!("  list                    - Show canonical feature combinations");
             eprintln!("  check                   - Check canonical feature combinations");
             eprintln!("  check-all               - Check extended feature combinations");

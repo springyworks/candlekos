@@ -18,6 +18,7 @@ futures = "0.3"
 egui = { version = "0.27", default-features = true }
 eframe = { version = "0.27", default-features = true }
 meval = { version = "0.2", optional = true }
+candle_tensor_programs = { path = "candle_tensor_programs", optional = true }
 
 [features]
 default = []
@@ -26,6 +27,7 @@ cudnn = ["candle-core/cudnn", "candle-nn/cudnn", "candle-transformers/cudnn"]
 fft = ["candle-core/fft"]
 viz-debug = [] # enables additional debug logging paths in tensor_feedback_viz
 expr-fields = ["dep:meval"]
+programs = ["dep:candle_tensor_programs"]
 
 [[bin]]
 name = "code_overview"

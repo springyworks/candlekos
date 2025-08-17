@@ -8,6 +8,7 @@ use crate::{Layout, Result, bail};
 use cudarc::driver::{DevicePtr, DevicePtrMut}; // for device_ptr/device_ptr_mut
 
 #[cfg(feature = "gpu-fft-vkfft-ffi")]
+#[allow(dead_code)]
 unsafe extern "C" {
     fn candle_vkfft_header_sanity() -> ::std::os::raw::c_int;
     fn candle_vkfft_cuda_init_teardown(

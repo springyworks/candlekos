@@ -19,6 +19,20 @@ fn main() {
     // Be permissive about C standard to accommodate varied toolchains.
     build.flag_if_supported("-std=c11");
 
+    // Ultra-quiet option: when CANDLE_QUIET=1, suppress warnings from third-party C code.
+    if std::env::var_os("CANDLE_QUIET").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        // Disable warnings in cc and pass common suppression flags when supported.
+        build.warnings(false);
+        if !cfg!(target_env = "msvc") {
+            // GCC/Clang style flags
+            build.flag_if_supported("-w");
+            build.flag_if_supported("-Wno-unused-parameter");
+            build.flag_if_supported("-Wno-unused-variable");
+            build.flag_if_supported("-Wno-sign-compare");
+            build.flag_if_supported("-Wno-implicit-fallthrough");
+        }
+    }
+
     build.compile("candle_vkfft_wrapper");
 
     // Link with CUDA runtime and driver libraries used by VkFFT CUDA backend.

@@ -13,6 +13,7 @@ members = [
     # Notebook helpers for egui tensor display
     "0aEXPLORATION/research/notebooks/candle_notebooks",
     "0aEXPLORATION/candle_tensor_augment",
+    "0aEXPLORATION/candle_tensor_programs",
     "xtask",
 ]
 exclude = [

@@ -15,6 +15,7 @@ xtask test-all        # Same as check-all but for tests
 xtask lint-workspace  # Run clippy lints across the workspace
 xtask comprehensive   # Run comprehensive workspace health check
 xtask run-file <path> [cargo flags / -- program args]
+xtask --quiet <subcommand>        # Ultra-quiet mode (or set XTASK_QUIET=1)
 ```
 
 Note: If your terminal prints "notbook" during a long build, that's just our inner compiler goblin making puns. First runs warm the cache; subsequent runs are much faster.
@@ -45,6 +46,35 @@ Example extended run:
 ```bash
 XTASK_COMPREHENSIVE=1 XTASK_CORE_FFT=1 cargo run -p xtask -- comprehensive
 ```
+- Quiet mode:
+
+You can suppress most warnings and noisy compiler output for third-party code paths (like VkFFT C):
+
+```bash
+cargo run -p xtask -- --quiet comprehensive
+# or
+XTASK_QUIET=1 cargo run -p xtask -- comprehensive
+```
+
+Quiet mode sets RUSTFLAGS=-Awarnings and CANDLE_QUIET=1 (recognized by build scripts) to mute benign warnings.
+
+
+#### How to use ultra‑quiet mode
+
+Quiet for any xtask command:
+
+xtask flag:
+
+```bash
+cargo run -p xtask -- --quiet comprehensive
+```
+
+or environment:
+
+```bash
+XTASK_QUIET=1 cargo run -p xtask -- comprehensive
+```
+
 
 Notes:
 - The FFT path may require third-party headers (VkFFT submodule) and CUDA toolchain if you enable GPU-related features.

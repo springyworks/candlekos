@@ -29,7 +29,13 @@
 use anyhow::{Context, Result};
 use cargo_metadata::MetadataCommand;
 use std::collections::BTreeSet;
+use std::path::Path;
 use std::process::Command;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use std::time::{Duration, Instant};
 
 // Canonical feature combos we care about in fast CI (exploration crate scope).
 // NOTE: We intentionally do not list an invalid combination like `cudnn` without
@@ -60,6 +66,11 @@ const CORE_GPU_FFT_COMBOS: &[&[&str]] = &[
 
 /// Entry point dispatching to the various subcommands.
 fn main() -> Result<()> {
+    // Initialize evcxr runtime so evaluation contexts can be created safely.
+    // This must be called before creating any evcxr contexts (REPL/Jupyter/CommandContext).
+    // It's a no-op if evcxr isn't used during this run.
+    evcxr::runtime_hook();
+
     let mut args = std::env::args().skip(1);
     match args.next().as_deref() {
         Some("list") => list()?,
@@ -70,6 +81,7 @@ fn main() -> Result<()> {
         Some("lint") => lint()?,
         Some("lint-workspace") => lint_workspace()?,
         Some("comprehensive") => comprehensive_test()?,
+        Some("test-notebooks") => test_notebooks()?,
         Some("run-file") => {
             if let Some(path) = args.next() {
                 run_file(&path, args.collect())?;
@@ -90,6 +102,7 @@ fn main() -> Result<()> {
             eprintln!("  lint                    - Run clippy on xtask + exploration crates");
             eprintln!("  lint-workspace          - Run clippy on entire workspace");
             eprintln!("  comprehensive           - Run comprehensive workspace testing");
+            eprintln!("  test-notebooks          - Test all Rust notebooks for execution");
             eprintln!("  run-file <file>         - Run a Rust file or open notebook");
         }
     }
@@ -720,5 +733,249 @@ fn comprehensive_test() -> Result<()> {
             test_count - passed_count,
             test_count
         )
+    }
+}
+
+/// Test all Rust notebooks in the workspace for execution
+fn test_notebooks() -> Result<()> {
+    use std::path::Path;
+
+    println!("🧪 Testing Rust notebooks via evcxr (single shared session)...");
+    // Ensure evcxr cache directory is stable across runs to avoid repeated rebuilds
+    let workspace_cache = std::env::current_dir()?.join("target").join("evcxr-cache");
+    std::fs::create_dir_all(&workspace_cache).ok();
+    std::env::set_var("EVCXR_BASE_DIR", &workspace_cache);
+
+    // Find all notebooks
+    let mut notebooks = Vec::new();
+    find_notebooks_recursive(Path::new("."), &mut notebooks)?;
+
+    if notebooks.is_empty() {
+        println!("📋 No notebooks found in workspace");
+        return Ok(());
+    }
+
+    println!("📋 Found {} notebook(s) to test", notebooks.len());
+
+    // Test notebooks efficiently using a shared session approach
+    test_notebooks_efficiently(&notebooks)
+}
+
+/// Test notebooks efficiently by extracting and running code cells with evcxr crate
+fn test_notebooks_efficiently(notebooks: &[std::path::PathBuf]) -> Result<()> {
+    use std::fs;
+
+    println!("🦀 Using evcxr crate directly for notebook testing (supports :dep, etc.)...");
+
+    // Create an evcxr command-context which understands evcxr directives (e.g., :dep)
+    let (mut evcxr_cmd, _outputs) = evcxr::CommandContext::new()
+        .context("failed to create evcxr command context; ensure evcxr::runtime_hook() was called early and toolchain is available")?;
+
+    // Prefer fast compiles; notebooks prioritize quick iteration over runtime perf
+    let _ = evcxr_cmd.set_opt_level("0");
+
+    // Make the session tolerant to "virtual output only" runs: don't fail on unused items/macros
+    // Apply as crate-level attributes early, before any other code is compiled
+    let crate_allows = r#"#![allow(unused_macros)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(dead_code)]
+"#;
+    let _ = evcxr_cmd.execute(crate_allows);
+
+    // Preload a minimal prelude to amortize dependency builds across notebooks
+    let prelude = r#"
+:toolchain stable
+:dep anyhow = "1"
+:dep image = "0.24"
+:dep candle-notebooks = "0.1.0"
+use candle_notebooks::*;
+use std::fs;
+"#;
+    println!("⚙️  Loading evcxr prelude (first time may be slow, compiling deps)...");
+    if let Err(e) = exec_with_timeout(
+        &mut evcxr_cmd,
+        prelude,
+        env_cell_timeout("XTASK_NOTEBOOK_PRELOAD_TIMEOUT", 1800),
+    ) {
+        eprintln!("⚠️  Prelude load failed (continuing): {e}");
+    } else {
+        println!("⚙️  Evcxr prelude loaded (cached deps warmed).");
+    }
+
+    let mut total_cells = 0;
+    let mut processed_notebooks = 0;
+
+    // Process each notebook
+    for notebook_path in notebooks.iter() {
+        // Skip notebooks with known dependency issues
+        if notebook_path.to_string_lossy().contains("egui_window_demo") {
+            println!(
+                "⏭️  Skipping {} (external-window feature not in published crate)",
+                notebook_path.display()
+            );
+            continue;
+        }
+
+        println!("📖 Processing: {}", notebook_path.display());
+
+        let notebook_content = match fs::read_to_string(notebook_path) {
+            Ok(content) => content,
+            Err(e) => {
+                eprintln!(
+                    "⚠️  Skipping {}: Failed to read - {}",
+                    notebook_path.display(),
+                    e
+                );
+                continue;
+            }
+        };
+
+        let notebook: serde_json::Value = match serde_json::from_str(&notebook_content) {
+            Ok(nb) => nb,
+            Err(e) => {
+                eprintln!(
+                    "⚠️  Skipping {}: Invalid JSON - {}",
+                    notebook_path.display(),
+                    e
+                );
+                continue;
+            }
+        };
+
+        // Extract and execute code cells from this notebook
+        if let Some(cells) = notebook["cells"].as_array() {
+            for (cell_idx, cell) in cells.iter().enumerate() {
+                if cell["cell_type"] == "code" {
+                    if let Some(source) = cell["source"].as_array() {
+                        let source_text =
+                            source.iter().filter_map(|s| s.as_str()).collect::<String>();
+
+                        // Skip empty cells
+                        if source_text.trim().is_empty() {
+                            continue;
+                        }
+
+                        println!(
+                            "  🔄 Executing cell {}: {}",
+                            cell_idx + 1,
+                            source_text
+                                .lines()
+                                .next()
+                                .unwrap_or("")
+                                .chars()
+                                .take(80)
+                                .collect::<String>()
+                        );
+
+                        // Execute the code (and any evcxr directives) with timeout and heartbeat
+                        if let Err(e) = exec_with_timeout(
+                            &mut evcxr_cmd,
+                            &source_text,
+                            env_cell_timeout("XTASK_NOTEBOOK_CELL_TIMEOUT", 900),
+                        ) {
+                            eprintln!("    ❌ Execution failed: {e}");
+                            if let Ok(src) = evcxr_cmd.last_source() {
+                                eprintln!("---- EVCXR GENERATED SOURCE (for debugging) ----\n{src}\n-----------------------------------------------");
+                            }
+                            anyhow::bail!(
+                                "Cell execution failed in {} (cell {}): {}",
+                                notebook_path.display(),
+                                cell_idx + 1,
+                                e
+                            );
+                        }
+
+                        total_cells += 1;
+                    }
+                }
+            }
+        }
+
+        processed_notebooks += 1;
+    }
+
+    if processed_notebooks == 0 {
+        println!("⚠️  No valid notebooks found to test");
+        return Ok(());
+    }
+
+    println!("✅ All notebook code executed successfully!");
+    println!("📊 Tested {total_cells} cells from {processed_notebooks} notebooks");
+
+    Ok(())
+}
+
+/// Recursively find all .ipynb files, excluding target and .git directories
+fn find_notebooks_recursive(dir: &Path, notebooks: &mut Vec<std::path::PathBuf>) -> Result<()> {
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            let dir_name = path.file_name().and_then(|s| s.to_str());
+            if dir_name == Some("target") || dir_name == Some(".git") {
+                continue; // Skip these directories
+            }
+            find_notebooks_recursive(&path, notebooks)?;
+        } else if path.extension().and_then(|s| s.to_str()) == Some("ipynb") {
+            notebooks.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// Get a timeout in seconds from env var or default
+fn env_cell_timeout(var: &str, default_secs: u64) -> u64 {
+    std::env::var(var)
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .unwrap_or(default_secs)
+}
+
+/// Execute code in evcxr with a watchdog timeout and periodic heartbeat.
+fn exec_with_timeout(cmd: &mut evcxr::CommandContext, code: &str, timeout_secs: u64) -> Result<()> {
+    let start = Instant::now();
+    let done = Arc::new(AtomicBool::new(false));
+    let done_flag = done.clone();
+    let ph = cmd.process_handle();
+    let heartbeat_every = Duration::from_secs(5);
+    let timeout = Duration::from_secs(timeout_secs);
+
+    // Heartbeat / timeout thread
+    std::thread::spawn(move || {
+        let mut last = Instant::now();
+        loop {
+            if done_flag.load(Ordering::Relaxed) {
+                break;
+            }
+            let elapsed = start.elapsed();
+            if elapsed >= timeout {
+                if let Ok(mut guard) = ph.lock() {
+                    let _ = guard.kill();
+                }
+                eprintln!("⏰ Timeout after {timeout_secs}s; killed evcxr child process");
+                break;
+            }
+            if last.elapsed() >= heartbeat_every {
+                eprintln!("  … compiling (t={}s)", elapsed.as_secs());
+                last = Instant::now();
+            }
+            std::thread::sleep(Duration::from_millis(250));
+        }
+    });
+
+    let res = cmd.execute(code);
+    done.store(true, Ordering::Relaxed);
+    match res {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            if start.elapsed() >= timeout {
+                anyhow::bail!("execution timed out after {}s: {}", timeout_secs, e);
+            } else {
+                Err(anyhow::anyhow!(e))
+            }
+        }
     }
 }

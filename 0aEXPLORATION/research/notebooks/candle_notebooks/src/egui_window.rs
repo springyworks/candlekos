@@ -12,14 +12,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// Arguments:
 /// - `title`: Title bar text.
 /// - `body_html`: Raw HTML content placed inside the window body region.
-/// Returns nothing; prints an HTML block captured by evcxr.
+///   Returns nothing; prints an HTML block captured by evcxr.
 pub fn open(title: &str, body_html: &str) {
     // Provide a unique-ish id so repeated windows don't conflict with element ids.
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_millis())
         .unwrap_or(0);
-    let id = format!("eguiwin-{}", ts);
+    let id = format!("eguiwin-{ts}");
     let style = r#"
 		box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 		border: 1px solid #2d3640;
@@ -57,15 +57,14 @@ pub fn open(title: &str, body_html: &str) {
         html_escape::encode_text(title),
         body_html
     );
-    println!("EVCXR_BEGIN_CONTENT text/html\n{}\nEVCXR_END_CONTENT", html);
+    println!("EVCXR_BEGIN_CONTENT text/html\n{html}\nEVCXR_END_CONTENT");
 }
 
 /// Convenience to open a window with pre-escaped plain text body content.
 pub fn open_text(title: &str, body_text: &str) {
     let escaped = html_escape::encode_text(body_text);
     let pre = format!(
-        "<pre style=\"margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;\">{}</pre>",
-        escaped
+        "<pre style=\"margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;\">{escaped}</pre>"
     );
     open(title, &pre);
 }
@@ -79,7 +78,7 @@ pub fn open_color_squares(title: &str) {
 			"<div style=\"width:32px;height:32px;display:inline-block;margin:3px;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,0.4) inset;background:hsl({h},70%,50%);\"></div>"
 		));
     }
-    let container = format!("<div>{}</div>", squares);
+    let container = format!("<div>{squares}</div>");
     open(title, &container);
 }
 

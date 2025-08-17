@@ -43,10 +43,10 @@ The dependency paths should be adjusted based on notebook location:
 
 pub use candle_core as candle;
 // Re-export key candle-core types directly for convenience
-pub use candle_core::{Tensor, Device, DType, D, Result as CandleResult};
+pub use candle_core::{D, DType, Device, Result as CandleResult, Tensor};
 // Re-export anyhow helpers and provide a central Result alias for notebooks
-pub use anyhow::{bail, anyhow};
 pub use anyhow::Result as AnyResult;
+pub use anyhow::{anyhow, bail};
 // Full module re-export under a short alias so notebooks can use `candle_notebooks::ah::Result`
 // without declaring a separate :dep anyhow.
 pub mod ah {
@@ -65,10 +65,10 @@ pub use expr::{ExprEnv, eval_expr};
 pub mod helper;
 pub use helper::set_notebook_cwd;
 
-use anyhow::Result;
 use ::base64::Engine as _;
 use ::base64::engine::general_purpose::STANDARD as BASE64;
 use ::image::ImageEncoder;
+use anyhow::Result;
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::fs;
@@ -76,7 +76,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 
 /// Display a single-channel f32 tensor as grayscale PNG in evcxr output.
-/// - Expects shape (H, W) or (1, H, W). Values outside [0,1] will be clamped.
+/// - Expects shape (H, W) or (1, H, W). Values outside \[0,1] will be clamped.
 pub fn show_tensor_gray(img: &Tensor) -> Result<()> {
     let img = if img.dims().len() == 3 {
         img.squeeze(0)?
@@ -95,12 +95,7 @@ pub fn show_tensor_gray(img: &Tensor) -> Result<()> {
     for y in 0..h {
         for x in 0..w {
             let mut p = v[y][x];
-            if p < 0.0 {
-                p = 0.0;
-            }
-            if p > 1.0 {
-                p = 1.0;
-            }
+            p = p.clamp(0.0, 1.0);
             buf[y * w + x] = (p * 255.0).round() as u8;
         }
     }
@@ -112,12 +107,12 @@ pub fn show_tensor_gray(img: &Tensor) -> Result<()> {
     // Save to disk if configured.
     let _ = save_png_if_configured(&png, "gray");
     let b64 = BASE64.encode(png);
-    println!("EVCXR_BEGIN_CONTENT image/png\n{}\nEVCXR_END_CONTENT", b64);
+    println!("EVCXR_BEGIN_CONTENT image/png\n{b64}\nEVCXR_END_CONTENT");
     Ok(())
 }
 
 /// Display an RGB f32 tensor as color PNG in evcxr output.
-/// - Expects shape (3, H, W). Values in [0,1] recommended; clamped otherwise.
+/// - Expects shape (3, H, W). Values in \[0,1] recommended; clamped otherwise.
 pub fn show_tensor_rgb(img: &Tensor) -> Result<()> {
     let dims = img.dims();
     if dims.len() != 3 || dims[0] != 3 {
@@ -146,11 +141,11 @@ pub fn show_tensor_rgb(img: &Tensor) -> Result<()> {
     // Save to disk if configured.
     let _ = save_png_if_configured(&png, "rgb");
     let b64 = BASE64.encode(png);
-    println!("EVCXR_BEGIN_CONTENT image/png\n{}\nEVCXR_END_CONTENT", b64);
+    println!("EVCXR_BEGIN_CONTENT image/png\n{b64}\nEVCXR_END_CONTENT");
     Ok(())
 }
 
-/// Return a data URL (image/png;base64,...) for an RGB tensor (3,H,W) in [0,1].
+/// Return a data URL (image/png;base64,...) for an RGB tensor (3,H,W) in \[0,1].
 pub fn tensor_to_png_data_url_rgb(img: &Tensor) -> Result<String> {
     let dims = img.dims();
     if dims.len() != 3 || dims[0] != 3 {
@@ -176,7 +171,7 @@ pub fn tensor_to_png_data_url_rgb(img: &Tensor) -> Result<String> {
     Ok(format!("data:image/png;base64,{}", BASE64.encode(png)))
 }
 
-/// Return a data URL (image/png;base64,...) for a grayscale tensor (H,W) or (1,H,W) in [0,1].
+/// Return a data URL (image/png;base64,...) for a grayscale tensor (H,W) or (1,H,W) in \[0,1].
 pub fn tensor_to_png_data_url_gray(img: &Tensor) -> Result<String> {
     let img = if img.dims().len() == 3 {
         img.squeeze(0)?
@@ -197,12 +192,7 @@ pub fn tensor_to_png_data_url_gray(img: &Tensor) -> Result<String> {
     for y in 0..h {
         for x in 0..w {
             let mut p = v[y][x];
-            if p < 0.0 {
-                p = 0.0;
-            }
-            if p > 1.0 {
-                p = 1.0;
-            }
+            p = p.clamp(0.0, 1.0);
             buf[y * w + x] = (p * 255.0).round() as u8;
         }
     }
@@ -255,7 +245,7 @@ pub fn set_image_store_rel_dir(dir: &str) -> Result<()> {
         "<div style=\"font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 11px; color: #5e6a75;\">Saving images to: <code>{}</code></div>",
         abs.display()
     );
-    println!("EVCXR_BEGIN_CONTENT text/html\n{}\nEVCXR_END_CONTENT", html);
+    println!("EVCXR_BEGIN_CONTENT text/html\n{html}\nEVCXR_END_CONTENT");
     Ok(())
 }
 
@@ -266,7 +256,7 @@ fn save_png_if_configured(png: &[u8], prefix: &str) -> Option<PathBuf> {
     guard.1 += 1;
     let n = guard.1;
     drop(guard); // release lock before filesystem write
-    let filename = format!("{}_{:04}.png", prefix, n);
+    let filename = format!("{prefix}_{n:04}.png");
     let path = dir.join(filename);
     if let Err(e) = fs::write(&path, png) {
         eprintln!("warn: failed to save PNG to {}: {}", path.display(), e);
@@ -294,21 +284,15 @@ fn caption_html_string(
     saved: Option<&Path>,
 ) -> String {
     let mut body = String::new();
-    if let Some(cap) = caption {
-        if !cap.trim().is_empty() {
-            let _ = writeln!(body, "{}", escape_html(cap));
-        }
+    if let Some(cap) = caption.filter(|c| !c.trim().is_empty()) {
+        let _ = writeln!(body, "{}", escape_html(cap));
     }
     let _ = writeln!(body, "Dims: {}", escape_html(shape));
-    if let Some(inp) = input_desc {
-        if !inp.trim().is_empty() {
-            let _ = writeln!(body, "Input: {}", escape_html(inp));
-        }
+    if let Some(inp) = input_desc.filter(|i| !i.trim().is_empty()) {
+        let _ = writeln!(body, "Input: {}", escape_html(inp));
     }
-    if let Some(out) = output_desc {
-        if !out.trim().is_empty() {
-            let _ = writeln!(body, "Output: {}", escape_html(out));
-        }
+    if let Some(out) = output_desc.filter(|o| !o.trim().is_empty()) {
+        let _ = writeln!(body, "Output: {}", escape_html(out));
     }
     if let Some(p) = saved {
         let _ = writeln!(body, "Saved: {}", escape_html(&p.display().to_string()));
@@ -351,23 +335,18 @@ pub fn show_tensor_gray_captioned(
         Err(_) => String::new(),
     };
     let cap_html = caption_html_string(&shape, caption, input_desc, output_desc, saved.as_deref());
-    let combined = format!("{}\n{}", img_html, cap_html);
-    println!(
-        "EVCXR_BEGIN_CONTENT text/html\n{}\nEVCXR_END_CONTENT",
-        combined
-    );
+    let combined = format!("{img_html}\n{cap_html}");
+    println!("EVCXR_BEGIN_CONTENT text/html\n{combined}\nEVCXR_END_CONTENT");
     // Plain-text fallback for terminals/viewers that hide HTML captions
     let mut plain = String::new();
-    if let Some(c) = caption {
-        if !c.is_empty() {
-            let _ = write!(plain, "Caption: {}  ", c);
-        }
+    if let Some(c) = caption.filter(|c| !c.is_empty()) {
+        let _ = write!(plain, "Caption: {c}  ");
     }
-    let _ = write!(plain, "Dims: {}", shape);
+    let _ = write!(plain, "Dims: {shape}");
     if let Some(p) = saved.as_deref() {
         let _ = write!(plain, "  Saved: {}", p.display());
     }
-    println!("{}", plain);
+    println!("{plain}");
     Ok(())
 }
 
@@ -397,7 +376,7 @@ pub fn counter_current(key: &str) -> usize {
 }
 
 /// Display RGB image then print a caption under it (HTML, monospace).
-/// - Expects (3,H,W). Values are clamped to [0,1].
+/// - Expects (3,H,W). Values are clamped to \[0,1].
 /// - The PNG is emitted first (so VS Code Plots captures it), then an HTML caption
 ///   is emitted with dims and optional caption/input/output descriptions.
 pub fn show_tensor_rgb_captioned(
@@ -425,22 +404,17 @@ pub fn show_tensor_rgb_captioned(
         Err(_) => String::new(),
     };
     let cap_html = caption_html_string(&shape, caption, input_desc, output_desc, saved.as_deref());
-    let combined = format!("{}\n{}", img_html, cap_html);
-    println!(
-        "EVCXR_BEGIN_CONTENT text/html\n{}\nEVCXR_END_CONTENT",
-        combined
-    );
+    let combined = format!("{img_html}\n{cap_html}");
+    println!("EVCXR_BEGIN_CONTENT text/html\n{combined}\nEVCXR_END_CONTENT");
     // Plain-text fallback for terminals/viewers that hide HTML captions
     let mut plain = String::new();
-    if let Some(c) = caption {
-        if !c.is_empty() {
-            let _ = write!(plain, "Caption: {}  ", c);
-        }
+    if let Some(c) = caption.filter(|c| !c.is_empty()) {
+        let _ = write!(plain, "Caption: {c}  ");
     }
-    let _ = write!(plain, "Dims: {}", shape);
+    let _ = write!(plain, "Dims: {shape}");
     if let Some(p) = saved.as_deref() {
         let _ = write!(plain, "  Saved: {}", p.display());
     }
-    println!("{}", plain);
+    println!("{plain}");
     Ok(())
 }

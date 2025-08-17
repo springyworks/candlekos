@@ -105,6 +105,7 @@ impl TensorClosedLoopViz {
     <END archived helpers>
     */
 
+    #[allow(dead_code)] // helper not used in all modes; kept for experimentation
     fn apply_spatial_filter(&self, input: &Tensor) -> Result<Tensor> {
         let data = input.to_vec2::<f32>()?;
         let mut output = vec![0.0; TENSOR_HEIGHT * TENSOR_WIDTH];
@@ -119,6 +120,7 @@ impl TensorClosedLoopViz {
         Tensor::from_vec(output, &[TENSOR_HEIGHT, TENSOR_WIDTH], &self.device)
     }
 
+    #[allow(dead_code)] // helper not used in all modes; kept for experimentation
     fn apply_convolution(&self, input: &Tensor) -> Result<Tensor> {
         // Apply different convolution kernels
         let kernel = match self.filter_type {
@@ -206,6 +208,7 @@ impl TensorClosedLoopViz {
     }
 
     // Create modulation pattern from another tensor's characteristics
+    #[allow(dead_code)] // helper not used in all modes; kept for experimentation
     fn create_modulation_from_tensor(&self, tensor: &Tensor, phase: f32) -> Result<Vec<f32>> {
         let squeezed = tensor.squeeze(0)?.squeeze(0)?;
         let data = self.debug_flat_vec(&squeezed, "create_modulation_from_tensor.tensor")?;
@@ -230,6 +233,7 @@ impl TensorClosedLoopViz {
     }
 
     // Apply tensor modulation (element-wise multiplication with modulation pattern)
+    #[allow(dead_code)] // helper not used in all modes; kept for experimentation
     fn apply_tensor_modulation(
         &self,
         tensor: &Tensor,
@@ -806,7 +810,7 @@ impl TensorClosedLoopViz {
         )
         .map_err(|e| candle_core::Error::Msg(format!("Failed to create window: {:?}", e)))?;
 
-        let mut viz = TensorClosedLoopViz {
+        let viz = TensorClosedLoopViz {
             tensor_a: Self::create_initial_pattern(&device, 0)?,
             tensor_b: Self::create_initial_pattern(&device, 1)?,
             device,

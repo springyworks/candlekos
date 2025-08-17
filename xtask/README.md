@@ -17,6 +17,8 @@ xtask comprehensive   # Run comprehensive workspace health check
 xtask run-file <path> [cargo flags / -- program args]
 ```
 
+Note: If your terminal prints "notbook" during a long build, that's just our inner compiler goblin making puns. First runs warm the cache; subsequent runs are much faster.
+
 ### Workspace Health Commands
 
 The workspace health commands provide comprehensive testing and analysis:
@@ -31,6 +33,22 @@ The workspace health commands provide comprehensive testing and analysis:
   - Code formatting verification
 
 The comprehensive command provides a detailed summary with pass/fail counts and specific error details for debugging.
+
+Extended mode:
+
+- You can expand coverage with environment variables:
+  - `XTASK_COMPREHENSIVE=1` – widens the feature/test matrix and runs additional checks.
+  - `XTASK_CORE_FFT=1` – includes candle-core GPU FFT combos (e.g. VkFFT) in the matrix.
+
+Example extended run:
+
+```bash
+XTASK_COMPREHENSIVE=1 XTASK_CORE_FFT=1 cargo run -p xtask -- comprehensive
+```
+
+Notes:
+- The FFT path may require third-party headers (VkFFT submodule) and CUDA toolchain if you enable GPU-related features.
+- First runs will build more artifacts; subsequent runs are much faster.
 
 ### run-file details
 
@@ -99,3 +117,15 @@ CANDLE_CUDA_DEVICE=0 cargo run -p xtask -- run-file {resource}
 - Timing / profiling helpers.
 
 Contributions welcome.
+
+---
+
+Tip: cargo test
+
+This workspace prefers running the xtask comprehensive suite for holistic health checks. If you habitually run `cargo test` at the root, consider instead:
+
+```bash
+cargo run -p xtask -- comprehensive
+```
+
+Or enable the extended matrix as shown above. A future iteration may add a small test that prints a friendly pointer when invoking `cargo test`.

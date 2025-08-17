@@ -3,7 +3,7 @@ use libc::{c_char, c_double, c_float, c_int};
 
 mod ffi {
     use super::*;
-    extern "C" {
+    unsafe extern "C" {
         pub fn vsTanh(n: c_int, a: *const c_float, y: *mut c_float);
         pub fn vdTanh(n: c_int, a: *const c_double, y: *mut c_double);
         pub fn vsExp(n: c_int, a: *const c_float, y: *mut c_float);

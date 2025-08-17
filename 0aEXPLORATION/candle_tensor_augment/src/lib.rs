@@ -1,5 +1,9 @@
-use candle_core::{Device, Tensor};
+#[cfg(feature = "expr")]
+use candle_core::Device;
+use candle_core::Tensor;
+#[cfg(feature = "expr")]
 use meval::{Context, Expr};
+#[cfg(feature = "expr")]
 use std::str::FromStr;
 
 pub trait TensorAugment {
@@ -15,9 +19,10 @@ impl TensorAugment for Tensor {
 }
 
 /// Trait to fill a tensor with values from a math expression string.
+#[cfg(feature = "expr")]
 pub trait TensorMathFill {
     /// Fill a tensor of shape (h, w) with values from a math expression string.
-    /// The expression can use variables x and y (normalized to [0,1]).
+    /// The expression can use variables x and y (normalized to \[0,1]).
     fn fill_with_expr(
         h: usize,
         w: usize,
@@ -26,6 +31,7 @@ pub trait TensorMathFill {
     ) -> candle_core::Result<Tensor>;
 }
 
+#[cfg(feature = "expr")]
 impl TensorMathFill for Tensor {
     fn fill_with_expr(
         h: usize,

@@ -26,7 +26,7 @@ pub fn radial_field(h: usize, w: usize, device: &Device) -> Result<Tensor> {
     (gx.sqr()? + gy.sqr()?)?.sqrt()
 }
 
-/// Generate a blended sinusoidal procedural texture in [0,1].
+/// Generate a blended sinusoidal procedural texture in \[0,1].
 /// pattern = 0.5 + 0.5*sin(fr * r - t) + 0.25*sin(fx*x + fy*y + t)
 pub fn sinusoidal_mix(
     h: usize,
@@ -47,10 +47,10 @@ pub fn sinusoidal_mix(
     let lin = ((&gx * freq_x)? + (&gy * freq_y)?)?; // 5x + 3y style
     let wave2 = (lin + t64)?.sin()?;
     let wave2 = (wave2 * 0.25)?; // amplitude 0.25
-    Ok((&wave1 + &wave2)?) // still roughly [0,1]
+    &wave1 + &wave2 // still roughly [0,1]
 }
 
-/// Generate a checkerboard pattern with given square size (in pixels). Values in [0,1].
+/// Generate a checkerboard pattern with given square size (in pixels). Values in \[0,1].
 pub fn checkerboard_field(h: usize, w: usize, square: usize, device: &Device) -> Result<Tensor> {
     let square = square.max(1);
     let mut vals = Vec::with_capacity(h * w);
@@ -72,8 +72,8 @@ pub fn value_noise_field(
     device: &Device,
 ) -> Result<Tensor> {
     let step = lattice_step.max(2);
-    let grid_h = (h + step - 1) / step + 1;
-    let grid_w = (w + step - 1) / step + 1;
+    let grid_h = h.div_ceil(step) + 1;
+    let grid_w = w.div_ceil(step) + 1;
     let mut anchors = Vec::with_capacity(grid_h * grid_w);
     for _ in 0..(grid_h * grid_w) {
         anchors.push(fastrand::f32());
@@ -104,7 +104,7 @@ pub fn value_noise_field(
     Tensor::from_vec(out, (h, w), device)
 }
 
-/// Gaussian noise field in [0,1] produced by sampling N(0,1) and mapping via sigmoid.
+/// Gaussian noise field in \[0,1] produced by sampling N(0,1) and mapping via sigmoid.
 pub fn gaussian_noise_field(h: usize, w: usize, device: &Device) -> Result<Tensor> {
     let mut vals = Vec::with_capacity(h * w);
     // Box-Muller
@@ -174,7 +174,7 @@ where
         }
         x = x.clamp(0.0, 1.0);
         let (r, g, b) = colormap(x);
-        out[i * 4 + 0] = r;
+        out[i * 4] = r;
         out[i * 4 + 1] = g;
         out[i * 4 + 2] = b;
         out[i * 4 + 3] = 255;

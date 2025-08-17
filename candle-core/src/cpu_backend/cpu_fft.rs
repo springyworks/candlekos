@@ -67,7 +67,7 @@ impl CpuFft {
         use std::ffi::c_void;
 
         // Intel MKL DFT interface
-        extern "C" {
+        unsafe extern "C" {
             fn DftiCreateDescriptor(
                 hand: *mut *mut c_void,
                 precision: i32,

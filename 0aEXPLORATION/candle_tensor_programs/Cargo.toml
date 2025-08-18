@@ -7,7 +7,7 @@ description = "Exploration crate: apply small expression programs (Lisp) element
 [dependencies]
 candle-core = { path = "../../candle-core" }
 anyhow = "1"
-thiserror = "1"
+thiserror = "2"
 
 [features]
 default = ["lisp"]
